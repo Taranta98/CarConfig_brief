@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\UserRequest\StoreUserRequest;
 use App\Http\Requests\UserRequest\UpdateUserRequest;
+use App\Http\Resources\UserResource;
 use App\Models\User;
 use Illuminate\Http\Request;
 
@@ -14,7 +15,7 @@ class UserController extends Controller
      */
     public function index()
     {
-        return User::all();
+        return UserResource::collection(User::all());
     }
 
     /**
@@ -24,7 +25,10 @@ class UserController extends Controller
     {
         $data = $request->validated();
         $user = User::create($data);
-        return response()->json($user, 201);
+        return response()->json([
+            'message' => 'User created successfully',
+            'user' => new UserResource($user)
+        ], 201);
     }
 
     /**
@@ -32,7 +36,7 @@ class UserController extends Controller
      */
     public function show(User $user)
     {
-        return $user;
+        return new UserResource($user);
     }
 
     /**
