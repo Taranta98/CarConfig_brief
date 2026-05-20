@@ -2,6 +2,10 @@
 
 namespace App\Services;
 
+use App\Models\Configuration;
+
+
+
 class PricingService
 {
     /**
@@ -15,7 +19,7 @@ class PricingService
 {
     $base = $this->getBasePrice($configuration);
     $trim = $this->getTrimPrice($configuration);
-    $optionals = $this->getOptionalsPrice($configuration);
+    $optionals = $this->getOptionalsPrices($configuration);
 
     $subtotal = $base + $trim + $optionals;
 
@@ -52,7 +56,7 @@ public function calculateTotal(Configuration $configuration): float
         return $configuration->trim->price ?? 0;
     }
 
-    protected function getOptionalPrices(Configuration $configuration): float
+    protected function getOptionalsPrices(Configuration $configuration): float
     {
         return $configuration->optionals->sum(function($optional){
             return $optional->pivot->price_snapshot ?? 0;
