@@ -25,7 +25,7 @@ class StoreVehicleRequest extends FormRequest
         return [
             'name' => 'required|string|max:255',
             'model' => 'required|string|max:255',
-            'image' => 'required|string|max:255',
+            'image' => 'required|string|max:2048',
             'co2_emissions' => 'required|string|max:255',
             'base_price' => 'required|integer|min:0',
         ];

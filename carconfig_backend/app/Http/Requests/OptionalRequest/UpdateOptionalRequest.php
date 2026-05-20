@@ -29,6 +29,7 @@ class UpdateOptionalRequest extends FormRequest
             'category' => 'sometimes|string|max:255',
             'is_required' => 'sometimes|boolean',
             'vehicle_id' => 'sometimes|exists:vehicles,id',
+            'nullable' => 'nullable|string|max:2048'
         ];
     }
 }

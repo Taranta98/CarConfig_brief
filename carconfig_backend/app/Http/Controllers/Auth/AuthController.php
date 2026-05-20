@@ -7,7 +7,6 @@ use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegisterRequest;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 
@@ -20,6 +19,7 @@ class AuthController extends Controller
         $user = User::create([
             'first_name' => $data['first_name'],
             'last_name' => $data['last_name'],
+            'age' => $data['age'],
             'email' => $data['email'],
             'password' => Hash::make($data['password'])
         ]);
@@ -27,7 +27,7 @@ class AuthController extends Controller
         event(new Registered($user));
 
         return response()->json([
-            'messsage' => 'User registered successfully',
+            'message' => 'User registered successfully',
             'user' => $user
         ], 201);
     }

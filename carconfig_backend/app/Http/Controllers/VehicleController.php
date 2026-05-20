@@ -7,6 +7,8 @@ use App\Http\Requests\VehicleRequest\UpdateVehicleRequest;
 use App\Http\Resources\VehicleResource;
 use App\Models\Vehicle;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+
 
 class VehicleController extends Controller
 {
@@ -15,7 +17,7 @@ class VehicleController extends Controller
      */
     public function index()
     {
-        return VehicleResource::collection(Vehicle::all());
+        return VehicleResource::collection(Vehicle::paginate(5));
     }
 
     /**
@@ -23,12 +25,30 @@ class VehicleController extends Controller
      */
     public function store(StoreVehicleRequest $request)
     {
-        $data = $request->validated();
-        $vehicle = Vehicle::create($data);
-        return response()->json([
-            'message' => 'Vehicle created successfully',
-            'vehicle' => new VehicleResource($vehicle)
-        ], 201);
+        $imagePath= null;
+
+        try {
+                if($request->hasFile('img')) {
+                    $imagePath = $request->file('img')->store('vehicles', 'public');
+                }
+
+            $data = $request->validated();
+            $data['image'] = $imagePath;
+
+        
+            $vehicle = Vehicle::create($data);
+
+            return response()->json([
+                'message' => 'Vehicle created successfully',
+                'vehicle' => new VehicleResource($vehicle)
+            ], 201);
+        } catch (\Throwable $th) {
+           if($imagePath) {
+            Storage::disk('public')->delete($imagePath);
+           }
+            throw $th;
+        }
+    
     }
 
     /**
@@ -44,12 +64,40 @@ class VehicleController extends Controller
      */
     public function update(UpdateVehicleRequest $request, Vehicle $vehicle)
     {
-        $data = $request->validated();
-        $vehicle->update($data);
-        return response()->json([
-            "message" => "Vehicle updated successfully",
-            "vehicle" => new VehicleResource($vehicle)
-        ], 200);
+        $oldImagePath = $vehicle->image;
+        $newImagePath = $oldImagePath;
+
+        try {
+
+            if($request->hasFile('image')) {
+                $newImagePath = $request->file('image')->store('vehicles', 'public');
+            }
+
+            $data = $request->validated();
+
+            if($newImagePath) {
+                $data['image'] = $newImagePath;
+            }
+
+            
+            $vehicle->update($data);
+
+            if($request->hasFile('img') && $oldImagePath && $newImagePath !== $oldImagePath) {
+                Storage::disk('public')->delete($oldImagePath);
+            }
+
+            return response()->json([
+                "message" => "Vehicle updated successfully",
+                "vehicle" => new VehicleResource($vehicle)
+            ], 200);
+
+        } catch (\Throwable $th) {
+              if($request->hasFile('img') && $newImagePath && $newImagePath !== $oldImagePath) {
+                Storage::disk('public')->delete($newImagePath);
+
+                }
+                throw $th;
+        }
     }
 
     /**
@@ -57,7 +105,14 @@ class VehicleController extends Controller
      */
     public function destroy(Vehicle $vehicle)
     {
+        $imagePath = $vehicle->image;
+
         $vehicle->delete();
+        
+        if($imagePath) {
+            Storage::disk('public')->delete($imagePath);
+        }
+
         return response()->json([
             "message" => "Vehicle deleted successfully"
         ], 200);

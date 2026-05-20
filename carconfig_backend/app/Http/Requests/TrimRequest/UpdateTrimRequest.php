@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Http\Requests\OptionalRequest;
+namespace App\Http\Requests\TrimRequest;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
-class StoreOptionalRequest extends FormRequest
+class UpdateTrimRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -23,15 +23,11 @@ class StoreOptionalRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => 'required|string|max:255',
-            'description' => 'required|string|max:255',
-            'price' => 'required|integer|min:0',
-            'category' => 'required|string|max:255',
-            'is_required' => 'required|boolean',
-            'vehicle_id' => 'required|exists:vehicles,id',
-            'image' => 'nullable|image|max:2048'
+                 'name' => ['sometimes', 'string', 'max:255'],
+            'description' => ['sometimes', 'string', 'max:255'],
+            'price' => ['sometimes', 'integer'],
+            'img' => ['sometimes', 'string', 'max:255'],
+            'vehicle_id' => ['sometimes','exists:vehicles,id']
         ];
-           
-  
     }
 }

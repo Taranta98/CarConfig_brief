@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('description');
+            $table->string('image')->nullable();
             $table->integer('price');
             $table->string('category');
             $table->boolean('is_required')->default(false);
