@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('configuration_id')->constrained()->onDelete('cascade');
             $table->foreignId('optional_id')->constrained()->onDelete('cascade');
+            $table->integer('price_snapshot');
             $table->timestamps();
         });
     }
