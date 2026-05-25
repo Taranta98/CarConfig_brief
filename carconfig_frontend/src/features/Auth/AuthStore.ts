@@ -1,4 +1,5 @@
 import type { User } from "../Users/user.type"
+import { create } from "zustand"
 import { createJSONStorage, persist } from "zustand/middleware"
 
 export type AuthStore = {

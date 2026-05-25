@@ -9,6 +9,8 @@ import { ThemeProvider } from "@/components/theme-provider.tsx"
 import HomePage from "./pages/HomePage"
 import ConfigurationPage from "./pages/ConfigurationPage"
 import MainLayout from "./layouts/MainLayout"
+import AuthLayout from "./layouts/AuthLayout"
+import RegisterForm from "./components/shadcn-space/blocks/register-01/register"
 
 const client = new QueryClient();
 
@@ -27,6 +29,16 @@ const router = createBrowserRouter([
     element:<ConfigurationPage></ConfigurationPage>
   },
 ]
+},
+{
+  path:'/auth',
+  element:<AuthLayout></AuthLayout>,
+  children:[
+    {
+      path:'/auth/register',
+      element:<RegisterForm></RegisterForm>
+    },
+  ]
 }
 
 
