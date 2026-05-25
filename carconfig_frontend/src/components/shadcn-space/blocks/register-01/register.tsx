@@ -34,7 +34,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 export const registerSchema = z.object({
   firstName: z.string().min(1, { message: "Nome obbligatorio" }),
   lastName: z.string().min(1, { message: "Cognome obbligatorio" }),
-  age: z.number().min(1, { message: "Età obbligatoria" }),
+  age: z.coerce.number().min(1, { message: "Età obbligatoria" }),
   email: z.email({ message: "Email non valida" }),
   password: z
     .string()
@@ -46,7 +46,11 @@ export const registerSchema = z.object({
     .boolean()
     .refine((data) => data, {
       message: "Devi accettare i termini e le condizioni",
-    }),
+    })
+})
+.refine((data) => data.password === data.passwordConfirmation, {
+  message: "Le password non coincidono",
+  path: ["passwordConfirmation"],
 })
 
 const RegisterForm = () => {
@@ -152,16 +156,17 @@ const RegisterForm = () => {
                       Nome*
                     </FieldLabel>
                     <Input
-                      id="text"
+                      id="firstName"
                       type="text"
                       placeholder="inserisci il tuo nome"
                       required
+                      {...form.register("firstName")}
                       className="h-9 shadow-xs dark:bg-background"
                     />
                   </Field>
                   <Field className="gap-1.5">
                     <FieldLabel
-                      htmlFor="name"
+                      htmlFor="lastName"
                       className="text-sm font-normal text-muted-foreground"
                     >
                       Cognome*
@@ -172,11 +177,12 @@ const RegisterForm = () => {
                       placeholder="inserisci il tuo cognome"
                       required
                       className="h-9 shadow-xs dark:bg-background"
+                      {...form.register("lastName")}
                     />
                   </Field>
                   <Field className="gap-1.5">
                     <FieldLabel
-                      htmlFor="name"
+                      htmlFor="age"
                       className="text-sm font-normal text-muted-foreground"
                     >
                       Età*
@@ -187,6 +193,7 @@ const RegisterForm = () => {
                       placeholder="inserisci la tua età"
                       required
                       className="h-9 shadow-xs dark:bg-background"
+                      {...form.register("age")}
                     />
                   </Field>
                   <Field className="gap-1.5">
@@ -202,6 +209,7 @@ const RegisterForm = () => {
                       placeholder="example@shadcnspace.com"
                       required
                       className="h-9 shadow-xs dark:bg-background"
+                      {...form.register("email")}
                     />
                   </Field>
                   <Field className="gap-1.5">
@@ -211,6 +219,7 @@ const RegisterForm = () => {
                         placeholder="********"
                         type={showPsw ? "text" : "password"}
                         {...form.register("password")}
+                        required
                       />
 
                       <InputGroupAddon
@@ -236,6 +245,7 @@ const RegisterForm = () => {
             placeholder="********"
             type={showPswConfirmation ? "text" : "password"}
             {...form.register("passwordConfirmation")}
+            required
           />
 
           <InputGroupAddon
@@ -255,7 +265,8 @@ const RegisterForm = () => {
                     <Checkbox
                       id="termsAndConditions"
                       className={"w-4!"}
-                      // {...form.register("termsAndConditions")}
+                      required
+                      {...form.register("termsAndConditions")}
                       checked={form.watch("termsAndConditions")}
                       onCheckedChange={(value) =>
                         form.setValue("termsAndConditions", value)

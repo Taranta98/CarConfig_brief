@@ -108,10 +108,17 @@ const Header = ({ navigationData, className }: HeaderProps) => {
           {/* BOOK BUTTON */}
           <Button
             className="rounded-full max-sm:hidden"
-            render={<a href="#" />}
+            render={<Link to="/auth/login" />}
             nativeButton={false}
           >
            Accedi
+          </Button>
+          <Button
+            className="rounded-full max-sm:hidden"
+            render={<Link to="/auth/register" />}
+            nativeButton={false}
+          >
+           Registrati
           </Button>
 
           {/* MOBILE ACTIONS */}
