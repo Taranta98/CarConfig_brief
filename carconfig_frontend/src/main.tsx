@@ -15,56 +15,58 @@ import AuthLayout from "./layouts/AuthLayout"
 import RegisterForm from "./components/shadcn-space/blocks/register-01/register"
 import EmailVerifyPage from "./pages/EmailVerifyPage"
 
-const client = new QueryClient();
+import LoginForm from "./components/shadcn-space/blocks/login-01/login"
+
+const client = new QueryClient()
 
 const router = createBrowserRouter([
-
   {
-    path:'/',
-    element:<MainLayout></MainLayout>,
-    children:[
-  {
-    index: true,
-    element:<HomePage></HomePage>
+    path: "/",
+    element: <MainLayout></MainLayout>,
+    children: [
+      {
+        index: true,
+        element: <HomePage></HomePage>,
+      },
+      {
+        path: "/configuration",
+        element: <ConfigurationPage></ConfigurationPage>,
+      },
+      {
+        path: "/my-configurations",
+        element: <MyConfigurationsPage></MyConfigurationsPage>,
+      },
+      {
+        path: "/settings",
+        element: <SettingsPage></SettingsPage>,
+      },
+    ],
   },
   {
-    path:'/configuration',
-    element:<ConfigurationPage></ConfigurationPage>
+    path: "/auth",
+    element: <AuthLayout></AuthLayout>,
+    children: [
+      {
+        path: "/auth/register",
+        element: <RegisterForm></RegisterForm>,
+      },
+      {
+        path: "/auth/login",
+        element: <LoginForm></LoginForm>,
+      },
+      {
+        path: "/auth/verify-email/:id/:hash",
+        element: <EmailVerifyPage></EmailVerifyPage>,
+      },
+    ],
   },
-  {
-    path:'/my-configurations',
-    element:<MyConfigurationsPage></MyConfigurationsPage>
-  },
-  {
-    path:'/settings',
-    element:<SettingsPage></SettingsPage>
-  },
-]
-},
-{
-  path:'/auth',
-  element:<AuthLayout></AuthLayout>,
-  children:[
-    {
-      path:'/auth/register',
-      element:<RegisterForm></RegisterForm>
-    },
-    {
-      path:'/auth/verify-email/:id/:hash',
-      element:<EmailVerifyPage></EmailVerifyPage>
-    },
-  ]
-}
-
-
 ])
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <ThemeProvider>
-      <QueryClientProvider client = {client}>
-      <RouterProvider router={router}  />
-
+      <QueryClientProvider client={client}>
+        <RouterProvider router={router} />
       </QueryClientProvider>
     </ThemeProvider>
   </StrictMode>

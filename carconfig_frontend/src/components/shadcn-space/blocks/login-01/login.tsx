@@ -10,6 +10,14 @@ import {
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { z } from 'zod';
+import { Link, useNavigate } from "react-router";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useState } from "react";
+import { AuthService } from "@/features/Auth/AuthService";
+import { toast } from "sonner";
+import { AxiosError } from "axios";
+import VerifyEmail from "../verify-email-01/verify-email";
 
 export const loginSchema = z.object({
   email: z.email({message: 'Email non valida'}),
@@ -17,43 +25,76 @@ export const loginSchema = z.object({
 })
 
 const LoginForm = () => {
+
+
+  const form = useForm<z.infer<typeof loginSchema>>({
+    resolver: zodResolver(loginSchema),
+  })
+
+  const navigate = useNavigate();
+
+  const [verifyEmail, setVerifyEmail] = useState("");
+  const [verifyEmailError, setVerifyEmailError] = useState(false);
+
+  async function onSubmit(values: z.infer<typeof loginSchema>) {
+    try {
+      console.log(values)
+      await AuthService.login(values)
+      toast.success('Login effettuato con successo')
+      navigate('/');
+    } catch (error) {
+      console.error("Form submission error", error)
+      console.dir(error)
+      toast.error(
+        error instanceof AxiosError
+          ? error.response?.data.message
+          : "Errore del server, riprova!"
+      )
+      if (
+        error instanceof AxiosError &&
+        error.response?.data.cause === "EMAIL_NOT_VERIFIED"
+      ) {
+        setVerifyEmailError(true)
+      }
+    }
+  }
+
+  if (verifyEmail) {
+    return <VerifyEmail email={verifyEmail} />
+  }
+  
   return (
     <section className="bg-foreground dark:bg-background min-h-screen flex items-center justify-center relative">
-      <div className="pointer-events-none absolute inset-0 right-0 overflow-hidden md:block hidden">
-        {/* Outer big circle */}
-        <div className="absolute left-1/1 top-0 h-650 w-650 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/10" />
-        {/* Inner circle */}
-        <div className="absolute left-1/1 top-0 h-175 w-175 -translate-x-1/2 -translate-y-1/2 rounded-full bg-foreground dark:bg-background" />
-      </div>
+
 
       <div className="py-10 md:py-20 max-w-lg px-4 sm:px-0 mx-auto w-full">
         <Card className="max-w-lg px-6 py-8 sm:p-12 relative gap-6">
           <CardHeader className="text-center gap-6 p-0">
             <div className="mx-auto">
-              <a href="">
+              <Link to="/">
                 <img
-                  src="https://images.shadcnspace.com/assets/logo/logo-icon-black.svg"
-                  alt="shadcnspace"
+                  src="/Logo.png"
+                  alt="car config"
                   className="dark:hidden h-10 w-10"
                 />
                 <img
-                  src="https://images.shadcnspace.com/assets/logo/logo-icon-white.svg"
-                  alt="shadcnspace"
+                  src="/Logo.png"
+                  alt="car config"
                   className="hidden dark:block h-10 w-10"
                 />
-              </a>
+              </Link>
             </div>
             <div className="flex flex-col gap-1">
               <CardTitle className="text-2xl font-medium text-card-foreground">
-                Welcome to Shadcn Space
+                Benvenuto su Car Config
               </CardTitle>
               <CardDescription className="text-sm text-muted-foreground font-normal">
-                Login to your account now
+               Accedi al tuo account
               </CardDescription>
             </div>
           </CardHeader>
           <CardContent className="p-0">
-            <form>
+            <form onSubmit={form.handleSubmit(onSubmit)}>
               <FieldGroup className="gap-6">
                 <Field className="grid md:grid-cols-2 md:gap-6 gap-3">
                   <Button
@@ -66,7 +107,7 @@ const LoginForm = () => {
                       alt="google icon"
                       className="h-4 w-4"
                     />
-                    Sign in with Google
+                   Entra con Google
                   </Button>
                   <Button
                     variant="outline"
@@ -74,20 +115,20 @@ const LoginForm = () => {
                     className="text-sm text-medium text-card-foreground gap-2 dark:bg-background rounded-lg h-9 shadow-xs cursor-pointer"
                   >
                     <img
-                      src="https://images.shadcnspace.com/assets/svgs/icon-github.svg"
-                      alt="github icon"
+                      src="https://images.shadcnspace.com/assets/svgs/icon-facebook.svg"
+                      alt="facebook icon"
                       className="dark:hidden  h-4 w-4"
                     />
                     <img
-                      src="https://images.shadcnspace.com/assets/svgs/icon-github-white.svg"
-                      alt="github icon"
+                      src="https://images.shadcnspace.com/assets/svgs/icon-facebook.svg"
+                      alt="facebook icon"
                       className="hidden dark:block  h-4 w-4"
                     />
-                    Sign in with Github
+                  Entra con Facebook
                   </Button>
                 </Field>
                 <FieldSeparator className="*:data-[slot=field-separator-content]:bg-card text-sm text-muted-foreground bg-transparent">
-                  <span className="px-4">or sign in with</span>
+                  <span className="px-4">o accedi con</span>
                 </FieldSeparator>
 
                 <div className="flex flex-col gap-4">
@@ -104,6 +145,7 @@ const LoginForm = () => {
                       placeholder="example@shadcnspace.com"
                       required
                       className="dark:bg-background h-9 shadow-xs"
+                      {...form.register("email")}
                     />
                   </Field>
                   <Field className="gap-1.5">
@@ -120,6 +162,7 @@ const LoginForm = () => {
                       placeholder="Enter your password"
                       required
                       className="dark:bg-background h-9 shadow-xs"
+                      {...form.register("password")}
                     />
                   </Field>
                 </div>
@@ -135,29 +178,29 @@ const LoginForm = () => {
                       htmlFor="terms"
                       className="text-sm text-primary font-normal cursor-pointer"
                     >
-                      Remember this device
+                      Ricordami su questo dispositivo
                     </FieldLabel>
                   </div>
-                  <a
-                    href="#"
+                  <Link
+                    to="/auth/forgot-password"
                     className="text-sm text-card-foreground font-medium text-end"
                   >
-                    Forgot password?
-                  </a>
+                    Password dimenticata?
+                  </Link>
                 </Field>
 
                 <Field className="gap-4">
                   <Button type="submit" size={"lg"} className="rounded-lg h-10 hover:bg-primary/80 cursor-pointer">
-                    Sign in
+                    Accedi
                   </Button>
                   <FieldDescription className="text-center text-sm font-normal text-muted-foreground">
-                    Don&apos;t have an account?{" "}
-                    <a
-                      href="#"
+                    Non hai un account?{" "}
+                    <Link
+                      to="/auth/register"
                       className="font-medium text-card-foreground no-underline!"
                     >
-                      Create an account
-                    </a>
+                      Crea un account
+                    </Link>
                   </FieldDescription>
                 </Field>
               </FieldGroup>

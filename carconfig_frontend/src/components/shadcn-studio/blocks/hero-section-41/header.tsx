@@ -71,9 +71,9 @@ const Header = ({ navigationData, className }: HeaderProps) => {
 
         {/* LOGO */}
         <Link to="/" className="flex items-center gap-3">
-          <img src="/Logo.png" alt="CarConfig" className="w-10 h-10" />
+          <img src="/Logo.png" alt="Car Config" className="w-10 h-10" />
           <span className="text-primary text-[20px] font-semibold">
-            CarConfig
+            Car Config
           </span>
         </Link>
 
