@@ -8,6 +8,7 @@ import type { User } from '../Users/user.type';
 
 
 export class AuthService {
+  
     static async register(data: z.infer<typeof registerSchema>) {
         const response = await http.post('/register', data);
 
@@ -31,11 +32,30 @@ export class AuthService {
             "/auth/email-verify",
             data
           )
-          if(!response.data.token){
+          if(response.data.token){
             useAuthStore.getState().login(response.data.user, response.data.token); 
           }
 
           return response;
+    }
+
+    static async verifyEmailFromLink(
+        id: string,
+        hash: string,
+        params: { expires: string; signature: string }
+    ) {
+        const response = await http.get<{
+            success: boolean
+            message: string
+            user: User
+            token: string
+        }>(`/email/verify/${id}/${hash}`, { params })
+
+        if (response.data.token) {
+            useAuthStore.getState().login(response.data.user, response.data.token)
+        }
+
+        return response
     }
 
     static async me() {
@@ -49,4 +69,18 @@ export class AuthService {
     static async resendEmailVerify(email: string) {
         return http.post("/auth/resend-email-verify", { email })
       }
+
+    static async logout() {
+        const token = useAuthStore.getState().token
+
+        if (token) {
+            try {
+                await http.post("/logout")
+            } catch {
+                // clear local session even if API call fails
+            }
+        }
+
+        useAuthStore.getState().logout()
+    }
 }

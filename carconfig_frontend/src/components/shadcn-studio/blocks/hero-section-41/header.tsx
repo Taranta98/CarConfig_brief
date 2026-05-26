@@ -1,18 +1,14 @@
 import { useEffect, useState } from 'react'
 
-import {
-  CalendarClockIcon,
-  MenuIcon,
-  SunIcon,
-  MoonIcon
-} from 'lucide-react'
+import { MenuIcon, SunIcon, MoonIcon } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import MenuDropdown from '@/components/shadcn-studio/blocks/menu-dropdown'
 import MenuNavigation from '@/components/shadcn-studio/blocks/menu-navigation'
 import type { NavigationSection } from '@/components/shadcn-studio/blocks/menu-navigation'
 import { cn } from '@/lib/utils'
-import BistroLogo from '@/assets/svg/bistro-logo'
+import UserMenu from '@/components/auth/UserMenu'
+import { useAuthStore } from '@/features/Auth/AuthStore'
 import { Link } from 'react-router'
 
 type HeaderProps = {
@@ -23,6 +19,7 @@ type HeaderProps = {
 const Header = ({ navigationData, className }: HeaderProps) => {
   const [isScrolled, setIsScrolled] = useState(false)
   const [theme, setTheme] = useState<'light' | 'dark'>('light')
+  const isLoggedIn = useAuthStore((state) => Boolean(state.token))
 
   /* ---------------- SCROLL ---------------- */
   useEffect(() => {
@@ -105,34 +102,29 @@ const Header = ({ navigationData, className }: HeaderProps) => {
             <span className="sr-only">Toggle theme</span>
           </Button>
 
-          {/* BOOK BUTTON */}
-          <Button
-            className="rounded-full max-sm:hidden"
-            render={<Link to="/auth/login" />}
-            nativeButton={false}
-          >
-           Accedi
-          </Button>
-          <Button
-            className="rounded-full max-sm:hidden"
-            render={<Link to="/auth/register" />}
-            nativeButton={false}
-          >
-           Registrati
-          </Button>
+          {isLoggedIn ? (
+            <UserMenu />
+          ) : (
+            <>
+              <Button
+                className="rounded-full max-sm:hidden"
+                render={<Link to="/auth/login" />}
+                nativeButton={false}
+              >
+                Accedi
+              </Button>
+              <Button
+                className="rounded-full max-sm:hidden"
+                render={<Link to="/auth/register" />}
+                nativeButton={false}
+              >
+                Registrati
+              </Button>
+            </>
+          )}
 
           {/* MOBILE ACTIONS */}
           <div className="flex gap-3">
-
-            <Button
-              size="icon"
-              className="rounded-full sm:hidden"
-              render={<a href="#" />}
-              nativeButton={false}
-            >
-              <CalendarClockIcon />
-              <span className="sr-only">Accedi</span>
-            </Button>
 
             <MenuDropdown
               align="end"

@@ -32,14 +32,14 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 
 export const registerSchema = z.object({
-  firstName: z.string().min(1, { message: "Nome obbligatorio" }),
-  lastName: z.string().min(1, { message: "Cognome obbligatorio" }),
+  first_name: z.string().min(1, { message: "Nome obbligatorio" }),
+  last_name: z.string().min(1, { message: "Cognome obbligatorio" }),
   age: z.coerce.number().min(1, { message: "Età obbligatoria" }),
   email: z.email({ message: "Email non valida" }),
   password: z
     .string()
     .min(8, { message: "La password deve essere lunga almeno 8 caratteri" }),
-  passwordConfirmation: z
+  password_confirmation: z
     .string()
     .min(8, { message: "La password deve essere lunga almeno 8 caratteri" }),
   termsAndConditions: z
@@ -48,9 +48,9 @@ export const registerSchema = z.object({
       message: "Devi accettare i termini e le condizioni",
     })
 })
-.refine((data) => data.password === data.passwordConfirmation, {
+.refine((data) => data.password === data.password_confirmation, {
   message: "Le password non coincidono",
-  path: ["passwordConfirmation"],
+  path: ["password_confirmation"],
 })
 
 const RegisterForm = () => {
@@ -110,7 +110,7 @@ const RegisterForm = () => {
             </div>
           </CardHeader>
           <CardContent className="p-0">
-            <form>
+
               <FieldGroup className="gap-6">
                 <Field className="grid gap-3 md:grid-cols-2 md:gap-6">
                   <Button
@@ -156,28 +156,28 @@ const RegisterForm = () => {
                       Nome*
                     </FieldLabel>
                     <Input
-                      id="firstName"
+                      id="first_name"
                       type="text"
                       placeholder="inserisci il tuo nome"
                       required
-                      {...form.register("firstName")}
+                      {...form.register("first_name")}
                       className="h-9 shadow-xs dark:bg-background"
                     />
                   </Field>
                   <Field className="gap-1.5">
                     <FieldLabel
-                      htmlFor="lastName"
+                      htmlFor="last_name"
                       className="text-sm font-normal text-muted-foreground"
                     >
                       Cognome*
                     </FieldLabel>
                     <Input
-                      id="text"
+                      id="last_name"
                       type="text"
                       placeholder="inserisci il tuo cognome"
                       required
                       className="h-9 shadow-xs dark:bg-background"
-                      {...form.register("lastName")}
+                      {...form.register("last_name")}
                     />
                   </Field>
                   <Field className="gap-1.5">
@@ -188,12 +188,12 @@ const RegisterForm = () => {
                       Età*
                     </FieldLabel>
                     <Input
-                      id="number"
+                      id="age"
                       type="number"
                       placeholder="inserisci la tua età"
                       required
                       className="h-9 shadow-xs dark:bg-background"
-                      {...form.register("age")}
+                      {...form.register("age", { valueAsNumber: true })}
                     />
                   </Field>
                   <Field className="gap-1.5">
@@ -213,6 +213,12 @@ const RegisterForm = () => {
                     />
                   </Field>
                   <Field className="gap-1.5">
+                    <FieldLabel
+                      htmlFor="password"
+                      className="text-sm font-normal text-muted-foreground"
+                    >
+                      Password*
+                    </FieldLabel>
                     <InputGroup>
                       <InputGroupInput
                         id="password"
@@ -236,15 +242,15 @@ const RegisterForm = () => {
                     </FieldError>
                   </Field>
                   <Field>
-        <FieldLabel htmlFor="passwordConfirmation">
+          <FieldLabel htmlFor="password_confirmation" className="text-sm font-normal text-muted-foreground">
           Conferma password
         </FieldLabel>
         <InputGroup>
           <InputGroupInput
-            id="passwordConfirmation"
+              id="password_confirmation"
             placeholder="********"
             type={showPswConfirmation ? "text" : "password"}
-            {...form.register("passwordConfirmation")}
+            {...form.register("password_confirmation")}
             required
           />
 
@@ -258,7 +264,7 @@ const RegisterForm = () => {
         </InputGroup>
 
         <FieldError>
-          {form.formState.errors.passwordConfirmation?.message}
+          {form.formState.errors.password_confirmation?.message}
         </FieldError>
       </Field>
                   <Field className="flex flex-row items-start space-y-0 space-x-3 rounded-md border p-4">
@@ -292,7 +298,7 @@ const RegisterForm = () => {
                     size={"lg"}
                     className="h-10 cursor-pointer rounded-lg hover:bg-primary/80"
                   >
-                    Sign up
+                    Registrati
                   </Button>
                   <FieldDescription className="text-center text-sm font-normal text-muted-foreground">
                     Already have an account?{" "}
@@ -300,12 +306,12 @@ const RegisterForm = () => {
                       href="#"
                       className="font-medium text-card-foreground no-underline!"
                     >
-                      Sign in
+                      Accedi
                     </a>
                   </FieldDescription>
                 </Field>
               </FieldGroup>
-            </form>
+            
           </CardContent>
         </Card>
       </div>

@@ -8,9 +8,12 @@ import { ThemeProvider } from "@/components/theme-provider.tsx"
 
 import HomePage from "./pages/HomePage"
 import ConfigurationPage from "./pages/ConfigurationPage"
+import MyConfigurationsPage from "./pages/MyConfigurationsPage"
+import SettingsPage from "./pages/SettingsPage"
 import MainLayout from "./layouts/MainLayout"
 import AuthLayout from "./layouts/AuthLayout"
 import RegisterForm from "./components/shadcn-space/blocks/register-01/register"
+import EmailVerifyPage from "./pages/EmailVerifyPage"
 
 const client = new QueryClient();
 
@@ -28,6 +31,14 @@ const router = createBrowserRouter([
     path:'/configuration',
     element:<ConfigurationPage></ConfigurationPage>
   },
+  {
+    path:'/my-configurations',
+    element:<MyConfigurationsPage></MyConfigurationsPage>
+  },
+  {
+    path:'/settings',
+    element:<SettingsPage></SettingsPage>
+  },
 ]
 },
 {
@@ -37,6 +48,10 @@ const router = createBrowserRouter([
     {
       path:'/auth/register',
       element:<RegisterForm></RegisterForm>
+    },
+    {
+      path:'/auth/verify-email/:id/:hash',
+      element:<EmailVerifyPage></EmailVerifyPage>
     },
   ]
 }

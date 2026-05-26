@@ -43,23 +43,20 @@ class EmailVerificationController extends Controller
 
         if($user->hasVerifiedEmail()) {
             $message = 'Email already verified';
+            $payload = $this->verifiedPayload($user, $message);
 
             if($request->expectsJson()) {
-                return response()->json([
-                    'success' => true,
-                    'message' => $message
-                ]);
+                return response()->json($payload);
             }
             return $this->redirectFrontend($frontend_url, 'already_verified', $message);
         }
 
         if($user->markEmailAsVerified()) {
             event(new Verified($user));
+            $payload = $this->verifiedPayload($user, 'Email verified successfully');
+
             if($request->expectsJson()) {
-                return response()->json([
-                    'success' => true,
-                    'message' => 'Email verified successfully'
-                ]);
+                return response()->json($payload);
             }
         }
         return $this->redirectFrontend($frontend_url, 'success', 'Email verified successfully');
@@ -76,10 +73,21 @@ class EmailVerificationController extends Controller
         }
     }
 
-    private function redirectFrontend(string $base, string $status, string $message) {
-        $sep = str_contains($base, '?') ? '&' : '?';
+    private function verifiedPayload(User $user, string $message): array
+    {
+        return [
+            'success' => true,
+            'message' => $message,
+            'user' => $user,
+            'token' => $user->createToken('auth_token')->plainTextToken,
+        ];
+    }
 
-        $url = url()->query("{$base}{$sep}status={$status}", ["message" => $message]);
+    private function redirectFrontend(string $base, string $status, string $message) {
+        $target = rtrim($base, '/') . '/auth/register';
+        $sep = str_contains($target, '?') ? '&' : '?';
+
+        $url = url()->query("{$target}{$sep}status={$status}", ["message" => $message]);
 
         return redirect()->away($url);
     }

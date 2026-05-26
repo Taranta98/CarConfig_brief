@@ -26,3 +26,18 @@ export const useAuthStore = create<AuthStore>()(
       }
     )
   )
+
+if (typeof window !== "undefined") {
+  window.addEventListener("storage", (event) => {
+    if (event.key !== "authStore" || !event.newValue) return
+
+    try {
+      const { state } = JSON.parse(event.newValue) as {
+        state: Pick<AuthStore, "user" | "token">
+      }
+      useAuthStore.setState(state)
+    } catch {
+      // ignore malformed storage payload
+    }
+  })
+}
