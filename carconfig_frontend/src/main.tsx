@@ -12,11 +12,9 @@ import MyConfigurationsPage from "./pages/MyConfigurationsPage"
 import SettingsPage from "./pages/SettingsPage"
 import MainLayout from "./layouts/MainLayout"
 import AuthLayout from "./layouts/AuthLayout"
-import RegisterForm from "./components/shadcn-space/blocks/register-01/register"
 import EmailVerifyPage from "./pages/EmailVerifyPage"
-
-import LoginForm from "./components/shadcn-space/blocks/login-01/login"
 import LoginPage from "./pages/Auth/LoginPage"
+import RegisterPage from "./pages/Auth/RegisterPage"
 
 const client = new QueryClient()
 
@@ -49,7 +47,7 @@ const router = createBrowserRouter([
     children: [
       {
         path: "/auth/register",
-        element: <RegisterForm></RegisterForm>,
+        element: <RegisterPage></RegisterPage>,
       },
       {
         path: "/auth/login",
