@@ -78,13 +78,8 @@ const RegisterForm = () => {
   }
 
   return (
-    <form
-      onSubmit={form.handleSubmit(onSubmit)}
-      className="relative flex min-h-screen items-center justify-center bg-foreground dark:bg-background"
-    >
-      <div className="mx-auto w-full max-w-lg px-4 py-10 sm:px-0 md:py-20">
-        <Card className="relative max-w-lg px-6 py-8 sm:p-12">
-          <CardHeader className="gap-6 p-0 text-center">
+    <Card className="relative w-full gap-6 border-0 bg-[var(--auth-panel-bg)] px-6 py-8 shadow-none ring-0 sm:p-12">
+      <CardHeader className="gap-6 p-0 text-center">
             <div className="mx-auto">
               <Link to="/">
                 <img
@@ -109,14 +104,14 @@ const RegisterForm = () => {
               </CardDescription>
             </div>
           </CardHeader>
-          <CardContent className="p-0">
-
-              <FieldGroup className="gap-6">
+      <CardContent className="p-0">
+        <form onSubmit={form.handleSubmit(onSubmit)}>
+          <FieldGroup className="gap-6">
                 <Field className="grid gap-3 md:grid-cols-2 md:gap-6">
                   <Button
                     variant="outline"
                     type="button"
-                    className="text-medium h-9 cursor-pointer gap-2 rounded-lg text-sm text-card-foreground shadow-xs dark:bg-background"
+                    className="text-medium h-9 cursor-pointer gap-2 rounded-lg bg-white text-sm text-card-foreground shadow-xs"
                   >
                     <img
                       src="https://images.shadcnspace.com/assets/svgs/icon-google.svg"
@@ -128,7 +123,7 @@ const RegisterForm = () => {
                   <Button
                     variant="outline"
                     type="button"
-                    className="text-medium h-9 cursor-pointer gap-2 rounded-lg text-sm text-card-foreground shadow-xs dark:bg-background"
+                    className="text-medium h-9 cursor-pointer gap-2 rounded-lg bg-white text-sm text-card-foreground shadow-xs"
                   >
                     <img
                       src="https://images.shadcnspace.com/assets/svgs/icon-facebook.svg"
@@ -143,7 +138,7 @@ const RegisterForm = () => {
                     Entra con Facebook
                   </Button>
                 </Field>
-                <FieldSeparator className="bg-transparent text-sm text-muted-foreground *:data-[slot=field-separator-content]:bg-card">
+                <FieldSeparator className="bg-transparent text-sm text-muted-foreground *:data-[slot=field-separator-content]:bg-[var(--auth-panel-bg)]">
                   <span className="px-4">o iscriviti con </span>
                 </FieldSeparator>
 
@@ -161,7 +156,7 @@ const RegisterForm = () => {
                       placeholder="inserisci il tuo nome"
                       required
                       {...form.register("first_name")}
-                      className="h-9 shadow-xs dark:bg-background"
+                      className="h-9 bg-white shadow-xs"
                     />
                   </Field>
                   <Field className="gap-1.5">
@@ -176,7 +171,7 @@ const RegisterForm = () => {
                       type="text"
                       placeholder="inserisci il tuo cognome"
                       required
-                      className="h-9 shadow-xs dark:bg-background"
+                      className="h-9 bg-white shadow-xs"
                       {...form.register("last_name")}
                     />
                   </Field>
@@ -192,7 +187,7 @@ const RegisterForm = () => {
                       type="number"
                       placeholder="inserisci la tua età"
                       required
-                      className="h-9 shadow-xs dark:bg-background"
+                      className="h-9 bg-white shadow-xs"
                       {...form.register("age", { valueAsNumber: true })}
                     />
                   </Field>
@@ -208,7 +203,7 @@ const RegisterForm = () => {
                       type="email"
                       placeholder="example@shadcnspace.com"
                       required
-                      className="h-9 shadow-xs dark:bg-background"
+                      className="h-9 bg-white shadow-xs"
                       {...form.register("email")}
                     />
                   </Field>
@@ -219,7 +214,7 @@ const RegisterForm = () => {
                     >
                       Password*
                     </FieldLabel>
-                    <InputGroup>
+                    <InputGroup className="bg-white">
                       <InputGroupInput
                         id="password"
                         placeholder="********"
@@ -245,7 +240,7 @@ const RegisterForm = () => {
           <FieldLabel htmlFor="password_confirmation" className="text-sm font-normal text-muted-foreground">
           Conferma password
         </FieldLabel>
-        <InputGroup>
+        <InputGroup className="bg-white">
           <InputGroupInput
               id="password_confirmation"
             placeholder="********"
@@ -301,21 +296,19 @@ const RegisterForm = () => {
                     Registrati
                   </Button>
                   <FieldDescription className="text-center text-sm font-normal text-muted-foreground">
-                    Already have an account?{" "}
-                    <a
-                      href="#"
+                    Hai già un account?{" "}
+                    <Link
+                      to="/auth/login"
                       className="font-medium text-card-foreground no-underline!"
                     >
                       Accedi
-                    </a>
+                    </Link>
                   </FieldDescription>
                 </Field>
-              </FieldGroup>
-            
-          </CardContent>
-        </Card>
-      </div>
-    </form>
+          </FieldGroup>
+        </form>
+      </CardContent>
+    </Card>
   )
 }
 

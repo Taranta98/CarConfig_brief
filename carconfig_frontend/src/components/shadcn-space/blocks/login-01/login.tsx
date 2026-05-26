@@ -62,13 +62,9 @@ const LoginForm = () => {
   if (verifyEmail) {
     return <VerifyEmail email={verifyEmail} />
   }
-  
+
   return (
-    <section className="bg-foreground dark:bg-background min-h-screen flex items-center justify-center relative">
-
-
-      <div className="py-10 md:py-20 max-w-lg px-4 sm:px-0 mx-auto w-full">
-        <Card className="max-w-lg px-6 py-8 sm:p-12 relative gap-6">
+    <Card className="relative w-full gap-6 border-0 bg-[var(--auth-panel-bg)] px-6 py-8 shadow-none ring-0 sm:p-12">
           <CardHeader className="text-center gap-6 p-0">
             <div className="mx-auto">
               <Link to="/">
@@ -100,7 +96,7 @@ const LoginForm = () => {
                   <Button
                     variant="outline"
                     type="button"
-                    className="text-sm text-medium text-card-foreground gap-2 dark:bg-background rounded-lg h-9 shadow-xs cursor-pointer"
+                    className="text-sm text-medium text-card-foreground gap-2 rounded-lg h-9 bg-white shadow-xs cursor-pointer"
                   >
                     <img
                       src="https://images.shadcnspace.com/assets/svgs/icon-google.svg"
@@ -112,7 +108,7 @@ const LoginForm = () => {
                   <Button
                     variant="outline"
                     type="button"
-                    className="text-sm text-medium text-card-foreground gap-2 dark:bg-background rounded-lg h-9 shadow-xs cursor-pointer"
+                    className="text-sm text-medium text-card-foreground gap-2 rounded-lg h-9 bg-white shadow-xs cursor-pointer"
                   >
                     <img
                       src="https://images.shadcnspace.com/assets/svgs/icon-facebook.svg"
@@ -127,7 +123,7 @@ const LoginForm = () => {
                   Entra con Facebook
                   </Button>
                 </Field>
-                <FieldSeparator className="*:data-[slot=field-separator-content]:bg-card text-sm text-muted-foreground bg-transparent">
+                <FieldSeparator className="bg-transparent text-sm text-muted-foreground *:data-[slot=field-separator-content]:bg-[var(--auth-panel-bg)]">
                   <span className="px-4">o accedi con</span>
                 </FieldSeparator>
 
@@ -144,7 +140,7 @@ const LoginForm = () => {
                       type="email"
                       placeholder="example@shadcnspace.com"
                       required
-                      className="dark:bg-background h-9 shadow-xs"
+                      className="h-9 bg-white shadow-xs"
                       {...form.register("email")}
                     />
                   </Field>
@@ -161,7 +157,7 @@ const LoginForm = () => {
                       type="password"
                       placeholder="Enter your password"
                       required
-                      className="dark:bg-background h-9 shadow-xs"
+                      className="h-9 bg-white shadow-xs"
                       {...form.register("password")}
                     />
                   </Field>
@@ -206,9 +202,7 @@ const LoginForm = () => {
               </FieldGroup>
             </form>
           </CardContent>
-        </Card>
-      </div>
-    </section>
+    </Card>
   );
 };
 

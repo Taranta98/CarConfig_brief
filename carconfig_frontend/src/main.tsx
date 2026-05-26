@@ -16,6 +16,7 @@ import RegisterForm from "./components/shadcn-space/blocks/register-01/register"
 import EmailVerifyPage from "./pages/EmailVerifyPage"
 
 import LoginForm from "./components/shadcn-space/blocks/login-01/login"
+import LoginPage from "./pages/Auth/LoginPage"
 
 const client = new QueryClient()
 
@@ -52,7 +53,7 @@ const router = createBrowserRouter([
       },
       {
         path: "/auth/login",
-        element: <LoginForm></LoginForm>,
+        element: <LoginPage></LoginPage>,
       },
       {
         path: "/auth/verify-email/:id/:hash",
