@@ -20,7 +20,10 @@ class ConfigurationResource extends JsonResource
 
             'vehicle' => [
                 'id' => $this->vehicle->id,
-                'name' => $this->vehicle->name,
+                'brand' => $this->vehicle->brand,
+                'model' => $this->vehicle->model,
+                'year' => $this->vehicle->year,
+                'fuel_type' => $this->vehicle->fuel_type,
                 'base_price' => $this->vehicle->base_price,
             ],
             'trim' => [

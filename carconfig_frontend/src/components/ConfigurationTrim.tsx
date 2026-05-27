@@ -3,30 +3,41 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle
-} from '@/components/ui/card'
-import { cn } from '@/lib/utils'
-import { getTrimsForVehicle } from '@/data/trims'
+  CardTitle,
+} from "@/components/ui/card"
+import type { Trim } from "@/features/Trims/trim.type"
+import { cn } from "@/lib/utils"
 
 const formatPrice = (price: number) =>
-  price.toLocaleString('it-IT', {
-    style: 'currency',
-    currency: 'EUR',
-    maximumFractionDigits: 0
+  price.toLocaleString("it-IT", {
+    style: "currency",
+    currency: "EUR",
+    maximumFractionDigits: 0,
   })
 
 type ConfigurationTrimProps = {
-  vehicleId: number
+  trims: Trim[]
+  isLoading?: boolean
   selectedId: number | null
   onChange: (trimId: number) => void
 }
 
 const ConfigurationTrim = ({
-  vehicleId,
+  trims,
+  isLoading = false,
   selectedId,
-  onChange
+  onChange,
 }: ConfigurationTrimProps) => {
-  const trims = getTrimsForVehicle(vehicleId)
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Allestimento</CardTitle>
+          <CardDescription>Caricamento allestimenti…</CardDescription>
+        </CardHeader>
+      </Card>
+    )
+  }
 
   if (trims.length === 0) {
     return (
@@ -46,12 +57,16 @@ const ConfigurationTrim = ({
       <CardHeader>
         <CardTitle>Allestimento</CardTitle>
         <CardDescription>
-          Scegli il livello di equipaggiamento (trim). Il supplemento si aggiunge al
-          prezzo base del veicolo.
+          Scegli il livello di equipaggiamento (trim). Il supplemento si aggiunge
+          al prezzo base del veicolo.
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <ul className="grid gap-3" role="radiogroup" aria-label="Seleziona allestimento">
+        <ul
+          className="grid gap-3"
+          role="radiogroup"
+          aria-label="Seleziona allestimento"
+        >
           {trims.map((trim) => {
             const isSelected = selectedId === trim.id
 
@@ -63,19 +78,19 @@ const ConfigurationTrim = ({
                   aria-checked={isSelected}
                   onClick={() => onChange(trim.id)}
                   className={cn(
-                    'flex w-full items-start gap-4 rounded-lg border p-4 text-left transition-colors',
-                    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+                    "flex w-full items-start gap-4 rounded-lg border p-4 text-left transition-colors",
+                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
                     isSelected
-                      ? 'border-primary bg-primary/5 ring-1 ring-primary'
-                      : 'border-border hover:border-primary/40 hover:bg-muted/50'
+                      ? "border-primary bg-primary/5 ring-1 ring-primary"
+                      : "border-border hover:border-primary/40 hover:bg-muted/50"
                   )}
                 >
                   <span
                     className={cn(
-                      'mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full border-2 transition-colors',
+                      "mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full border-2 transition-colors",
                       isSelected
-                        ? 'border-primary'
-                        : 'border-muted-foreground/40'
+                        ? "border-primary"
+                        : "border-muted-foreground/40"
                     )}
                     aria-hidden
                   >
@@ -90,7 +105,7 @@ const ConfigurationTrim = ({
                     </span>
                     <span className="block text-sm font-medium">
                       {trim.price === 0
-                        ? 'Incluso nel prezzo base'
+                        ? "Incluso nel prezzo base"
                         : `+ ${formatPrice(trim.price)}`}
                     </span>
                   </span>

@@ -1,12 +1,14 @@
-import { http } from "@/lib/http";
-import type{ Trim } from "./trim.type";
-
+import { http } from "@/lib/http"
+import { unwrapList, type LaravelListPayload } from "@/lib/api"
+import type { Trim } from "./trim.type"
 
 export class TrimService {
-
-    static async list() {
-        return http.get<Trim[]>('/trims');
-    }
+  static async list(vehicleId?: number) {
+    const response = await http.get<LaravelListPayload<Trim>>("/trims", {
+      params: vehicleId !== undefined ? { vehicle_id: vehicleId } : undefined,
+    })
+    return unwrapList(response)
+  }
 
     static async find(id: number) {
         return http.get<Trim>(`/trims/${id}`);

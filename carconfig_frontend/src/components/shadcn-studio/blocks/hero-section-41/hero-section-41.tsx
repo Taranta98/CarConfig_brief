@@ -12,18 +12,14 @@ import {
   CarouselContent,
   CarouselItem
 } from '@/components/ui/carousel'
+import type { Vehicle } from '@/features/Vehicles/vehicle.type'
+import {
+  vehicleDisplayName,
+  vehicleImageUrl,
+  vehicleBasePrice,
+} from '@/features/Vehicles/vehicle.utils'
 import { cn } from '@/lib/utils'
 import { Link } from 'react-router'
-
-/* ---------------- VEHICLE TYPE ---------------- */
-export type Vehicle = {
-  id: number
-  name: string
-  model: string
-  image: string
-  co2_emissions: number
-  base_price: number
-}
 
 const CollaborateButton = ({ className }: { className?: string }) => (
   <Button className={cn("relative text-sm font-medium rounded-full h-10 p-1 ps-4 pe-12 group transition-all duration-500 hover:ps-12 hover:pe-4 w-fit overflow-hidden hover:bg-primary/80", className)}>
@@ -117,11 +113,12 @@ const HeroSection = ({ vehicles }: { vehicles: Vehicle[] }) => {
           {/* TEXT */}
           <div className="flex flex-col gap-6 lg:col-span-3">
             <h1 className="text-4xl font-semibold leading-tight sm:text-5xl lg:text-6xl">
-              {activeVehicle?.name}
+              {activeVehicle ? vehicleDisplayName(activeVehicle) : ''}
             </h1>
 
             <p className="max-w-xl text-lg text-muted-foreground sm:text-xl">
               {activeVehicle?.model}
+              {activeVehicle?.year ? ` · ${activeVehicle.year}` : ''}
             </p>
 
             <div className="flex flex-wrap items-center gap-4">
@@ -143,8 +140,8 @@ const HeroSection = ({ vehicles }: { vehicles: Vehicle[] }) => {
                   <CarouselItem key={item.id}>
                     <div className="flex items-center justify-center">
                       <img
-                        src={item.image}
-                        alt={item.name}
+                        src={vehicleImageUrl(item)}
+                        alt={vehicleDisplayName(item)}
                         className="h-[320px] w-full object-contain sm:h-[380px] lg:h-[420px]"
                       />
                     </div>
@@ -185,8 +182,8 @@ const HeroSection = ({ vehicles }: { vehicles: Vehicle[] }) => {
   )}
 >
     <img
-      src={item.image}
-      alt={item.name}
+      src={vehicleImageUrl(item)}
+      alt={vehicleDisplayName(item)}
       className="h-full w-full object-contain p-3"
     />
   </div>
@@ -212,17 +209,26 @@ const HeroSection = ({ vehicles }: { vehicles: Vehicle[] }) => {
                     className="flex flex-col gap-2 px-6"
                   >
                     <p className="text-lg font-medium text-card-foreground">
-                      {item.name}
+                      {vehicleDisplayName(item)}
                     </p>
 
                     <Separator />
+
+                    <p className="text-sm text-muted-foreground">
+                      {item.fuel_type} · {item.year}
+                    </p>
 
                     <p className="text-sm text-muted-foreground">
                       CO₂: {item.co2_emissions} g/km
                     </p>
 
                     <p className="text-sm text-muted-foreground">
-                    A partire da: € {item.base_price.toLocaleString()}
+                      A partire da:{' '}
+                      {vehicleBasePrice(item).toLocaleString('it-IT', {
+                        style: 'currency',
+                        currency: 'EUR',
+                        maximumFractionDigits: 0,
+                      })}
                     </p>
                   </CarouselItem>
                 ))}

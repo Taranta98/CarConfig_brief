@@ -1,9 +1,8 @@
-
 export type Trim = {
-    id: number,
-    name: string,
-    description: string,
-    price: number,
-    img: string,
-    vehicle_id: number,
+  id: number
+  name: string
+  description: string
+  price: number
+  image?: string | null
+  vehicle_id: number
 }

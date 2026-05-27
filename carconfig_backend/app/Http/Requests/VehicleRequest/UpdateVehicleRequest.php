@@ -23,11 +23,13 @@ class UpdateVehicleRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => 'sometimes|string|max:255',
+            'brand' => 'sometimes|string|max:255',
             'model' => 'sometimes|string|max:255',
+            'year' => 'sometimes|integer|min:1900|max:2100',
+            'fuel_type' => 'sometimes|string|max:255',
             'image' => 'sometimes|string|max:2048',
             'co2_emissions' => 'sometimes|string|max:255',
-            'base_price' => 'sometimes|integer|min:0',
+            'base_price' => 'sometimes|numeric|min:0',
         ];
     }
 }

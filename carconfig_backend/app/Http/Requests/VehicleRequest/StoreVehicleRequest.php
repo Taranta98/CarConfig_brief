@@ -23,11 +23,13 @@ class StoreVehicleRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => 'required|string|max:255',
+            'brand' => 'required|string|max:255',
             'model' => 'required|string|max:255',
+            'year' => 'required|integer|min:1900|max:2100',
+            'fuel_type' => 'required|string|max:255',
             'image' => 'required|string|max:2048',
             'co2_emissions' => 'required|string|max:255',
-            'base_price' => 'required|integer|min:0',
+            'base_price' => 'required|numeric|min:0',
         ];
     }
 }

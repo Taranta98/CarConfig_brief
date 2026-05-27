@@ -14,9 +14,15 @@ class TrimController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        return TrimResource::collection(Trim::paginate(5));
+        $query = Trim::query()->orderBy('price');
+
+        if ($request->filled('vehicle_id')) {
+            $query->where('vehicle_id', $request->integer('vehicle_id'));
+        }
+
+        return TrimResource::collection($query->get());
     }
 
     /**

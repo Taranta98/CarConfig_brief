@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\VehicleRequest\StoreVehicleRequest;
 use App\Http\Requests\VehicleRequest\UpdateVehicleRequest;
+use App\Http\Resources\OptionalResource;
+use App\Http\Resources\TrimResource;
 use App\Http\Resources\VehicleResource;
 use App\Models\Vehicle;
 use Illuminate\Http\Request;
@@ -17,7 +19,21 @@ class VehicleController extends Controller
      */
     public function index()
     {
-        return VehicleResource::collection(Vehicle::paginate(5));
+        return VehicleResource::collection(Vehicle::orderBy('brand')->orderBy('model')->get());
+    }
+
+    public function trims(Vehicle $vehicle)
+    {
+        return TrimResource::collection(
+            $vehicle->trims()->orderBy('price')->get()
+        );
+    }
+
+    public function optionals(Vehicle $vehicle)
+    {
+        return OptionalResource::collection(
+            $vehicle->optionals()->orderBy('category')->orderBy('name')->get()
+        );
     }
 
     /**

@@ -1,13 +1,14 @@
-import { http } from "@/lib/http";
-import type { Optional } from "./optional.type";
-
+import { http } from "@/lib/http"
+import { unwrapList, type LaravelListPayload } from "@/lib/api"
+import type { Optional } from "./optional.type"
 
 export class OptionalService {
-
-    static async list() {
-        return http.get<Optional[]>('/optionals');
-
-    }
+  static async list(vehicleId?: number) {
+    const response = await http.get<LaravelListPayload<Optional>>("/optionals", {
+      params: vehicleId !== undefined ? { vehicle_id: vehicleId } : undefined,
+    })
+    return unwrapList(response)
+  }
     static async find(id: number) {
         return http.get<Optional>(`/optionals/${id}`);
     }

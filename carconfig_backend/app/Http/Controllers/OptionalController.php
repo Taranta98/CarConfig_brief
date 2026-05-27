@@ -14,9 +14,15 @@ class OptionalController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        return OptionalResource::collection(Optional::all());
+        $query = Optional::query()->orderBy('category')->orderBy('name');
+
+        if ($request->filled('vehicle_id')) {
+            $query->where('vehicle_id', $request->integer('vehicle_id'));
+        }
+
+        return OptionalResource::collection($query->get());
     }
 
     /**

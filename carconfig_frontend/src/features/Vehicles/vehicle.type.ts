@@ -1,10 +1,10 @@
-
-
 export type Vehicle = {
-    id: number
-    name: string
-    model: string
-    image: string
-    co2_emissions: number
-    base_price: number
-};
+  id: number
+  brand: string
+  model: string
+  year: number
+  fuel_type: string
+  image: string
+  co2_emissions: string
+  base_price: number
+}

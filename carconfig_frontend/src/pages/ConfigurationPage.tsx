@@ -1,27 +1,28 @@
-import { useRef, useState } from 'react'
-import ConfigurationOptionals from '@/components/ConfigurationOptionals'
-import ConfigurationTrim from '@/components/ConfigurationTrim'
+import { useEffect, useRef, useState } from "react"
+import ConfigurationOptionals from "@/components/ConfigurationOptionals"
+import ConfigurationTrim from "@/components/ConfigurationTrim"
+import {
+  useVehicleOptionals,
+  useVehicles,
+  useVehicleTrims,
+} from "@/features/Vehicles/vehicle.hooks"
 import {
   calculateOptionalsTotal,
-  getRequiredOptionalIds
-} from '@/data/optionals'
-import { getDefaultTrimId, getTrimPrice } from '@/data/trims'
-import { vehicles } from '@/pages/HomePage'
-import { cn } from '@/lib/utils'
+  getDefaultTrimId,
+  getRequiredOptionalIds,
+  getTrimPrice,
+  vehicleBasePrice,
+  vehicleDisplayName,
+  vehicleImageUrl,
+} from "@/features/Vehicles/vehicle.utils"
+import { cn } from "@/lib/utils"
 import {
   Card,
   CardDescription,
   CardHeader,
-  CardTitle
-} from '@/components/ui/card'
-import { Separator } from '@/components/ui/separator'
-
-const modelImages: Record<number, string> = {
-  1: '/qashqai-lato.png',
-  2: '/juke-lato.png',
-  3: '/kona-lato.png',
-  4: '/tucson-lato.png'
-}
+  CardTitle,
+} from "@/components/ui/card"
+import { Separator } from "@/components/ui/separator"
 
 const ConfigurationPage = () => {
   const [selectedId, setSelectedId] = useState<number | null>(null)
@@ -29,22 +30,56 @@ const ConfigurationPage = () => {
   const [selectedOptionalIds, setSelectedOptionalIds] = useState<number[]>([])
   const configSectionRef = useRef<HTMLElement>(null)
 
+  const {
+    data: vehicles = [],
+    isLoading: vehiclesLoading,
+    isError: vehiclesError,
+  } = useVehicles()
+
+  const { data: trims = [], isLoading: trimsLoading } =
+    useVehicleTrims(selectedId)
+
+  const { data: optionals = [], isLoading: optionalsLoading } =
+    useVehicleOptionals(selectedId)
+
   const selectedVehicle = vehicles.find((v) => v.id === selectedId)
-  const trimTotal =
-    selectedId !== null ? getTrimPrice(selectedId, selectedTrimId) : 0
-  const optionalsTotal =
-    selectedId !== null ? calculateOptionalsTotal(selectedId, selectedOptionalIds) : 0
+  const trimTotal = getTrimPrice(trims, selectedTrimId)
+  const optionalsTotal = calculateOptionalsTotal(optionals, selectedOptionalIds)
   const configurationTotal =
     selectedVehicle !== undefined
-      ? selectedVehicle.base_price + trimTotal + optionalsTotal
+      ? vehicleBasePrice(selectedVehicle) + trimTotal + optionalsTotal
       : 0
+
+  useEffect(() => {
+    if (selectedId === null || trimsLoading || trims.length === 0) return
+
+    setSelectedTrimId((current) => {
+      if (current !== null && trims.some((t) => t.id === current)) {
+        return current
+      }
+      return getDefaultTrimId(trims)
+    })
+  }, [selectedId, trims, trimsLoading])
+
+  useEffect(() => {
+    if (selectedId === null || optionalsLoading) return
+
+    const required = getRequiredOptionalIds(optionals)
+    setSelectedOptionalIds((current) => {
+      const kept = current.filter((id) => optionals.some((o) => o.id === id))
+      return [...new Set([...required, ...kept])]
+    })
+  }, [selectedId, optionals, optionalsLoading])
 
   const handleModelSelect = (id: number) => {
     setSelectedId(id)
-    setSelectedTrimId(getDefaultTrimId(id))
-    setSelectedOptionalIds(getRequiredOptionalIds(id))
+    setSelectedTrimId(null)
+    setSelectedOptionalIds([])
     requestAnimationFrame(() => {
-      configSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      configSectionRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      })
     })
   }
 
@@ -60,6 +95,24 @@ const ConfigurationPage = () => {
           </p>
         </div>
 
+        {vehiclesLoading && (
+          <p className="text-center text-muted-foreground">
+            Caricamento veicoli…
+          </p>
+        )}
+
+        {vehiclesError && (
+          <p className="text-center text-destructive">
+            Impossibile caricare i veicoli. Riprova più tardi.
+          </p>
+        )}
+
+        {!vehiclesLoading && !vehiclesError && vehicles.length === 0 && (
+          <p className="text-center text-muted-foreground">
+            Nessun veicolo disponibile al momento.
+          </p>
+        )}
+
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {vehicles.map((vehicle) => {
             const isSelected = selectedId === vehicle.id
@@ -70,28 +123,31 @@ const ConfigurationPage = () => {
                 type="button"
                 onClick={() => handleModelSelect(vehicle.id)}
                 className={cn(
-                  'group text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-xl',
-                  isSelected && 'ring-2 ring-primary ring-offset-2 ring-offset-background'
+                  "group rounded-xl text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                  isSelected &&
+                    "ring-2 ring-primary ring-offset-2 ring-offset-background"
                 )}
                 aria-pressed={isSelected}
-                aria-label={`Seleziona ${vehicle.name}`}
+                aria-label={`Seleziona ${vehicleDisplayName(vehicle)}`}
               >
                 <Card
                   className={cn(
-                    'h-full cursor-pointer overflow-hidden py-0 transition-shadow hover:shadow-md',
-                    isSelected && 'shadow-md'
+                    "h-full cursor-pointer overflow-hidden py-0 transition-shadow hover:shadow-md",
+                    isSelected && "shadow-md"
                   )}
                 >
                   <div className="flex aspect-4/3 items-center justify-center bg-muted/40 p-4">
                     <img
-                      src={modelImages[vehicle.id]}
-                      alt={vehicle.name}
+                      src={vehicleImageUrl(vehicle)}
+                      alt={vehicleDisplayName(vehicle)}
                       className="max-h-full w-full object-contain transition-transform duration-300 group-hover:scale-105"
                     />
                   </div>
                   <CardHeader className="pb-4">
-                    <CardTitle>{vehicle.name}</CardTitle>
-                    <CardDescription>{vehicle.model}</CardDescription>
+                    <CardTitle>{vehicleDisplayName(vehicle)}</CardTitle>
+                    <CardDescription>
+                      {vehicle.model} · {vehicle.fuel_type} · {vehicle.year}
+                    </CardDescription>
                   </CardHeader>
                 </Card>
               </button>
@@ -112,50 +168,53 @@ const ConfigurationPage = () => {
             <div className="space-y-8">
               <div className="flex flex-col items-center gap-6 text-center sm:flex-row sm:text-left">
                 <img
-                  src={modelImages[selectedVehicle.id]}
-                  alt={selectedVehicle.name}
+                  src={vehicleImageUrl(selectedVehicle)}
+                  alt={vehicleDisplayName(selectedVehicle)}
                   className="h-40 w-auto object-contain"
                 />
                 <div>
                   <h2 className="font-heading text-2xl font-semibold sm:text-3xl">
-                    Configura la tua {selectedVehicle.name}
+                    Configura la tua {vehicleDisplayName(selectedVehicle)}
                   </h2>
-                  <p className="mt-2 text-muted-foreground">{selectedVehicle.model}</p>
+                  <p className="mt-2 text-muted-foreground">
+                    {selectedVehicle.model} · {selectedVehicle.fuel_type} ·{" "}
+                    {selectedVehicle.year}
+                  </p>
                   <div className="mt-4 space-y-1">
                     <p className="text-sm text-muted-foreground">
-                      Prezzo base{' '}
-                      {selectedVehicle.base_price.toLocaleString('it-IT', {
-                        style: 'currency',
-                        currency: 'EUR',
-                        maximumFractionDigits: 0
+                      Prezzo base{" "}
+                      {vehicleBasePrice(selectedVehicle).toLocaleString("it-IT", {
+                        style: "currency",
+                        currency: "EUR",
+                        maximumFractionDigits: 0,
                       })}
                     </p>
                     {trimTotal > 0 && (
                       <p className="text-sm text-muted-foreground">
-                        Allestimento{' '}
-                        {trimTotal.toLocaleString('it-IT', {
-                          style: 'currency',
-                          currency: 'EUR',
-                          maximumFractionDigits: 0
+                        Allestimento{" "}
+                        {trimTotal.toLocaleString("it-IT", {
+                          style: "currency",
+                          currency: "EUR",
+                          maximumFractionDigits: 0,
                         })}
                       </p>
                     )}
                     {optionalsTotal > 0 && (
                       <p className="text-sm text-muted-foreground">
-                        Optional{' '}
-                        {optionalsTotal.toLocaleString('it-IT', {
-                          style: 'currency',
-                          currency: 'EUR',
-                          maximumFractionDigits: 0
+                        Optional{" "}
+                        {optionalsTotal.toLocaleString("it-IT", {
+                          style: "currency",
+                          currency: "EUR",
+                          maximumFractionDigits: 0,
                         })}
                       </p>
                     )}
                     <p className="text-lg font-medium">
-                      Totale configurazione{' '}
-                      {configurationTotal.toLocaleString('it-IT', {
-                        style: 'currency',
-                        currency: 'EUR',
-                        maximumFractionDigits: 0
+                      Totale configurazione{" "}
+                      {configurationTotal.toLocaleString("it-IT", {
+                        style: "currency",
+                        currency: "EUR",
+                        maximumFractionDigits: 0,
                       })}
                     </p>
                   </div>
@@ -163,13 +222,15 @@ const ConfigurationPage = () => {
               </div>
 
               <ConfigurationTrim
-                vehicleId={selectedVehicle.id}
+                trims={trims}
+                isLoading={trimsLoading}
                 selectedId={selectedTrimId}
                 onChange={setSelectedTrimId}
               />
 
               <ConfigurationOptionals
-                vehicleId={selectedVehicle.id}
+                optionals={optionals}
+                isLoading={optionalsLoading}
                 selectedIds={selectedOptionalIds}
                 onChange={setSelectedOptionalIds}
               />
