@@ -6,7 +6,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Field, FieldDescription, FieldGroup } from "@/components/ui/field";
-import { useAuthStore } from "@/features/Auth/AuthStore";
+import { useAuthStore } from "@/features/Auth/auth.store"
 import { useEffect } from "react";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";

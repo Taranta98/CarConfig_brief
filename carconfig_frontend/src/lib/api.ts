@@ -1,13 +1,4 @@
-import type { AxiosResponse } from "axios"
 import { myEnv } from "./env"
-
-export type LaravelListPayload<T> = {
-  data: T[]
-}
-
-export function unwrapList<T>(response: AxiosResponse<LaravelListPayload<T>>): T[] {
-  return response.data.data
-}
 
 export function resolveStorageUrl(path: string | null | undefined): string {
   if (!path) return ""

@@ -14,7 +14,7 @@ import { Link, useNavigate } from "react-router";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
-import { AuthService } from "@/features/Auth/AuthService";
+import { AuthService } from "@/features/Auth/auth.service"
 import { toast } from "sonner";
 import { AxiosError } from "axios";
 import VerifyEmail from "../verify-email-01/verify-email";

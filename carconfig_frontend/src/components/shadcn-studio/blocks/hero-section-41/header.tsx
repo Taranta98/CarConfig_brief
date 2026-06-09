@@ -1,29 +1,44 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 
-import { MenuIcon, SunIcon, MoonIcon } from 'lucide-react'
+import { MenuIcon, MoonIcon, SunIcon } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
-import MenuDropdown from '@/components/shadcn-studio/blocks/menu-dropdown'
-import MenuNavigation from '@/components/shadcn-studio/blocks/menu-navigation'
-import type { NavigationSection } from '@/components/shadcn-studio/blocks/menu-navigation'
-import { cn } from '@/lib/utils'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import UserMenu from '@/components/auth/UserMenu'
-import { useAuthStore } from '@/features/Auth/AuthStore'
-import { Link } from 'react-router'
+import { useAuthStore } from '@/features/Auth/auth.store'
+import {
+  COME_FUNZIONA_SECTION_ID,
+  scrollToSection,
+} from '@/lib/scroll'
+import { cn } from '@/lib/utils'
+import { Link, useLocation, useNavigate } from 'react-router'
+
+type NavItem =
+  | { key: string; title: string; type: 'link'; href: string }
+  | { key: string; title: string; type: 'action'; onClick: () => void }
 
 type HeaderProps = {
-  navigationData: NavigationSection[]
   className?: string
 }
 
-const Header = ({ navigationData, className }: HeaderProps) => {
+const Header = ({ className }: HeaderProps) => {
   const [isScrolled, setIsScrolled] = useState(false)
   const [theme, setTheme] = useState<'light' | 'dark'>('light')
-  const isLoggedIn = useAuthStore((state) => Boolean(state.token))
+  const token = useAuthStore((state) => state.token)
+  const user = useAuthStore((state) => state.user)
+  const isLoggedIn = Boolean(token)
+  const isAdmin = user?.role === 'admin'
+  const location = useLocation()
+  const navigate = useNavigate()
 
-  /* ---------------- SCROLL ---------------- */
   useEffect(() => {
-    const handleScroll = () => setIsScrolled(window.scrollY > 0)
+    const handleScroll = () => setIsScrolled(window.scrollY > 8)
 
     window.addEventListener('scroll', handleScroll)
     handleScroll()
@@ -31,7 +46,6 @@ const Header = ({ navigationData, className }: HeaderProps) => {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  /* ---------------- INIT THEME ---------------- */
   useEffect(() => {
     const saved = localStorage.getItem('theme') as 'light' | 'dark' | null
 
@@ -39,7 +53,9 @@ const Header = ({ navigationData, className }: HeaderProps) => {
       setTheme(saved)
       document.documentElement.classList.toggle('dark', saved === 'dark')
     } else {
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+      const prefersDark = window.matchMedia(
+        '(prefers-color-scheme: dark)'
+      ).matches
       const initial = prefersDark ? 'dark' : 'light'
 
       setTheme(initial)
@@ -47,59 +63,154 @@ const Header = ({ navigationData, className }: HeaderProps) => {
     }
   }, [])
 
-  /* ---------------- TOGGLE ---------------- */
   const toggleTheme = () => {
     const newTheme = theme === 'dark' ? 'light' : 'dark'
 
     setTheme(newTheme)
     localStorage.setItem('theme', newTheme)
-
     document.documentElement.classList.toggle('dark', newTheme === 'dark')
+  }
+
+  const scrollToComeFunziona = useCallback(() => {
+    if (location.pathname === '/') {
+      scrollToSection(COME_FUNZIONA_SECTION_ID)
+      window.history.replaceState(null, '', `/#${COME_FUNZIONA_SECTION_ID}`)
+      return
+    }
+
+    navigate('/', { state: { scrollTo: COME_FUNZIONA_SECTION_ID } })
+  }, [location.pathname, navigate])
+
+  const navItems = useMemo<NavItem[]>(() => {
+    const items: NavItem[] = [
+      { key: 'home', title: 'Home', type: 'link', href: '/' },
+      {
+        key: 'how-it-works',
+        title: 'Come funziona',
+        type: 'action',
+        onClick: scrollToComeFunziona,
+      },
+    ]
+
+    if (isLoggedIn) {
+      items.push(
+        {
+          key: 'configuration',
+          title: 'Configuratore',
+          type: 'link',
+          href: '/configuration',
+        },
+        {
+          key: 'my-configurations',
+          title: 'Le mie configurazioni',
+          type: 'link',
+          href: '/my-configurations',
+        }
+      )
+    }
+
+    if (isAdmin) {
+      items.push({
+        key: 'admin',
+        title: 'Pannello admin',
+        type: 'link',
+        href: '/admin',
+      })
+    }
+
+    return items
+  }, [isLoggedIn, isAdmin, scrollToComeFunziona])
+
+  const isNavActive = (href: string) => location.pathname === href
+
+  const isComeFunzionaActive =
+    location.pathname === '/' &&
+    location.hash === `#${COME_FUNZIONA_SECTION_ID}`
+
+  const navLinkClass = (active: boolean) =>
+    cn(
+      'rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors',
+      active
+        ? 'bg-primary/10 text-foreground'
+        : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
+    )
+
+  const renderNavItem = (item: NavItem, className?: string) => {
+    if (item.type === 'action') {
+      const active = item.key === 'how-it-works' && isComeFunzionaActive
+      return (
+        <button
+          key={item.key}
+          type="button"
+          onClick={item.onClick}
+          className={cn(navLinkClass(active), className)}
+        >
+          {item.title}
+        </button>
+      )
+    }
+
+    return (
+      <Link
+        key={item.key}
+        to={item.href}
+        className={cn(navLinkClass(isNavActive(item.href)), className)}
+      >
+        {item.title}
+      </Link>
+    )
   }
 
   return (
     <header
       className={cn(
-        'fixed top-0 z-50 h-17.5 w-full border-b transition-all duration-300',
-        {
-          'bg-background shadow-md': isScrolled
-        },
+        'fixed top-0 z-50 w-full transition-all duration-300',
+        isScrolled
+          ? 'border-b border-border/60 bg-background/90 shadow-sm backdrop-blur-md'
+          : 'border-b border-border/40 bg-background/70 backdrop-blur-sm',
         className
       )}
     >
-      <div className="mx-auto flex h-full max-w-7xl items-center justify-between gap-6 px-4 sm:px-6 lg:px-8">
-
-        {/* LOGO */}
-        <Link to="/" className="flex items-center gap-3">
-          <img src="/Logo.png" alt="Car Config" className="w-10 h-10" />
-          <span className="text-primary text-[20px] font-semibold">
-            Car Config
+      <div className="mx-auto flex h-17.5 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:gap-6 lg:px-8">
+        <Link
+          to="/"
+          className="group flex shrink-0 items-center gap-2.5 rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+        >
+          <span className="flex size-10 items-center justify-center rounded-xl border border-border/60 bg-card/80 shadow-sm transition-colors group-hover:border-primary/30">
+            <img
+              src="/Logo.png"
+              alt=""
+              className="size-7 object-contain"
+              aria-hidden
+            />
+          </span>
+          <span className="hidden flex-col sm:flex">
+            <span className="text-base font-semibold leading-tight tracking-tight">
+              Car Config
+            </span>
           </span>
         </Link>
 
-        {/* NAVIGATION */}
-        <MenuNavigation
-          navigationData={navigationData}
-          className="max-lg:hidden [&_[data-slot=navigation-menu-list]]:gap-1"
-        />
+        <nav
+          aria-label="Navigazione principale"
+          className="hidden items-center gap-0.5 lg:flex"
+        >
+          {navItems.map((item) => renderNavItem(item))}
+        </nav>
 
-        {/* ACTIONS */}
-        <div className="flex items-center gap-3">
-
-          {/* DARK MODE BUTTON */}
+        <div className="flex items-center gap-2 sm:gap-2.5">
           <Button
             size="icon"
             variant="outline"
-            className="rounded-full"
+            className="size-9 rounded-full border-border/60 bg-background/80"
             onClick={toggleTheme}
           >
             {theme === 'dark' ? (
-              <SunIcon className="h-4 w-4" />
+              <SunIcon className="size-4" />
             ) : (
-              <MoonIcon className="h-4 w-4" />
+              <MoonIcon className="size-4" />
             )}
-
-            <span className="sr-only">Toggle theme</span>
+            <span className="sr-only">Cambia tema</span>
           </Button>
 
           {isLoggedIn ? (
@@ -107,14 +218,18 @@ const Header = ({ navigationData, className }: HeaderProps) => {
           ) : (
             <>
               <Button
-                className="rounded-full max-sm:hidden"
+                variant="ghost"
+                size="sm"
+                className="hidden rounded-full sm:inline-flex"
                 render={<Link to="/auth/login" />}
                 nativeButton={false}
               >
                 Accedi
               </Button>
               <Button
-                className="rounded-full max-sm:hidden"
+                size="sm"
+                variant="outline"
+                className="hidden rounded-full border-border/60 sm:inline-flex"
                 render={<Link to="/auth/register" />}
                 nativeButton={false}
               >
@@ -123,24 +238,54 @@ const Header = ({ navigationData, className }: HeaderProps) => {
             </>
           )}
 
-          {/* MOBILE ACTIONS */}
-          <div className="flex gap-3">
-
-            <MenuDropdown
-              align="end"
-              navigationData={navigationData}
-              trigger={
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="rounded-full lg:hidden"
-                >
-                  <MenuIcon />
-                  <span className="sr-only">Menu</span>
-                </Button>
-              }
-            />
-          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger className="lg:hidden">
+              <Button
+                variant="outline"
+                size="icon"
+                className="size-9 rounded-full border-border/60 bg-background/80"
+              >
+                <MenuIcon className="size-4" />
+                <span className="sr-only">Apri menu</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              {navItems.map((item) =>
+                item.type === 'action' ? (
+                  <DropdownMenuItem
+                    key={item.key}
+                    onClick={item.onClick}
+                    className={cn(
+                      item.key === 'how-it-works' &&
+                        isComeFunzionaActive &&
+                        'bg-muted'
+                    )}
+                  >
+                    {item.title}
+                  </DropdownMenuItem>
+                ) : (
+                  <DropdownMenuItem
+                    key={item.key}
+                    render={<Link to={item.href} />}
+                    className={cn(isNavActive(item.href) && 'bg-muted')}
+                  >
+                    {item.title}
+                  </DropdownMenuItem>
+                )
+              )}
+              {!isLoggedIn && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem render={<Link to="/auth/login" />}>
+                    Accedi
+                  </DropdownMenuItem>
+                  <DropdownMenuItem render={<Link to="/auth/register" />}>
+                    Registrati
+                  </DropdownMenuItem>
+                </>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
     </header>

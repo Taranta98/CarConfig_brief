@@ -45,3 +45,11 @@ export function calculateOptionalsTotal(
     .filter((o) => selectedIds.includes(o.id))
     .reduce((sum, o) => sum + o.price, 0)
 }
+
+export function formatCurrency(amount: number): string {
+  return amount.toLocaleString("it-IT", {
+    style: "currency",
+    currency: "EUR",
+    maximumFractionDigits: 0,
+  })
+}

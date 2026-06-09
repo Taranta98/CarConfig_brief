@@ -33,24 +33,24 @@ class TrimController extends Controller
         $imagePath = null;
 
         try {
-                if($request->hasFile('img')){
-                    $imagePath = $request->file('img')->store('trims', 'public');
-                } 
-                
-                $data = $request->validated();
+            if ($request->hasFile('img')) {
+                $imagePath = $request->file('img')->store('trims', 'public');
+            }
+
+            $data = $request->validated();
+            if ($imagePath) {
                 $data['img'] = $imagePath;
+            }
 
-                $trim = Trim::create($data);
+            $trim = Trim::create($data);
 
-                return response()->json([
-                    'success'=> true,
-                    'message' => 'Trim created successfully',
-                    'trim' => $trim
-                ]);
-        
-
+            return response()->json([
+                'success' => true,
+                'message' => 'Trim created successfully',
+                'trim' => new TrimResource($trim),
+            ], 201);
         } catch (\Throwable $th) {
-            if($imagePath) {
+            if ($imagePath) {
                 Storage::disk('public')->delete($imagePath);
             }
             throw $th;
@@ -74,25 +74,32 @@ class TrimController extends Controller
         $newImagePath = $oldImagePath;
 
         try {
-            if($request->hasFile('img')) {
+            if ($request->hasFile('img')) {
                 $newImagePath = $request->file('img')->store('trims', 'public');
             }
 
             $data = $request->validated();
 
-            if($newImagePath) {
+            if ($newImagePath && $request->hasFile('img')) {
                 $data['img'] = $newImagePath;
             }
 
             $trim->update($data);
 
-            if($request->hasFile('img') && $newImagePath && $newImagePath !== $oldImagePath) {
-                Storage::disk('public')->delete('')
+            if ($request->hasFile('img') && $oldImagePath && $newImagePath !== $oldImagePath) {
+                Storage::disk('public')->delete($oldImagePath);
             }
 
-
+            return response()->json([
+                'success' => true,
+                'message' => 'Trim updated successfully',
+                'trim' => new TrimResource($trim),
+            ]);
         } catch (\Throwable $th) {
-            //throw $th;
+            if ($request->hasFile('img') && $newImagePath && $newImagePath !== $oldImagePath) {
+                Storage::disk('public')->delete($newImagePath);
+            }
+            throw $th;
         }
     }
 
@@ -101,6 +108,17 @@ class TrimController extends Controller
      */
     public function destroy(Trim $trim)
     {
-        //
+        $imagePath = $trim->img;
+
+        $trim->delete();
+
+        if ($imagePath) {
+            Storage::disk('public')->delete($imagePath);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Trim deleted successfully',
+        ]);
     }
 }

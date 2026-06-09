@@ -1,4 +1,4 @@
-import { AuthService } from "@/features/Auth/AuthService"
+import { AuthService } from "@/features/Auth/auth.service"
 import { useEffect, useRef, useState } from "react"
 import { useNavigate, useParams, useSearchParams } from "react-router"
 import { toast } from "sonner"

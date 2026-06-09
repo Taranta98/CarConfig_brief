@@ -2,73 +2,135 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ConfigurationRequest\QuotePdfEmailRequest;
 use App\Http\Requests\ConfigurationRequest\StoreConfigurationRequest;
 use App\Http\Resources\ConfigurationResource;
+use App\Mail\ConfigurationQuoteMail;
 use App\Models\Configuration;
+use App\Models\Optional;
+use App\Models\Trim;
+use App\Models\Vehicle;
 use App\Services\ConfigurationService;
-use App\Services\PricingService;
+use App\Services\QuotePdfService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class ConfigurationController extends Controller
 {
-
     public function __construct(
         protected ConfigurationService $configurationService,
-        protected PricingService $pricingService
-    ){}
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+        protected QuotePdfService $quotePdfService,
+    ) {}
+
+    public function index(Request $request)
     {
-        return ConfigurationResource::collection(Configuration::all());
+        $configurations = Configuration::query()
+            ->with(['vehicle', 'trim', 'optionals'])
+            ->where('user_id', $request->user()->id)
+            ->latest()
+            ->get();
+
+        return ConfigurationResource::collection($configurations);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(StoreConfigurationRequest $request)
     {
-       $config = $this->configurationService->createConfiguration(
-            auth()->id(),
-            $request->vehicle_id
+        $this->configurationService->assertTrimBelongsToVehicle(
+            $request->integer('trim_id'),
+            $request->integer('vehicle_id'),
         );
-    
-        if ($request->filled('trim_id')) {
-            $config->trim_id = $request->trim_id;
-            $config->save();
+
+        $config = $this->configurationService->createConfiguration(
+            $request->user()->id,
+            $request->integer('vehicle_id'),
+            $request->integer('trim_id'),
+            $request->input('optionals', []),
+            0,
+        );
+
+        $config = $this->configurationService->getConfiguration($config->id);
+        $config->update(['total_price' => $this->configurationTotal($config)]);
+        $config = $this->configurationService->getConfiguration($config->id);
+
+        return new ConfigurationResource($config);
+    }
+
+    protected function configurationTotal(Configuration $configuration): float
+    {
+        $base = (float) ($configuration->vehicle->base_price ?? 0);
+        $trim = (float) ($configuration->trim->price ?? 0);
+        $optionals = $configuration->optionals->sum(
+            fn ($optional) => (float) ($optional->pivot->price_snapshot ?? 0)
+        );
+
+        return $base + $trim + $optionals;
+    }
+
+    public function show(Request $request, Configuration $configuration)
+    {
+        $this->authorizeConfiguration($request, $configuration);
+
+        $configuration->load(['vehicle', 'trim', 'optionals']);
+
+        return new ConfigurationResource($configuration);
+    }
+
+    public function emailQuote(QuotePdfEmailRequest $request)
+    {
+        $vehicle = Vehicle::findOrFail($request->integer('vehicle_id'));
+
+        $this->configurationService->assertTrimBelongsToVehicle(
+            $request->integer('trim_id'),
+            $vehicle->id,
+        );
+
+        $trim = Trim::query()
+            ->whereKey($request->integer('trim_id'))
+            ->where('vehicle_id', $vehicle->id)
+            ->firstOrFail();
+
+        $optionals = Optional::query()
+            ->where('vehicle_id', $vehicle->id)
+            ->whereIn('id', $request->input('optionals', []))
+            ->get();
+
+        $pdfContent = $this->quotePdfService->generate($vehicle, $trim, $optionals);
+
+        if (! str_starts_with($pdfContent, '%PDF')) {
+            return response()->json([
+                'message' => 'Errore nella generazione del PDF. Riprova.',
+            ], 500);
         }
 
-        if ($request->filled('optionals')) {
-            $this->configurationService->syncOptionals($config->id, $request->optionals);
+        $filename = Str::slug('preventivo-'.$vehicle->brand.'-'.$vehicle->model).'.pdf';
+        $storagePath = 'quotes/'.Str::uuid().'.pdf';
+
+        Storage::disk('local')->put($storagePath, $pdfContent);
+
+        try {
+            Mail::to($request->user())->send(
+                new ConfigurationQuoteMail(
+                    $request->user(),
+                    $vehicle,
+                    $storagePath,
+                    $filename,
+                ),
+            );
+        } finally {
+            Storage::disk('local')->delete($storagePath);
         }
 
-        return new ConfigurationResource(
-            $this->configurationService->getConfiguration($config->id)
-        );
+        return response()->json([
+            'message' => 'Preventivo inviato alla tua email.',
+        ]);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Configuration $configuration)
+    protected function authorizeConfiguration(Request $request, Configuration $configuration): void
     {
-       return new ConfigurationResource($configuration);
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+        if ($configuration->user_id !== $request->user()->id) {
+            abort(403);
+        }
     }
 }

@@ -18,7 +18,8 @@ class Configuration extends Model
         'total_price' => 'float',
     ];
 
-    const STATUS_DRAFT = 'draft';
+    const STATUS_IN_PROGRESS = 'in_progress';
+
     const STATUS_COMPLETED = 'completed';
 
     public function user()

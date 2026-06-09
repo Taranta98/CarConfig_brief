@@ -1,32 +1,25 @@
-import { http } from "@/lib/http"
-import { unwrapList, type LaravelListPayload } from "@/lib/api"
 import type { Optional } from "@/features/Optionals/optional.type"
 import type { Trim } from "@/features/Trims/trim.type"
+import { http, type LaravelListPayload, type LaravelResourcePayload } from "@/lib/http"
 import type { Vehicle } from "./vehicle.type"
 
 export class VehicleService {
   static async list() {
-    const response = await http.get<LaravelListPayload<Vehicle>>("/vehicles")
-    return unwrapList(response)
+    return http.get<LaravelListPayload<Vehicle>>("/vehicles")
   }
 
   static async find(id: number) {
-    const response = await http.get<{ data: Vehicle }>(`/vehicles/${id}`)
-    return response.data.data
+    return http.get<LaravelResourcePayload<Vehicle>>(`/vehicles/${id}`)
   }
 
   static async listTrims(vehicleId: number) {
-    const response = await http.get<LaravelListPayload<Trim>>(
-      `/vehicles/${vehicleId}/trims`
-    )
-    return unwrapList(response)
+    return http.get<LaravelListPayload<Trim>>(`/vehicles/${vehicleId}/trims`)
   }
 
   static async listOptionals(vehicleId: number) {
-    const response = await http.get<LaravelListPayload<Optional>>(
+    return http.get<LaravelListPayload<Optional>>(
       `/vehicles/${vehicleId}/optionals`
     )
-    return unwrapList(response)
   }
 
   static async create(data: Vehicle) {

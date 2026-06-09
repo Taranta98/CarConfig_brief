@@ -28,6 +28,7 @@ class UpdateUserRequest extends FormRequest
             'age' => 'sometimes|required|integer|min:0',
             'email' => 'sometimes|required|string|email|max:255|unique:users,email,' . $this->user->id,
             'password' => 'sometimes|required|string|min:8|confirmed',
+            'role' => 'sometimes|string|in:admin,user',
         ];
     }
 }

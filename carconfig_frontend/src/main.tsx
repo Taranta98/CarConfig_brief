@@ -10,6 +10,7 @@ import HomePage from "./pages/HomePage"
 import ConfigurationPage from "./pages/ConfigurationPage"
 import MyConfigurationsPage from "./pages/MyConfigurationsPage"
 import SettingsPage from "./pages/SettingsPage"
+import AdminPage from "./pages/AdminPage"
 import MainLayout from "./layouts/MainLayout"
 import AuthLayout from "./layouts/AuthLayout"
 import EmailVerifyPage from "./pages/EmailVerifyPage"
@@ -38,6 +39,10 @@ const router = createBrowserRouter([
       {
         path: "/settings",
         element: <SettingsPage></SettingsPage>,
+      },
+      {
+        path: "/admin",
+        element: <AdminPage></AdminPage>,
       },
     ],
   },

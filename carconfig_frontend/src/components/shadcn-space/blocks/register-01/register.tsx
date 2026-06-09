@@ -15,7 +15,7 @@ import {
   FieldSeparator,
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
-import { AuthService } from "@/features/Auth/AuthService"
+import { AuthService } from "@/features/Auth/auth.service"
 import { useState } from "react"
 import { Link } from "react-router"
 import { z } from "zod"

@@ -1,16 +1,28 @@
 'use client'
 
-import { useEffect, useState, useRef, useCallback } from 'react'
-import { ArrowRightIcon, ArrowUpRight } from 'lucide-react'
+import { useEffect, useState, useCallback, useMemo } from 'react'
+import {
+  ArrowUpRight,
+  Car,
+  Fuel,
+  Gauge,
+  Leaf,
+} from 'lucide-react'
 import Autoplay from 'embla-carousel-autoplay'
 
-import { Separator } from '@/components/ui/separator'
 import { Button } from '@/components/ui/button'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 import {
   type CarouselApi,
   Carousel,
   CarouselContent,
-  CarouselItem
+  CarouselItem,
 } from '@/components/ui/carousel'
 import type { Vehicle } from '@/features/Vehicles/vehicle.type'
 import {
@@ -21,221 +33,306 @@ import {
 import { cn } from '@/lib/utils'
 import { Link } from 'react-router'
 
-const CollaborateButton = ({ className }: { className?: string }) => (
-  <Button className={cn("relative text-sm font-medium rounded-full h-10 p-1 ps-4 pe-12 group transition-all duration-500 hover:ps-12 hover:pe-4 w-fit overflow-hidden hover:bg-primary/80", className)}>
-    <span className="relative z-10 transition-all duration-500 hover:cursor-pointer">
-      Configura ora la tua auto
+const formatPrice = (value: number) =>
+  value.toLocaleString('it-IT', {
+    style: 'currency',
+    currency: 'EUR',
+    maximumFractionDigits: 0,
+  })
+
+const ConfigureButton = ({ className }: { className?: string }) => (
+  <Button
+    className={cn(
+      'group relative h-11 overflow-hidden rounded-full p-1 ps-5 pe-13 text-sm font-medium transition-all duration-500 hover:bg-primary/90 hover:pe-5 hover:ps-13',
+      className
+    )}
+  >
+    <span className="relative z-10">Configura ora</span>
+    <span className="absolute right-1 flex size-9 items-center justify-center rounded-full bg-background text-foreground transition-all duration-500 group-hover:right-[calc(100%-2.25rem)] group-hover:rotate-45">
+      <ArrowUpRight className="size-4" />
     </span>
-    <div className="absolute right-1 w-8 h-8 bg-background text-foreground rounded-full flex items-center justify-center transition-all duration-500 group-hover:right-[calc(100%-36px)] group-hover:rotate-45">
-      <ArrowUpRight size={16} />
-    </div>
   </Button>
-);
+)
+
+function VehicleFuelIcon({
+  fuelType,
+  className,
+}: {
+  fuelType: string
+  className?: string
+}) {
+  const normalized = fuelType.toLowerCase()
+  const isEco =
+    normalized.includes('elettr') || normalized.includes('ibrid')
+  const Icon = isEco ? Leaf : Fuel
+  return <Icon className={className} />
+}
 
 const HeroSection = ({ vehicles }: { vehicles: Vehicle[] }) => {
   const [mainApi, setMainApi] = useState<CarouselApi>()
   const [thumbApi, setThumbApi] = useState<CarouselApi>()
-  const [commentsApi, setCommentsApi] = useState<CarouselApi>()
   const [current, setCurrent] = useState(0)
 
-  const plugin = useRef(
-    Autoplay({ delay: 3000, stopOnInteraction: false })
+  const autoplayPlugin = useMemo(
+    () => Autoplay({ delay: 4500, stopOnInteraction: true }),
+    []
   )
 
-  /* ---------------- MAIN SYNC ---------------- */
   useEffect(() => {
     if (!mainApi) return
 
     const onSelect = () => {
       const index = mainApi.selectedScrollSnap()
       setCurrent(index)
-
       thumbApi?.scrollTo(index)
-      commentsApi?.scrollTo(index)
     }
 
-    setCurrent(mainApi.selectedScrollSnap())
+    onSelect()
     mainApi.on('select', onSelect)
 
-    return () => mainApi.off('select', onSelect)
-  }, [mainApi, thumbApi, commentsApi])
+    return () => {
+      mainApi.off('select', onSelect)
+    }
+  }, [mainApi, thumbApi])
 
-  /* ---------------- THUMB SYNC ---------------- */
   useEffect(() => {
     if (!thumbApi) return
 
     const onSelect = () => {
       const index = thumbApi.selectedScrollSnap()
       setCurrent(index)
-
       mainApi?.scrollTo(index)
-      commentsApi?.scrollTo(index)
     }
 
     thumbApi.on('select', onSelect)
 
-    return () => thumbApi.off('select', onSelect)
-  }, [thumbApi, mainApi, commentsApi])
-
-  /* ---------------- COMMENTS SYNC ---------------- */
-  useEffect(() => {
-    if (!commentsApi) return
-
-    const onSelect = () => {
-      const index = commentsApi.selectedScrollSnap()
-      setCurrent(index)
-
-      mainApi?.scrollTo(index)
-      thumbApi?.scrollTo(index)
+    return () => {
+      thumbApi.off('select', onSelect)
     }
-
-    commentsApi.on('select', onSelect)
-
-    return () => commentsApi.off('select', onSelect)
-  }, [commentsApi, mainApi, thumbApi])
+  }, [thumbApi, mainApi])
 
   const handleThumbClick = useCallback(
     (index: number) => {
       mainApi?.scrollTo(index)
+      thumbApi?.scrollTo(index)
     },
-    [mainApi]
+    [mainApi, thumbApi]
   )
 
   const activeVehicle = vehicles[current]
 
   return (
-    <section className="py-16 lg:py-24">
-      <div className="mx-auto flex max-w-7xl flex-col gap-16 px-4 sm:px-6 lg:px-8">
+    <section className="relative overflow-hidden">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_80%_60%_at_50%_-20%,var(--color-muted),transparent)]"
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -right-32 top-24 -z-10 size-96 rounded-full bg-primary/5 blur-3xl"
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -left-24 bottom-0 -z-10 size-80 rounded-full bg-muted blur-3xl"
+      />
 
-        {/* ================= HERO TOP ================= */}
-        <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-5">
+      <div className="mx-auto flex max-w-7xl flex-col gap-14 px-4 py-16 sm:px-6 lg:gap-20 lg:py-24 lg:px-8">
+        <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-2 lg:gap-16">
+          <div className="flex flex-col gap-6 lg:max-w-xl">
+            <div className="inline-flex w-fit items-center gap-2 rounded-full border border-border/60 bg-background/80 px-3 py-1 text-xs font-medium text-muted-foreground backdrop-blur-sm">
+              <Car className="size-3.5 text-primary" />
+              Configuratore auto online
+            </div>
 
-          {/* TEXT */}
-          <div className="flex flex-col gap-6 lg:col-span-3">
-            <h1 className="text-4xl font-semibold leading-tight sm:text-5xl lg:text-6xl">
-              {activeVehicle ? vehicleDisplayName(activeVehicle) : ''}
-            </h1>
+            <div className="space-y-3">
+              <h1 className="text-4xl font-semibold leading-[1.1] tracking-tight sm:text-5xl lg:text-[3.25rem]">
+                La tua prossima auto,{' '}
+                <span className="text-muted-foreground">su misura</span>
+              </h1>
+              <p className="max-w-lg text-base text-muted-foreground sm:text-lg">
+                Scegli il modello, confronta allestimenti e optional. Il prezzo
+                si aggiorna mentre configuri.
+              </p>
+            </div>
 
-            <p className="max-w-xl text-lg text-muted-foreground sm:text-xl">
-              {activeVehicle?.model}
-              {activeVehicle?.year ? ` · ${activeVehicle.year}` : ''}
-            </p>
+            {activeVehicle && (
+              <div className="rounded-2xl border border-border/60 bg-card/50 p-4 backdrop-blur-sm">
+                <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                  In evidenza
+                </p>
+                <p className="mt-1 text-2xl font-semibold tracking-tight">
+                  {vehicleDisplayName(activeVehicle)}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {activeVehicle.model}
+                  {activeVehicle.year ? ` · ${activeVehicle.year}` : ''}
+                </p>
+                <p className="mt-2 text-lg font-medium">
+                  Da {formatPrice(vehicleBasePrice(activeVehicle))}
+                </p>
+              </div>
+            )}
 
-            <div className="flex flex-wrap items-center gap-4">
-              
-            <Link to="/configuration">  <CollaborateButton /></Link>
+            <div className="flex flex-wrap items-center gap-3">
+              <Link to="/configuration">
+                <ConfigureButton />
+              </Link>
+              <Button
+                variant="outline"
+                className="rounded-full"
+                render={<Link to="/configuration" />}
+                nativeButton={false}
+              >
+                Esplora il catalogo
+              </Button>
+            </div>
+
+            <div className="flex items-center gap-4 pt-2">
+              <span className="text-sm tabular-nums text-muted-foreground">
+                {String(current + 1).padStart(2, '0')} /{' '}
+                {String(vehicles.length).padStart(2, '0')}
+              </span>
+              <div className="flex flex-1 gap-1.5">
+                {vehicles.map((_, index) => (
+                  <button
+                    key={vehicles[index].id}
+                    type="button"
+                    aria-label={`Vai al veicolo ${index + 1}`}
+                    onClick={() => handleThumbClick(index)}
+                    className={cn(
+                      'h-1 flex-1 rounded-full transition-all duration-300',
+                      current === index
+                        ? 'bg-primary'
+                        : 'bg-border hover:bg-muted-foreground/40'
+                    )}
+                  />
+                ))}
+              </div>
             </div>
           </div>
 
-          {/* MAIN CAROUSEL */}
-          <div className="lg:col-span-2">
+          <div className="relative">
+            <div className="absolute inset-0 -z-10 rounded-3xl bg-linear-to-b from-muted/50 to-transparent" />
             <Carousel
               setApi={setMainApi}
-              plugins={[plugin.current]}
+              plugins={[autoplayPlugin]}
               opts={{ loop: true }}
               className="w-full"
             >
               <CarouselContent>
-                {vehicles.map(item => (
+                {vehicles.map((item) => (
                   <CarouselItem key={item.id}>
-                    <div className="flex items-center justify-center">
+                    <div className="flex items-center justify-center px-2">
                       <img
                         src={vehicleImageUrl(item)}
                         alt={vehicleDisplayName(item)}
-                        className="h-[320px] w-full object-contain sm:h-[380px] lg:h-[420px]"
+                        className="h-[280px] w-full object-contain drop-shadow-lg sm:h-[340px] lg:h-[400px]"
                       />
                     </div>
                   </CarouselItem>
                 ))}
               </CarouselContent>
             </Carousel>
+
+            {activeVehicle && (
+              <Card className="absolute bottom-4 right-4 left-4 border-border/60 bg-background/90 py-4 shadow-lg backdrop-blur-md sm:left-auto sm:w-72">
+                <CardHeader className="px-4 pb-2">
+                  <CardTitle className="text-base">
+                    {vehicleDisplayName(activeVehicle)}
+                  </CardTitle>
+                  <CardDescription>{activeVehicle.fuel_type}</CardDescription>
+                </CardHeader>
+                <CardContent className="grid grid-cols-3 gap-3 px-4 pt-0">
+                  <div className="flex flex-col gap-1">
+                    <VehicleFuelIcon
+                      fuelType={activeVehicle.fuel_type}
+                      className="size-4 text-muted-foreground"
+                    />
+                    <span className="text-xs text-muted-foreground">
+                      Alimentazione
+                    </span>
+                    <span className="text-sm font-medium">
+                      {activeVehicle.fuel_type}
+                    </span>
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <Gauge className="size-4 text-muted-foreground" />
+                    <span className="text-xs text-muted-foreground">CO₂</span>
+                    <span className="text-sm font-medium">
+                      {activeVehicle.co2_emissions} g/km
+                    </span>
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <span className="text-xs text-muted-foreground">Prezzo</span>
+                    <span className="text-sm font-medium">
+                      {formatPrice(vehicleBasePrice(activeVehicle))}
+                    </span>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </div>
 
-        {/* ================= BOTTOM SECTION ================= */}
-        <div className="grid grid-cols-1 gap-12 lg:grid-cols-5">
+        <div className="space-y-4">
+          <div className="flex items-end justify-between gap-4">
+            <div>
+              <h2 className="text-lg font-semibold tracking-tight">
+                Scegli il modello
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                Scorri o seleziona un veicolo per visualizzarlo
+              </p>
+            </div>
+          </div>
 
-          {/* THUMBNAILS */}
-          <div className="relative lg:col-span-3">
+          <div className="relative">
+            <div className="pointer-events-none absolute top-0 left-0 z-10 h-full w-12 bg-linear-to-r from-background to-transparent sm:w-16" />
+            <div className="pointer-events-none absolute top-0 right-0 z-10 h-full w-12 bg-linear-to-l from-background to-transparent sm:w-16" />
 
-            <div className="pointer-events-none absolute left-0 top-0 z-10 h-full w-16 bg-gradient-to-r from-background" />
-            <div className="pointer-events-none absolute right-0 top-0 z-10 h-full w-16 bg-gradient-to-l from-background" />
-
-            <Carousel setApi={setThumbApi} opts={{ loop: true }}>
-              <CarouselContent className="py-2">
+            <Carousel setApi={setThumbApi} opts={{ loop: true, align: 'start' }}>
+              <CarouselContent className="-ml-3 py-1">
                 {vehicles.map((item, index) => (
                   <CarouselItem
                     key={item.id}
-                    className={cn(
-                      "basis-1/3 cursor-pointer sm:basis-1/4 lg:basis-1/3"
-                    )}
-                    onClick={() => handleThumbClick(index)}
+                    className="basis-[45%] pl-3 sm:basis-1/3 md:basis-1/4 lg:basis-1/5"
                   >
-                    <div className="flex flex-col items-center gap-2">
-
-  <div
-  className={cn(
-    "h-[130px] w-[170px] rounded-2xl border bg-background/40 backdrop-blur-md shadow-sm transition-all duration-300 hover:scale-105 hover:shadow-md",
-    current === index
-      ? "border-primary shadow-primary/20 ring-2 ring-primary/20"
-      : "border-border/60"
-  )}
->
-    <img
-      src={vehicleImageUrl(item)}
-      alt={vehicleDisplayName(item)}
-      className="h-full w-full object-contain p-3"
-    />
-  </div>
-
-  <span className="text-xs font-medium text-muted-foreground">
-    {item.model}
-  </span>
-
-</div>
+                    <button
+                      type="button"
+                      onClick={() => handleThumbClick(index)}
+                      className={cn(
+                        'group flex w-full flex-col gap-2 rounded-2xl text-left transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+                        current === index && 'scale-[1.02]'
+                      )}
+                    >
+                      <div
+                        className={cn(
+                          'flex h-28 items-center justify-center rounded-2xl border bg-card/60 p-3 shadow-sm backdrop-blur-sm transition-all duration-300 group-hover:border-primary/40 group-hover:shadow-md',
+                          current === index
+                            ? 'border-primary ring-2 ring-primary/20'
+                            : 'border-border/60'
+                        )}
+                      >
+                        <img
+                          src={vehicleImageUrl(item)}
+                          alt={vehicleDisplayName(item)}
+                          className="max-h-full w-full object-contain transition-transform duration-300 group-hover:scale-105"
+                        />
+                      </div>
+                      <div className="px-0.5">
+                        <p className="truncate text-sm font-medium">
+                          {vehicleDisplayName(item)}
+                        </p>
+                        <p className="truncate text-xs text-muted-foreground">
+                          Da {formatPrice(vehicleBasePrice(item))}
+                        </p>
+                      </div>
+                    </button>
                   </CarouselItem>
                 ))}
               </CarouselContent>
             </Carousel>
           </div>
-
-          {/* COMMENTS (placeholder adattato) */}
-          <div className="lg:col-span-2">
-            <Carousel setApi={setCommentsApi} opts={{ loop: true }}>
-              <CarouselContent>
-                {vehicles.map(item => (
-                  <CarouselItem
-                    key={item.id}
-                    className="flex flex-col gap-2 px-6"
-                  >
-                    <p className="text-lg font-medium text-card-foreground">
-                      {vehicleDisplayName(item)}
-                    </p>
-
-                    <Separator />
-
-                    <p className="text-sm text-muted-foreground">
-                      {item.fuel_type} · {item.year}
-                    </p>
-
-                    <p className="text-sm text-muted-foreground">
-                      CO₂: {item.co2_emissions} g/km
-                    </p>
-
-                    <p className="text-sm text-muted-foreground">
-                      A partire da:{' '}
-                      {vehicleBasePrice(item).toLocaleString('it-IT', {
-                        style: 'currency',
-                        currency: 'EUR',
-                        maximumFractionDigits: 0,
-                      })}
-                    </p>
-                  </CarouselItem>
-                ))}
-              </CarouselContent>
-            </Carousel>
-          </div>
-
         </div>
       </div>
     </section>
