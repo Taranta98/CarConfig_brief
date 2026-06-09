@@ -64,30 +64,14 @@ const LoginForm = () => {
   }
 
   return (
-    <Card className="relative w-full gap-6 border-0 bg-[var(--auth-panel-bg)] px-6 py-8 shadow-none ring-0 sm:p-12">
-          <CardHeader className="text-center gap-6 p-0">
-            <div className="mx-auto">
-              <Link to="/">
-                <img
-                  src="/Logo.png"
-                  alt="car config"
-                  className="dark:hidden h-10 w-10"
-                />
-                <img
-                  src="/Logo.png"
-                  alt="car config"
-                  className="hidden dark:block h-10 w-10"
-                />
-              </Link>
-            </div>
-            <div className="flex flex-col gap-1">
-              <CardTitle className="text-2xl font-medium text-card-foreground">
-                Benvenuto su Car Config
-              </CardTitle>
-              <CardDescription className="text-sm text-muted-foreground font-normal">
-               Accedi al tuo account
-              </CardDescription>
-            </div>
+    <Card className="relative w-full gap-6 border border-border/60 bg-card px-6 py-8 shadow-lg sm:p-10">
+          <CardHeader className="gap-2 p-0 text-center">
+            <CardTitle className="text-2xl font-medium text-card-foreground">
+              Benvenuto su Car Config
+            </CardTitle>
+            <CardDescription className="text-sm font-normal text-muted-foreground">
+              Accedi al tuo account
+            </CardDescription>
           </CardHeader>
           <CardContent className="p-0">
             <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -123,7 +107,7 @@ const LoginForm = () => {
                   Entra con Facebook
                   </Button>
                 </Field>
-                <FieldSeparator className="bg-transparent text-sm text-muted-foreground *:data-[slot=field-separator-content]:bg-[var(--auth-panel-bg)]">
+                <FieldSeparator className="bg-transparent text-sm text-muted-foreground *:data-[slot=field-separator-content]:bg-card">
                   <span className="px-4">o accedi con</span>
                 </FieldSeparator>
 

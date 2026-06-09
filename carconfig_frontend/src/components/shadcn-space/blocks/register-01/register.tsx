@@ -34,7 +34,6 @@ import { zodResolver } from "@hookform/resolvers/zod"
 export const registerSchema = z.object({
   first_name: z.string().min(1, { message: "Nome obbligatorio" }),
   last_name: z.string().min(1, { message: "Cognome obbligatorio" }),
-  age: z.coerce.number().min(1, { message: "Età obbligatoria" }),
   email: z.email({ message: "Email non valida" }),
   password: z
     .string()
@@ -78,32 +77,15 @@ const RegisterForm = () => {
   }
 
   return (
-    <Card className="relative w-full gap-6 border-0 bg-[var(--auth-panel-bg)] px-6 py-8 shadow-none ring-0 sm:p-12">
-      <CardHeader className="gap-6 p-0 text-center">
-            <div className="mx-auto">
-              <Link to="/">
-                <img
-                  src="/Logo.png"
-                  alt="shadcnspace"
-                  className="h-10 w-10 dark:hidden"
-                />
-                <img
-                  src="/Logo.png"
-                  alt="shadcnspace"
-                  className="hidden h-10 w-10 dark:block"
-                />
-              </Link>
-            </div>
-            <div className="flex flex-col gap-1">
-              <CardTitle className="text-2xl font-medium text-card-foreground">
-                Iscriviti a Car Config
-              </CardTitle>
-              <CardDescription className="text-sm font-normal text-muted-foreground">
-                Iscriviti ad Car Config per iniziare a configurare il tuo
-                veicolo
-              </CardDescription>
-            </div>
-          </CardHeader>
+    <Card className="relative w-full gap-6 border border-border/60 bg-card px-6 py-8 shadow-lg sm:p-10">
+      <CardHeader className="gap-2 p-0 text-center">
+        <CardTitle className="text-2xl font-medium text-card-foreground">
+          Iscriviti a Car Config
+        </CardTitle>
+        <CardDescription className="text-sm font-normal text-muted-foreground">
+          Crea un account per iniziare a configurare il tuo veicolo
+        </CardDescription>
+      </CardHeader>
       <CardContent className="p-0">
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <FieldGroup className="gap-6">
@@ -138,7 +120,7 @@ const RegisterForm = () => {
                     Entra con Facebook
                   </Button>
                 </Field>
-                <FieldSeparator className="bg-transparent text-sm text-muted-foreground *:data-[slot=field-separator-content]:bg-[var(--auth-panel-bg)]">
+                <FieldSeparator className="bg-transparent text-sm text-muted-foreground *:data-[slot=field-separator-content]:bg-card">
                   <span className="px-4">o iscriviti con </span>
                 </FieldSeparator>
 
@@ -173,22 +155,6 @@ const RegisterForm = () => {
                       required
                       className="h-9 bg-white shadow-xs"
                       {...form.register("last_name")}
-                    />
-                  </Field>
-                  <Field className="gap-1.5">
-                    <FieldLabel
-                      htmlFor="age"
-                      className="text-sm font-normal text-muted-foreground"
-                    >
-                      Età*
-                    </FieldLabel>
-                    <Input
-                      id="age"
-                      type="number"
-                      placeholder="inserisci la tua età"
-                      required
-                      className="h-9 bg-white shadow-xs"
-                      {...form.register("age", { valueAsNumber: true })}
                     />
                   </Field>
                   <Field className="gap-1.5">

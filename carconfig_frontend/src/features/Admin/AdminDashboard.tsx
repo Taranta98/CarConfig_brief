@@ -71,7 +71,6 @@ const optionalFields: AdminField[] = [
 const userFields: AdminField[] = [
   { name: "first_name", label: "Nome", type: "text", required: true },
   { name: "last_name", label: "Cognome", type: "text", required: true },
-  { name: "age", label: "Età", type: "number", required: true },
   { name: "email", label: "Email", type: "text", required: true },
   {
     name: "password",
@@ -421,7 +420,6 @@ export function AdminDashboard() {
           mapItemToForm={(item) => ({
             first_name: item.first_name,
             last_name: item.last_name,
-            age: item.age,
             email: item.email,
             role: item.role,
             password: "",
@@ -431,7 +429,6 @@ export function AdminDashboard() {
             const payload: Record<string, unknown> = {
               first_name: String(values.first_name),
               last_name: String(values.last_name),
-              age: Number(values.age),
               email: String(values.email),
               role: String(values.role),
             }

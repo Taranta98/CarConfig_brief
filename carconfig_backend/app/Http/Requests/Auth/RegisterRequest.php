@@ -28,8 +28,6 @@ class RegisterRequest extends FormRequest
 
             'last_name' => ['required','string','max:255'],
 
-            'age' => ['required','integer','min:0'],
-
             'email' => ['required','string','email','max:255','unique:users,email',],
 
             'password' => [ 'required','string', 'confirmed', 'min:8', Password::defaults(),

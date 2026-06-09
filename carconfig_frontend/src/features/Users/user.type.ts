@@ -2,7 +2,6 @@ export type User = {
   id: number
   first_name: string
   last_name: string
-  age: number
   email: string
   password: string
   role: string
@@ -14,7 +13,6 @@ export type User = {
 export type UserPayload = {
   first_name: string
   last_name: string
-  age: number
   email: string
   password?: string
   password_confirmation?: string
@@ -23,5 +21,5 @@ export type UserPayload = {
 
 export type UserListItem = Pick<
   User,
-  "id" | "first_name" | "last_name" | "age" | "email" | "role"
+  "id" | "first_name" | "last_name" | "email" | "role"
 >

@@ -38,7 +38,7 @@ class Configuration extends Model
     }
     public function optionals()
     {
-        return $this->belongsToMany(Optional::class)
+        return $this->belongsToMany(Optional::class, 'configuration_optionals')
             ->withPivot('price_snapshot')
             ->withTimestamps();
     }
