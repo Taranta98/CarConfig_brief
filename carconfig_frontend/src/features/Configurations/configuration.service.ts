@@ -19,4 +19,8 @@ export class ConfigurationService {
   static async emailQuote(payload: SaveConfigurationPayload) {
     return http.post("/configurations/quote/email", payload)
   }
+
+  static async delete(id: number) {
+    return http.delete(`/configurations/${id}`)
+  }
 }

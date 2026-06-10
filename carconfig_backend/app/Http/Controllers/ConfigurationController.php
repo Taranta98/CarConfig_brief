@@ -83,6 +83,17 @@ class ConfigurationController extends Controller
         return new ConfigurationResource($configuration);
     }
 
+    public function destroy(Request $request, Configuration $configuration)
+    {
+        $this->authorizeConfiguration($request, $configuration);
+
+        $configuration->delete();
+
+        return response()->json([
+            'message' => 'Configurazione eliminata con successo.',
+        ]);
+    }
+
     public function emailQuote(QuotePdfEmailRequest $request)
     {
         $vehicle = Vehicle::findOrFail($request->integer('vehicle_id'));

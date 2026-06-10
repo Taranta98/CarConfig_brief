@@ -1,19 +1,14 @@
+import { ConfigurationListCard } from "@/features/Configurations/components/ConfigurationListCard"
 import { ConfigurationService } from "@/features/Configurations/configuration.service"
-import { formatCurrency } from "@/features/Vehicles/vehicle.utils"
-import { useQuery } from "@tanstack/react-query"
 import { useAuthStore } from "@/features/Auth/auth.store"
 import { Button } from "@/components/ui/button"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Link, useNavigate } from "react-router"
+import { toast } from "sonner"
 
 const MyConfigurationsPage = () => {
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const token = useAuthStore((s) => s.token)
   const { data: configurationsResponse, isLoading, isError } = useQuery({
     queryKey: ["configurations"],
@@ -21,6 +16,17 @@ const MyConfigurationsPage = () => {
     enabled: Boolean(token),
   })
   const configurations = configurationsResponse?.data.data ?? []
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => ConfigurationService.delete(id),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["configurations"] })
+      toast.success("Configurazione eliminata")
+    },
+    onError: () => {
+      toast.error("Impossibile eliminare la configurazione")
+    },
+  })
 
   if (!token) {
     return (
@@ -71,29 +77,14 @@ const MyConfigurationsPage = () => {
       <ul className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {configurations.map((config) => (
           <li key={config.id}>
-            <Card>
-              <CardHeader>
-                <CardTitle>
-                  {config.vehicle.brand} {config.vehicle.model}
-                </CardTitle>
-                <CardDescription>
-                  {config.trim?.name ?? "Allestimento"}
-                  {config.vehicle_color
-                    ? ` · ${config.vehicle_color.name}`
-                    : ""}{" "}
-                  · {new Date(config.created_at).toLocaleDateString("it-IT")}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-2 text-sm">
-                <p>
-                  <span className="text-muted-foreground">Optional: </span>
-                  {config.optionals.length}
-                </p>
-                <p className="text-lg font-semibold">
-                  {formatCurrency(config.total_price)}
-                </p>
-              </CardContent>
-            </Card>
+            <ConfigurationListCard
+              config={config}
+              onDelete={(id) => deleteMutation.mutate(id)}
+              isDeleting={
+                deleteMutation.isPending &&
+                deleteMutation.variables === config.id
+              }
+            />
           </li>
         ))}
       </ul>

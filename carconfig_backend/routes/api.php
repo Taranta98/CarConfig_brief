@@ -41,6 +41,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/configurations', [ConfigurationController::class, 'index']);
     Route::post('/configurations', [ConfigurationController::class, 'store']);
     Route::get('/configurations/{configuration}', [ConfigurationController::class, 'show']);
+    Route::delete('/configurations/{configuration}', [ConfigurationController::class, 'destroy']);
     Route::post('/configurations/quote/email', [ConfigurationController::class, 'emailQuote']);
 });
 
