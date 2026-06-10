@@ -25,6 +25,7 @@ class StoreConfigurationRequest extends FormRequest
         return [
             'vehicle_id' => ['required','integer', 'exists:vehicles,id'],
             'trim_id' => ['required','integer', 'exists:trims,id'],
+            'vehicle_color_id' => ['nullable', 'integer', 'exists:vehicle_colors,id'],
 
             'optionals' => ['nullable', 'array'],
             'optionals.*' => ['integer', 'exists:optionals,id'],

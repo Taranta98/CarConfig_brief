@@ -1,16 +1,22 @@
+import ConfigurationColor from "@/components/ConfigurationColor"
 import ConfigurationOptionals from "@/components/ConfigurationOptionals"
 import ConfigurationTrim from "@/components/ConfigurationTrim"
 import { Button } from "@/components/ui/button"
 import type { Optional } from "@/features/Optionals/optional.type"
 import type { Trim } from "@/features/Trims/trim.type"
+import type { VehicleColor } from "@/features/Vehicles/vehicle.type"
 import { cn } from "@/lib/utils"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 
-export type WizardStep = "trim" | "optionals"
+export type WizardStep = "color" | "trim" | "optionals"
 
 type ConfigurationWizardProps = {
   step: WizardStep
   onStepChange: (step: WizardStep) => void
+  colors: VehicleColor[]
+  colorsLoading: boolean
+  selectedColorId: number | null
+  onColorChange: (id: number) => void
   trims: Trim[]
   trimsLoading: boolean
   selectedTrimId: number | null
@@ -22,6 +28,11 @@ type ConfigurationWizardProps = {
 }
 
 const steps: { id: WizardStep; label: string; description: string }[] = [
+  {
+    id: "color",
+    label: "Colore",
+    description: "Scegli la verniciatura del veicolo",
+  },
   {
     id: "trim",
     label: "Allestimento",
@@ -37,6 +48,10 @@ const steps: { id: WizardStep; label: string; description: string }[] = [
 const ConfigurationWizard = ({
   step,
   onStepChange,
+  colors,
+  colorsLoading,
+  selectedColorId,
+  onColorChange,
   trims,
   trimsLoading,
   selectedTrimId,
@@ -46,9 +61,45 @@ const ConfigurationWizard = ({
   selectedOptionalIds,
   onOptionalsChange,
 }: ConfigurationWizardProps) => {
-  const currentIndex = steps.findIndex((s) => s.id === step)
-  const canGoNext = step === "trim" && selectedTrimId !== null
-  const canGoPrev = step === "optionals"
+  const currentIndex = steps.findIndex((item) => item.id === step)
+  const hasColors = colors.length > 0
+  const colorStepComplete =
+    !hasColors || selectedColorId !== null
+  const canGoNext =
+    (step === "color" && colorStepComplete) ||
+    (step === "trim" && selectedTrimId !== null)
+  const canGoPrev = step !== "color"
+
+  const canOpenStep = (targetStep: WizardStep, index: number) => {
+    if (index <= currentIndex) return true
+    if (targetStep === "trim") return colorStepComplete
+    if (targetStep === "optionals") {
+      return colorStepComplete && selectedTrimId !== null
+    }
+    return true
+  }
+
+  const goNext = () => {
+    if (step === "color") {
+      onStepChange("trim")
+      return
+    }
+
+    if (step === "trim") {
+      onStepChange("optionals")
+    }
+  }
+
+  const goPrev = () => {
+    if (step === "optionals") {
+      onStepChange("trim")
+      return
+    }
+
+    if (step === "trim") {
+      onStepChange("color")
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -57,28 +108,25 @@ const ConfigurationWizard = ({
           {steps.map((wizardStep, index) => {
             const isActive = wizardStep.id === step
             const isDone = index < currentIndex
+            const isDisabled = !canOpenStep(wizardStep.id, index)
 
             return (
               <li key={wizardStep.id} className="flex flex-1 items-center gap-3">
                 <button
                   type="button"
                   onClick={() => {
-                    if (index <= currentIndex || selectedTrimId !== null) {
+                    if (!isDisabled) {
                       onStepChange(wizardStep.id)
                     }
                   }}
-                  disabled={
-                    wizardStep.id === "optionals" && selectedTrimId === null
-                  }
+                  disabled={isDisabled}
                   className={cn(
                     "flex w-full items-start gap-3 rounded-lg border p-4 text-left transition-colors",
                     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                     isActive && "border-primary bg-primary/5 ring-1 ring-primary",
                     isDone && !isActive && "border-primary/30 bg-muted/30",
                     !isActive && !isDone && "border-border hover:bg-muted/40",
-                    wizardStep.id === "optionals" &&
-                      selectedTrimId === null &&
-                      "cursor-not-allowed opacity-50"
+                    isDisabled && "cursor-not-allowed opacity-50"
                   )}
                 >
                   <span
@@ -109,6 +157,21 @@ const ConfigurationWizard = ({
           })}
         </ol>
       </nav>
+
+      <div
+        className={cn(
+          "transition-opacity duration-300",
+          step === "color" ? "opacity-100" : "hidden opacity-0"
+        )}
+        aria-hidden={step !== "color"}
+      >
+        <ConfigurationColor
+          colors={colors}
+          isLoading={colorsLoading}
+          selectedId={selectedColorId}
+          onChange={onColorChange}
+        />
+      </div>
 
       <div
         className={cn(
@@ -145,26 +208,18 @@ const ConfigurationWizard = ({
           type="button"
           variant="outline"
           disabled={!canGoPrev}
-          onClick={() => onStepChange("trim")}
+          onClick={goPrev}
         >
           <ChevronLeft className="size-4" />
           Indietro
         </Button>
-        {step === "trim" ? (
-          <Button
-            type="button"
-            disabled={!canGoNext}
-            onClick={() => onStepChange("optionals")}
-          >
-            Avanti: optional
+        {step !== "optionals" ? (
+          <Button type="button" disabled={!canGoNext} onClick={goNext}>
+            {step === "color" ? "Avanti: allestimento" : "Avanti: optional"}
             <ChevronRight className="size-4" />
           </Button>
         ) : (
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={() => onStepChange("trim")}
-          >
+          <Button type="button" variant="secondary" onClick={() => onStepChange("trim")}>
             Modifica allestimento
           </Button>
         )}

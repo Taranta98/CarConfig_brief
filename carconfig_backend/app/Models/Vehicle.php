@@ -37,4 +37,9 @@ class Vehicle extends Model
     {
         return $this->hasMany(Optional::class);
     }
+
+    public function colors()
+    {
+        return $this->hasMany(VehicleColor::class)->orderBy('sort_order');
+    }
 }

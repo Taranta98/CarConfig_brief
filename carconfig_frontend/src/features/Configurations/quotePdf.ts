@@ -21,6 +21,10 @@ function buildPdfLines(data: QuotePdfData): string[] {
     `Prezzo base: ${currency(data.basePrice)}`,
   ]
 
+  if (data.colorName) {
+    lines.push(`Colore: ${data.colorName}`)
+  }
+
   if (data.trimName) {
     lines.push(`Allestimento: ${data.trimName} (+${currency(data.trimPrice)})`)
   }

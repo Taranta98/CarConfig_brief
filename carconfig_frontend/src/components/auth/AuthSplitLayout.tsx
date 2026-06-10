@@ -1,3 +1,4 @@
+import Logo from "@/components/Logo"
 import type { ReactNode } from "react"
 import { Link } from "react-router"
 
@@ -10,11 +11,7 @@ const AuthSplitLayout = ({ children }: AuthSplitLayoutProps) => {
     <div className="grid min-h-screen grid-cols-1 lg:grid-cols-2">
       <aside className="flex min-h-[280px] flex-col items-center justify-center bg-black px-8 py-12 text-white lg:min-h-screen lg:px-12">
         <Link to="/" className="flex flex-col items-center gap-8">
-          <img
-            src="/Logo.svg"
-            alt="Car Config"
-            className="h-14 w-auto brightness-0 invert"
-          />
+          <Logo variant="white" className="h-14 w-auto" />
           <div className="max-w-sm text-center">
             <h1 className="text-3xl font-semibold tracking-tight">Car Config</h1>
             <p className="mt-3 text-base leading-relaxed text-white/70">

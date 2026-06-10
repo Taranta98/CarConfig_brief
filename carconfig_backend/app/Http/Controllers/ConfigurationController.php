@@ -27,7 +27,7 @@ class ConfigurationController extends Controller
     public function index(Request $request)
     {
         $configurations = Configuration::query()
-            ->with(['vehicle', 'trim', 'optionals'])
+            ->with(['vehicle', 'trim', 'vehicleColor', 'optionals'])
             ->where('user_id', $request->user()->id)
             ->latest()
             ->get();
@@ -42,10 +42,16 @@ class ConfigurationController extends Controller
             $request->integer('vehicle_id'),
         );
 
+        $this->configurationService->assertColorBelongsToVehicle(
+            $request->input('vehicle_color_id'),
+            $request->integer('vehicle_id'),
+        );
+
         $config = $this->configurationService->createConfiguration(
             $request->user()->id,
             $request->integer('vehicle_id'),
             $request->integer('trim_id'),
+            $request->input('vehicle_color_id'),
             $request->input('optionals', []),
             0,
         );
@@ -72,7 +78,7 @@ class ConfigurationController extends Controller
     {
         $this->authorizeConfiguration($request, $configuration);
 
-        $configuration->load(['vehicle', 'trim', 'optionals']);
+        $configuration->load(['vehicle', 'trim', 'vehicleColor', 'optionals']);
 
         return new ConfigurationResource($configuration);
     }

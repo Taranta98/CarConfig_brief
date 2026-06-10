@@ -1,3 +1,4 @@
+import Logo from "@/components/Logo"
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -22,18 +23,7 @@ const ForgotPassword = () => {
         <Card className="px-6 py-8 sm:p-12 relative gap-6">
           <CardHeader className="text-center gap-6 p-0">
             <div className="mx-auto">
-              <a href="">
-                <img
-                  src="https://images.shadcnspace.com/assets/logo/logo-icon-black.svg"
-                  alt="shadcnspace"
-                  className="dark:hidden h-10 w-10"
-                />
-                <img
-                  src="https://images.shadcnspace.com/assets/logo/logo-icon-white.svg"
-                  alt="shadcnspace"
-                  className="hidden dark:block h-10 w-10"
-                />
-              </a>
+              <Logo className="h-10 w-10" />
             </div>
             <div className="flex flex-col gap-1">
               <CardTitle className="text-2xl font-medium text-card-foreground">

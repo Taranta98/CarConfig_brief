@@ -77,8 +77,11 @@ const MyConfigurationsPage = () => {
                   {config.vehicle.brand} {config.vehicle.model}
                 </CardTitle>
                 <CardDescription>
-                  {config.trim?.name ?? "Allestimento"} ·{" "}
-                  {new Date(config.created_at).toLocaleDateString("it-IT")}
+                  {config.trim?.name ?? "Allestimento"}
+                  {config.vehicle_color
+                    ? ` · ${config.vehicle_color.name}`
+                    : ""}{" "}
+                  · {new Date(config.created_at).toLocaleDateString("it-IT")}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-2 text-sm">

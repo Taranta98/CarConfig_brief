@@ -11,7 +11,14 @@ use App\Models\Optional;
 
 class Configuration extends Model
 {
-    protected $fillable = ['user_id', 'vehicle_id', 'trim_id', 'total_price', 'status'];
+    protected $fillable = [
+        'user_id',
+        'vehicle_id',
+        'trim_id',
+        'vehicle_color_id',
+        'total_price',
+        'status',
+    ];
     
 
     protected $casts = [
@@ -35,6 +42,11 @@ class Configuration extends Model
     public function trim()
     {
         return $this->belongsTo(Trim::class);
+    }
+
+    public function vehicleColor()
+    {
+        return $this->belongsTo(VehicleColor::class);
     }
     public function optionals()
     {

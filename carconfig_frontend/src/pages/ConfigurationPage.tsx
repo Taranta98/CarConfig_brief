@@ -8,8 +8,13 @@ import type { QuotePdfData } from "@/features/Configurations/configuration.type"
 import { downloadQuotePdf } from "@/features/Configurations/quotePdf"
 import { useAuthStore } from "@/features/Auth/auth.store"
 import { VehicleService } from "@/features/Vehicles/vehicle.service"
+import type { VehicleViewAngle } from "@/features/Vehicles/vehicle.type"
 import {
   calculateOptionalsTotal,
+  configuratorPreviewImage,
+  DEFAULT_VEHICLE_VIEW_ANGLE,
+  findVehicleColor,
+  getDefaultColorId,
   getDefaultTrimId,
   getRequiredOptionalIds,
   getTrimPrice,
@@ -17,6 +22,7 @@ import {
   vehicleDisplayName,
   vehicleImageUrl,
 } from "@/features/Vehicles/vehicle.utils"
+import VehicleImageViewer from "@/components/VehicleImageViewer"
 import { cn } from "@/lib/utils"
 import {
   Card,
@@ -34,9 +40,13 @@ const ConfigurationPage = () => {
   const navigate = useNavigate()
   const token = useAuthStore((s) => s.token)
   const [selectedId, setSelectedId] = useState<number | null>(null)
+  const [selectedColorId, setSelectedColorId] = useState<number | null>(null)
+  const [selectedAngle, setSelectedAngle] = useState<VehicleViewAngle>(
+    DEFAULT_VEHICLE_VIEW_ANGLE
+  )
   const [selectedTrimId, setSelectedTrimId] = useState<number | null>(null)
   const [selectedOptionalIds, setSelectedOptionalIds] = useState<number[]>([])
-  const [wizardStep, setWizardStep] = useState<WizardStep>("trim")
+  const [wizardStep, setWizardStep] = useState<WizardStep>("color")
   const configSectionRef = useRef<HTMLElement>(null)
   const queryClient = useQueryClient()
 
@@ -49,6 +59,16 @@ const ConfigurationPage = () => {
     queryFn: () => VehicleService.list(),
   })
   const vehicles = vehiclesResponse?.data.data ?? []
+
+  const { data: configuratorResponse, isLoading: configuratorLoading } =
+    useQuery({
+      queryKey: ["vehicles", selectedId, "configurator"],
+      queryFn: () => VehicleService.getConfigurator(selectedId!),
+      enabled: selectedId !== null,
+    })
+  const configurator = configuratorResponse?.data.data
+  const colors = configurator?.colors ?? []
+  const angles = configurator?.angles ?? []
 
   const { data: trimsResponse, isLoading: trimsLoading } = useQuery({
     queryKey: ["vehicles", selectedId, "trims"],
@@ -76,9 +96,16 @@ const ConfigurationPage = () => {
   })
 
   const selectedVehicle = vehicles.find((v) => v.id === selectedId)
+  const selectedColor = findVehicleColor(colors, selectedColorId)
   const selectedTrim = trims.find((t) => t.id === selectedTrimId) ?? null
   const selectedOptionals = optionals.filter((o) =>
     selectedOptionalIds.includes(o.id)
+  )
+
+  const previewImageUrl = useMemo(
+    () =>
+      configuratorPreviewImage(configurator, selectedColorId, selectedAngle),
+    [configurator, selectedColorId, selectedAngle]
   )
 
   const trimTotal = getTrimPrice(trims, selectedTrimId)
@@ -88,9 +115,11 @@ const ConfigurationPage = () => {
       ? vehicleBasePrice(selectedVehicle) + trimTotal + optionalsTotal
       : 0
 
-  const canDownload = selectedTrimId !== null
+  const hasColors = colors.length > 0
+  const colorStepComplete = !hasColors || selectedColorId !== null
+  const canDownload = selectedTrimId !== null && colorStepComplete
   const canSaveAndEmail =
-    selectedTrimId !== null && wizardStep === "optionals"
+    selectedTrimId !== null && colorStepComplete && wizardStep === "optionals"
 
   const quotePdfData = useMemo((): QuotePdfData | null => {
     if (!selectedVehicle || selectedTrimId === null) return null
@@ -98,6 +127,7 @@ const ConfigurationPage = () => {
     return {
       vehicleLabel: vehicleDisplayName(selectedVehicle),
       vehicleDetails: `${selectedVehicle.model} · ${selectedVehicle.fuel_type} · ${selectedVehicle.year}`,
+      colorName: selectedColor?.name ?? null,
       trimName: selectedTrim?.name ?? null,
       trimPrice: trimTotal,
       basePrice: vehicleBasePrice(selectedVehicle),
@@ -112,6 +142,7 @@ const ConfigurationPage = () => {
   }, [
     selectedVehicle,
     selectedTrimId,
+    selectedColor,
     selectedTrim,
     trimTotal,
     selectedOptionals,
@@ -121,12 +152,34 @@ const ConfigurationPage = () => {
 
   const savePayload = useMemo(() => {
     if (selectedId === null || selectedTrimId === null) return null
+
     return {
       vehicle_id: selectedId,
       trim_id: selectedTrimId,
+      vehicle_color_id: selectedColorId,
       optionals: selectedOptionalIds,
     }
-  }, [selectedId, selectedTrimId, selectedOptionalIds])
+  }, [selectedId, selectedTrimId, selectedColorId, selectedOptionalIds])
+
+  useEffect(() => {
+    if (selectedId === null || configuratorLoading) return
+
+    setSelectedColorId((current) => {
+      if (current !== null && colors.some((color) => color.id === current)) {
+        return current
+      }
+
+      return getDefaultColorId(colors)
+    })
+  }, [selectedId, colors, configuratorLoading])
+
+  useEffect(() => {
+    if (angles.length === 0) return
+
+    setSelectedAngle((current) =>
+      angles.includes(current) ? current : DEFAULT_VEHICLE_VIEW_ANGLE
+    )
+  }, [angles, selectedId])
 
   useEffect(() => {
     if (selectedId === null || trimsLoading || trims.length === 0) return
@@ -158,9 +211,11 @@ const ConfigurationPage = () => {
 
   const handleModelSelect = (id: number) => {
     setSelectedId(id)
+    setSelectedColorId(null)
+    setSelectedAngle(DEFAULT_VEHICLE_VIEW_ANGLE)
     setSelectedTrimId(null)
     setSelectedOptionalIds([])
-    setWizardStep("trim")
+    setWizardStep("color")
     requestAnimationFrame(() => {
       configSectionRef.current?.scrollIntoView({
         behavior: "smooth",
@@ -308,9 +363,21 @@ const ConfigurationPage = () => {
                   </p>
                 </div>
 
+                <VehicleImageViewer
+                  imageUrl={previewImageUrl}
+                  alt={vehicleDisplayName(selectedVehicle)}
+                  angles={angles}
+                  selectedAngle={selectedAngle}
+                  onAngleChange={setSelectedAngle}
+                />
+
                 <ConfigurationWizard
                   step={wizardStep}
                   onStepChange={setWizardStep}
+                  colors={colors}
+                  colorsLoading={configuratorLoading}
+                  selectedColorId={selectedColorId}
+                  onColorChange={setSelectedColorId}
                   trims={trims}
                   trimsLoading={trimsLoading}
                   selectedTrimId={selectedTrimId}
@@ -324,6 +391,8 @@ const ConfigurationPage = () => {
 
               <ConfigurationSidebar
                 vehicle={selectedVehicle}
+                selectedColor={selectedColor}
+                previewImageUrl={previewImageUrl}
                 trim={selectedTrim}
                 selectedOptionals={selectedOptionals}
                 basePrice={vehicleBasePrice(selectedVehicle)}

@@ -6,6 +6,7 @@ use App\Http\Requests\VehicleRequest\StoreVehicleRequest;
 use App\Http\Requests\VehicleRequest\UpdateVehicleRequest;
 use App\Http\Resources\OptionalResource;
 use App\Http\Resources\TrimResource;
+use App\Http\Resources\VehicleConfiguratorResource;
 use App\Http\Resources\VehicleResource;
 use App\Models\Vehicle;
 use Illuminate\Http\Request;
@@ -34,6 +35,16 @@ class VehicleController extends Controller
         return OptionalResource::collection(
             $vehicle->optionals()->orderBy('category')->orderBy('name')->get()
         );
+    }
+
+    public function configurator(Vehicle $vehicle): VehicleConfiguratorResource
+    {
+        $vehicle->load([
+            'colors' => fn ($query) => $query->orderBy('sort_order'),
+            'colors.images',
+        ]);
+
+        return new VehicleConfiguratorResource($vehicle);
     }
 
     /**

@@ -2,16 +2,17 @@ import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import type { Optional } from "@/features/Optionals/optional.type"
 import type { Trim } from "@/features/Trims/trim.type"
-import type { Vehicle } from "@/features/Vehicles/vehicle.type"
+import type { Vehicle, VehicleColor } from "@/features/Vehicles/vehicle.type"
 import {
   formatCurrency,
   vehicleDisplayName,
-  vehicleImageUrl,
 } from "@/features/Vehicles/vehicle.utils"
 import { Download, Mail, Save } from "lucide-react"
 
 type ConfigurationSidebarProps = {
   vehicle: Vehicle
+  selectedColor: VehicleColor | null
+  previewImageUrl: string
   trim: Trim | null
   selectedOptionals: Optional[]
   basePrice: number
@@ -29,6 +30,8 @@ type ConfigurationSidebarProps = {
 
 const ConfigurationSidebar = ({
   vehicle,
+  selectedColor,
+  previewImageUrl,
   trim,
   selectedOptionals,
   basePrice,
@@ -49,9 +52,10 @@ const ConfigurationSidebar = ({
     <aside className="sticky top-24 flex h-fit w-full flex-col rounded-xl border bg-card shadow-sm lg:w-80">
       <div className="flex flex-col items-center gap-3 p-5">
         <img
-          src={vehicleImageUrl(vehicle)}
+          key={previewImageUrl}
+          src={previewImageUrl}
           alt={vehicleDisplayName(vehicle)}
-          className="h-36 w-full object-contain"
+          className="h-36 w-full object-contain transition-opacity duration-200"
         />
         <div className="text-center">
           <h3 className="font-heading text-lg font-semibold">
@@ -60,6 +64,11 @@ const ConfigurationSidebar = ({
           <p className="text-sm text-muted-foreground">
             {vehicle.model} · {vehicle.fuel_type} · {vehicle.year}
           </p>
+          {selectedColor && (
+            <p className="mt-1 text-sm text-foreground">
+              Colore: {selectedColor.name}
+            </p>
+          )}
         </div>
       </div>
 
@@ -75,6 +84,12 @@ const ConfigurationSidebar = ({
               <span className="text-muted-foreground">Prezzo base</span>
               <span className="font-medium">{formatCurrency(basePrice)}</span>
             </li>
+            {selectedColor && (
+              <li className="flex justify-between gap-2">
+                <span className="text-muted-foreground">Colore</span>
+                <span className="text-right font-medium">{selectedColor.name}</span>
+              </li>
+            )}
             {trim && (
               <li className="flex justify-between gap-2">
                 <span className="text-muted-foreground">Allestimento</span>

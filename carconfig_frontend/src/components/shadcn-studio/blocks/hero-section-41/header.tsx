@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import { MenuIcon, MoonIcon, SunIcon } from 'lucide-react'
 
+import Logo from '@/components/Logo'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -177,12 +178,7 @@ const Header = ({ className }: HeaderProps) => {
           className="group flex shrink-0 items-center gap-2.5 rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
         >
           <span className="flex size-10 items-center justify-center rounded-xl border border-border/60 bg-card/80 shadow-sm transition-colors group-hover:border-primary/30">
-            <img
-              src="/Logo.png"
-              alt=""
-              className="size-7 object-contain"
-              aria-hidden
-            />
+            <Logo className="size-7" alt="" aria-hidden />
           </span>
           <span className="hidden flex-col sm:flex">
             <span className="text-base font-semibold leading-tight tracking-tight">

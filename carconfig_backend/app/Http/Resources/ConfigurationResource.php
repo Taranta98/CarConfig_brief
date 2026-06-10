@@ -32,6 +32,12 @@ class ConfigurationResource extends JsonResource
                 'price' => $this->trim->price,
                 'description' => $this->trim->description,
             ]),
+            'vehicle_color' => $this->when($this->vehicleColor, fn () => [
+                'id' => $this->vehicleColor->id,
+                'code' => $this->vehicleColor->code,
+                'name' => $this->vehicleColor->name,
+                'hex' => $this->vehicleColor->hex,
+            ]),
             'optionals' => OptionalResource::collection($this->whenLoaded('optionals')),
             'total_price' => $this->total_price,
             'status' => $this->status,

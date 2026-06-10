@@ -1,7 +1,7 @@
 import type { Optional } from "@/features/Optionals/optional.type"
 import type { Trim } from "@/features/Trims/trim.type"
 import { http, type LaravelListPayload, type LaravelResourcePayload } from "@/lib/http"
-import type { Vehicle } from "./vehicle.type"
+import type { Vehicle, VehicleConfigurator } from "./vehicle.type"
 
 export class VehicleService {
   static async list() {
@@ -19,6 +19,12 @@ export class VehicleService {
   static async listOptionals(vehicleId: number) {
     return http.get<LaravelListPayload<Optional>>(
       `/vehicles/${vehicleId}/optionals`
+    )
+  }
+
+  static async getConfigurator(vehicleId: number) {
+    return http.get<LaravelResourcePayload<VehicleConfigurator>>(
+      `/vehicles/${vehicleId}/configurator`
     )
   }
 

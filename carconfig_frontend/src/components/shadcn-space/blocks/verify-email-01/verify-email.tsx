@@ -1,3 +1,4 @@
+import Logo from "@/components/Logo"
 import {
   Card,
   CardContent,
@@ -43,11 +44,7 @@ const VerifyEmail = ({ email }: VerifyEmailProps) => {
         <Card className="px-6 py-8 sm:p-12 relative">
           <CardHeader className="text-center gap-6 p-0">
             <div className="mx-auto">
-              <img
-                src="/Logo.png"
-                alt="Car Config"
-                className="h-10 w-10"
-              />
+              <Logo className="h-10 w-10" />
             </div>
             <div className="flex flex-col gap-1">
               <CardTitle className="text-2xl font-medium text-card-foreground">
