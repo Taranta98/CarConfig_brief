@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\EmailVerificationController;
+use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\ConfigurationController;
 use App\Http\Controllers\OptionalController;
 use App\Http\Controllers\TrimController;
@@ -11,9 +12,14 @@ use App\Http\Controllers\VehicleController;
 use Illuminate\Support\Facades\Route;
 
 
-Route::controller(AuthController::class)->group(function() {
+Route::controller(AuthController::class)->group(function () {
     Route::post('/register', 'register');
     Route::post('/login', 'login');
+});
+
+Route::controller(PasswordResetController::class)->group(function () {
+    Route::post('/forgot-password', 'forgotPassword');
+    Route::post('/reset-password', 'resetPassword');
 });
 
 Route::get('/email/verify/{id}/{hash}', [EmailVerificationController::class, 'verify'])->name('api.verification.verify');

@@ -16,6 +16,7 @@ import { useAuthStore } from '@/features/Auth/auth.store'
 import {
   COME_FUNZIONA_SECTION_ID,
   scrollToSection,
+  scrollToTop,
 } from '@/lib/scroll'
 import { cn } from '@/lib/utils'
 import { Link, useLocation, useNavigate } from 'react-router'
@@ -72,10 +73,30 @@ const Header = ({ className }: HeaderProps) => {
     document.documentElement.classList.toggle('dark', newTheme === 'dark')
   }
 
-  const scrollToComeFunziona = useCallback(() => {
+  const goToHome = useCallback(() => {
     if (location.pathname === '/') {
-      scrollToSection(COME_FUNZIONA_SECTION_ID)
-      window.history.replaceState(null, '', `/#${COME_FUNZIONA_SECTION_ID}`)
+      navigate('/', { replace: true })
+      scrollToTop()
+      return
+    }
+
+    navigate('/')
+  }, [location.pathname, navigate])
+
+  const goToComeFunziona = useCallback(() => {
+    if (location.pathname === '/') {
+      if (document.getElementById(COME_FUNZIONA_SECTION_ID)) {
+        navigate(
+          { pathname: '/', hash: COME_FUNZIONA_SECTION_ID },
+          { replace: true }
+        )
+        requestAnimationFrame(() => scrollToSection(COME_FUNZIONA_SECTION_ID))
+      } else {
+        navigate('/', {
+          state: { scrollTo: COME_FUNZIONA_SECTION_ID },
+          replace: true,
+        })
+      }
       return
     }
 
@@ -84,12 +105,12 @@ const Header = ({ className }: HeaderProps) => {
 
   const navItems = useMemo<NavItem[]>(() => {
     const items: NavItem[] = [
-      { key: 'home', title: 'Home', type: 'link', href: '/' },
+      { key: 'home', title: 'Home', type: 'action', onClick: goToHome },
       {
         key: 'how-it-works',
         title: 'Come funziona',
         type: 'action',
-        onClick: scrollToComeFunziona,
+        onClick: goToComeFunziona,
       },
     ]
 
@@ -120,9 +141,13 @@ const Header = ({ className }: HeaderProps) => {
     }
 
     return items
-  }, [isLoggedIn, isAdmin, scrollToComeFunziona])
+  }, [isLoggedIn, isAdmin, goToHome, goToComeFunziona])
 
   const isNavActive = (href: string) => location.pathname === href
+
+  const isHomeActive =
+    location.pathname === '/' &&
+    location.hash !== `#${COME_FUNZIONA_SECTION_ID}`
 
   const isComeFunzionaActive =
     location.pathname === '/' &&
@@ -138,7 +163,9 @@ const Header = ({ className }: HeaderProps) => {
 
   const renderNavItem = (item: NavItem, className?: string) => {
     if (item.type === 'action') {
-      const active = item.key === 'how-it-works' && isComeFunzionaActive
+      const active =
+        (item.key === 'home' && isHomeActive) ||
+        (item.key === 'how-it-works' && isComeFunzionaActive)
       return (
         <button
           key={item.key}
@@ -175,6 +202,10 @@ const Header = ({ className }: HeaderProps) => {
       <div className="flex h-17.5 w-full items-center justify-between gap-4 px-4 sm:px-6 lg:gap-6 lg:px-8">
         <Link
           to="/"
+          onClick={(event) => {
+            event.preventDefault()
+            goToHome()
+          }}
           className="group flex shrink-0 items-center gap-2.5 rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
         >
           <span className="flex size-10 items-center justify-center rounded-xl border border-border/60 bg-card/80 shadow-sm transition-colors group-hover:border-primary/30">
@@ -252,8 +283,8 @@ const Header = ({ className }: HeaderProps) => {
                     key={item.key}
                     onClick={item.onClick}
                     className={cn(
-                      item.key === 'how-it-works' &&
-                        isComeFunzionaActive &&
+                      ((item.key === 'home' && isHomeActive) ||
+                        (item.key === 'how-it-works' && isComeFunzionaActive)) &&
                         'bg-muted'
                     )}
                   >

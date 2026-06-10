@@ -6,62 +6,65 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\ForgotPasswordRequest;
 use App\Http\Requests\Auth\ResetPasswordRequest;
 use App\Models\User;
-use Illuminate\Http\Request;
+use Illuminate\Auth\Events\PasswordReset;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 
 class PasswordResetController extends Controller
 {
-    public function forgotPassword(ForgotPasswordRequest $request) {
+    public function forgotPassword(ForgotPasswordRequest $request): JsonResponse
+    {
         $data = $request->validated();
-        $user = User::where('email', $data['email'])->first();
 
-        if(!$user || !$user->hasVerifiedEmail()) {
-            return response()->json([
-                'success' => true,
-                'message' => 'If an account with that email exists and is verified, a password reset link has been sent to your email.'
-            ]);
-        }
-        Password::sendResetLink([
-            'email' => $data['email']
+        $status = Password::sendResetLink([
+            'email' => $data['email'],
         ]);
-        
+
+        if ($status === Password::RESET_THROTTLED) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Hai già richiesto un link di recupero. Controlla la tua email o riprova tra un minuto.',
+            ], 429);
+        }
+
         return response()->json([
             'success' => true,
-            'message' => 'If an account with that email exists and is verified, a password reset link has been sent to your email.'
+            'message' => 'Se esiste un account con questa email, ti abbiamo inviato un link per reimpostare la password.',
         ]);
     }
 
-    public function resetPassword(ResetPasswordRequest $request) {
+    public function resetPassword(ResetPasswordRequest $request): JsonResponse
+    {
         $data = $request->validated();
-        $user = User::where('email', $data['email'])->first();
 
-        if(!$user || !$user->hasVerifiedEmail()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Invalid email or email not verified'
-            ], 400);
-        }
         $status = Password::reset(
             $data,
-            function(User $user, string $password) {
+            function (User $user, string $password): void {
                 $user->forceFill([
-                    'password' => Hash::make($password)
+                    'password' => Hash::make($password),
                 ])->save();
 
-                event(new PasswordReset($user));  
+                event(new PasswordReset($user));
             }
         );
-        
-        return match ($status) {
-            Password::PASSWORD_RESET => response()->json([
-                'success' => true,
-                'message' => 'Password updated successfully'
-            ]),
-            default => response()->json([
+
+        if ($status !== Password::PASSWORD_RESET) {
+            return response()->json([
                 'success' => false,
-                'message'=> 'Invalid token or unauthorized request'
-            ])
-        };
+                'message' => 'Token non valido o richiesta non autorizzata',
+            ], 400);
+        }
+
+        $user = User::where('email', $data['email'])->firstOrFail();
+        $user->refresh();
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Password aggiornata con successo',
+            'user' => $user,
+            'token' => $token,
+        ]);
     }
 }

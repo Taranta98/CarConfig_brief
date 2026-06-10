@@ -173,19 +173,9 @@ const HeroSection = ({ vehicles }: { vehicles: Vehicle[] }) => {
               </div>
             )}
 
-            <div className="flex flex-wrap items-center gap-3">
-              <Link to="/configuration">
-                <ConfigureButton />
-              </Link>
-              <Button
-                variant="outline"
-                className="rounded-full"
-                render={<Link to="/configuration" />}
-                nativeButton={false}
-              >
-                Esplora il catalogo
-              </Button>
-            </div>
+            <Link to="/configuration">
+              <ConfigureButton />
+            </Link>
 
             <div className="flex items-center gap-4 pt-2">
               <span className="text-sm tabular-nums text-muted-foreground">

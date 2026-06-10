@@ -1,80 +1,148 @@
-import Logo from "@/components/Logo"
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/button"
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
+} from "@/components/ui/card"
+import {
+  Field,
+  FieldDescription,
+  FieldGroup,
+  FieldLabel,
+} from "@/components/ui/field"
+import { Input } from "@/components/ui/input"
+import { AuthService } from "@/features/Auth/auth.service"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { AxiosError } from "axios"
+import { useState } from "react"
+import { useForm } from "react-hook-form"
+import { Link } from "react-router"
+import { toast } from "sonner"
+import { z } from "zod"
 
-const ForgotPassword = () => {
+export const forgotPasswordSchema = z.object({
+  email: z.email({ message: "Email non valida" }),
+})
+
+const ForgotPasswordForm = () => {
+  const [submittedEmail, setSubmittedEmail] = useState("")
+
+  const form = useForm<z.infer<typeof forgotPasswordSchema>>({
+    resolver: zodResolver(forgotPasswordSchema),
+  })
+
+  async function onSubmit(values: z.infer<typeof forgotPasswordSchema>) {
+    try {
+      await AuthService.forgotPassword(values.email)
+      setSubmittedEmail(values.email)
+      toast.success("Controlla la tua casella email")
+    } catch (error) {
+      const message =
+        error instanceof AxiosError
+          ? error.response?.data.message
+          : "Errore del server, riprova!"
+
+      toast.error(message)
+
+      if (error instanceof AxiosError && error.response?.status === 429) {
+        return
+      }
+    }
+  }
+
+  if (submittedEmail) {
+    return (
+      <Card className="relative w-full gap-6 border border-border/60 bg-card px-6 py-8 shadow-lg sm:p-10">
+        <CardHeader className="gap-2 p-0 text-center">
+          <CardTitle className="text-2xl font-medium text-card-foreground">
+            Controlla la tua email
+          </CardTitle>
+          <CardDescription className="text-sm font-normal text-muted-foreground">
+            Se esiste un account con{" "}
+            <span className="font-medium text-card-foreground">
+              {submittedEmail}
+            </span>
+            , ti abbiamo inviato un link per reimpostare la password.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="p-0">
+          <FieldGroup className="gap-4">
+            <FieldDescription className="text-center text-sm font-normal text-muted-foreground">
+              Non hai ricevuto l&apos;email? Controlla lo spam o riprova tra
+              qualche minuto.
+            </FieldDescription>
+            <Button
+              type="button"
+              variant="outline"
+              size="lg"
+              className="rounded-lg h-10"
+              render={<Link to="/auth/login" />}
+              nativeButton={false}
+            >
+              Torna al login
+            </Button>
+          </FieldGroup>
+        </CardContent>
+      </Card>
+    )
+  }
+
   return (
-    <section className="bg-foreground dark:bg-background min-h-screen flex items-center justify-center relative">
-      <div className="pointer-events-none absolute inset-0 right-0 overflow-hidden md:block hidden">
-        {/* Outer big circle */}
-        <div className="absolute left-1/1 top-0 h-650 w-650 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/10" />
-        {/* Inner circle */}
-        <div className="absolute left-1/1 top-0 h-175 w-175 -translate-x-1/2 -translate-y-1/2 rounded-full bg-foreground dark:bg-background" />
-      </div>
-      <div className="py-10 md:py-20 max-w-lg px-4 sm:px-0 mx-auto w-full">
-        <Card className="px-6 py-8 sm:p-12 relative gap-6">
-          <CardHeader className="text-center gap-6 p-0">
-            <div className="mx-auto">
-              <Logo className="h-10 w-10" />
-            </div>
-            <div className="flex flex-col gap-1">
-              <CardTitle className="text-2xl font-medium text-card-foreground">
-                Forgot your password?
-              </CardTitle>
-              <CardDescription className="text-sm font-normal text-muted-foreground">
-                Please enter the email address associated with your account and
-                we will email you a link to reset your password.
-              </CardDescription>
-            </div>
-          </CardHeader>
-          <CardContent className="p-0">
-            <form>
-              <FieldGroup className="gap-6">
-                <div className="flex flex-col gap-4">
-                  <Field className="gap-1.5">
-                    <FieldLabel
-                      htmlFor="email"
-                      className="text-sm text-muted-foreground font-normal"
-                    >
-                      Email*
-                    </FieldLabel>
-                    <Input
-                      id="email"
-                      type="email"
-                      placeholder="example@shadcnspace.com"
-                      required
-                      className="dark:bg-background h-9 shadow-xs"
-                    />
-                  </Field>
-                </div>
-                <Field className="gap-4">
-                  <Button type="submit" size={"lg"} className="rounded-xl h-10 cursor-pointer hover:bg-primary/80">
-                    Forgot password
-                  </Button>
-                  <Button
-                    type="submit"
-                    size={"lg"}
-                    variant={"ghost"}
-                    className="rounded-xl cursor-pointer"
-                  >
-                    Back to Login
-                  </Button>
-                </Field>
-              </FieldGroup>
-            </form>
-          </CardContent>
-        </Card>
-      </div>
-    </section>
-  );
-};
+    <Card className="relative w-full gap-6 border border-border/60 bg-card px-6 py-8 shadow-lg sm:p-10">
+      <CardHeader className="gap-2 p-0 text-center">
+        <CardTitle className="text-2xl font-medium text-card-foreground">
+          Password dimenticata?
+        </CardTitle>
+        <CardDescription className="text-sm font-normal text-muted-foreground">
+          Inserisci l&apos;email associata al tuo account e ti invieremo un
+          link per reimpostare la password.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="p-0">
+        <form onSubmit={form.handleSubmit(onSubmit)}>
+          <FieldGroup className="gap-6">
+            <Field className="gap-1.5">
+              <FieldLabel
+                htmlFor="email"
+                className="text-sm text-muted-foreground font-normal"
+              >
+                Email*
+              </FieldLabel>
+              <Input
+                id="email"
+                type="email"
+                placeholder="example@shadcnspace.com"
+                required
+                className="h-9 bg-white shadow-xs"
+                {...form.register("email")}
+              />
+            </Field>
 
-export default ForgotPassword;
+            <Field className="gap-4">
+              <Button
+                type="submit"
+                size="lg"
+                className="rounded-lg h-10 hover:bg-primary/80 cursor-pointer"
+              >
+                Invia link di recupero
+              </Button>
+              <FieldDescription className="text-center text-sm font-normal text-muted-foreground">
+                Ricordi la password?{" "}
+                <Link
+                  to="/auth/login"
+                  className="font-medium text-card-foreground no-underline!"
+                >
+                  Torna al login
+                </Link>
+              </FieldDescription>
+            </Field>
+          </FieldGroup>
+        </form>
+      </CardContent>
+    </Card>
+  )
+}
+
+export default ForgotPasswordForm

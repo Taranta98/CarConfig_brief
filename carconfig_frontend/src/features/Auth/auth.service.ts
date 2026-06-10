@@ -1,5 +1,7 @@
+import type { forgotPasswordSchema } from "@/components/shadcn-space/blocks/forgot-password-01/forgot-password"
 import type { loginSchema } from "@/components/shadcn-space/blocks/login-01/login"
 import type { registerSchema } from "@/components/shadcn-space/blocks/register-01/register"
+import type { resetPasswordSchema } from "@/components/shadcn-space/blocks/reset-password-01/reset-password"
 import type { verifyEmailSchema } from "@/components/shadcn-space/blocks/verify-email-01/verify-email"
 import { http } from "@/lib/http"
 import type z from "zod"
@@ -66,6 +68,25 @@ export class AuthService {
 
   static async resendEmailVerify(email: string) {
     return http.post("/auth/resend-email-verify", { email })
+  }
+
+  static async forgotPassword(email: z.infer<typeof forgotPasswordSchema>["email"]) {
+    return http.post("/forgot-password", { email })
+  }
+
+  static async resetPassword(data: z.infer<typeof resetPasswordSchema>) {
+    const res = await http.post<{
+      success: boolean
+      message: string
+      user: User
+      token: string
+    }>("/reset-password", data)
+
+    if (res.data.token) {
+      useAuthStore.getState().login(res.data.user, res.data.token)
+    }
+
+    return res
   }
 
   static async logout() {

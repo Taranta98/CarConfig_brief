@@ -14,8 +14,10 @@ import AdminPage from "./pages/AdminPage"
 import MainLayout from "./layouts/MainLayout"
 import AuthLayout from "./layouts/AuthLayout"
 import EmailVerifyPage from "./pages/EmailVerifyPage"
+import ForgotPasswordPage from "./pages/Auth/ForgotPasswordPage"
 import LoginPage from "./pages/Auth/LoginPage"
 import RegisterPage from "./pages/Auth/RegisterPage"
+import ResetPasswordPage from "./pages/Auth/ResetPasswordPage"
 
 const client = new QueryClient()
 
@@ -57,6 +59,14 @@ const router = createBrowserRouter([
       {
         path: "/auth/login",
         element: <LoginPage></LoginPage>,
+      },
+      {
+        path: "/auth/forgot-password",
+        element: <ForgotPasswordPage></ForgotPasswordPage>,
+      },
+      {
+        path: "/auth/reset-password",
+        element: <ResetPasswordPage></ResetPasswordPage>,
       },
       {
         path: "/auth/verify-email/:id/:hash",
