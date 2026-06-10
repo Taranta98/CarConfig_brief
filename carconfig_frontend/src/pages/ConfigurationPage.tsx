@@ -271,7 +271,7 @@ const ConfigurationPage = () => {
 
   return (
     <div className="flex flex-col pt-17.5">
-      <section className="mx-auto w-full max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
+      <section className="w-full px-4 py-12 sm:px-6 lg:px-8">
         <div className="mb-10 text-center">
           <h1 className="font-heading text-3xl font-semibold tracking-tight sm:text-4xl">
             Scegli il tuo modello
@@ -349,7 +349,7 @@ const ConfigurationPage = () => {
         id="vehicle-configuration"
         className="scroll-mt-24 min-h-[60vh] bg-muted/20"
       >
-        <div className="mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+        <div className="w-full px-4 py-16 sm:px-6 lg:px-8">
           {selectedVehicle ? (
             <div className="flex flex-col gap-8 lg:flex-row lg:items-start">
               <div className="min-w-0 flex-1 space-y-6">

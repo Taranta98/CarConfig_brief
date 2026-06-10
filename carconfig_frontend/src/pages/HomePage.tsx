@@ -36,7 +36,7 @@ const steps = [
 
 function HeroSkeleton() {
   return (
-    <div className="mx-auto max-w-7xl animate-pulse px-4 py-16 sm:px-6 lg:py-24 lg:px-8">
+    <div className="w-full animate-pulse px-4 py-16 sm:px-6 lg:py-24 lg:px-8">
       <div className="grid gap-12 lg:grid-cols-2">
         <div className="space-y-6">
           <div className="h-7 w-48 rounded-full bg-muted" />
@@ -130,7 +130,7 @@ const HomePage = () => {
               id={COME_FUNZIONA_SECTION_ID}
               className="scroll-mt-24 border-t border-border/60 bg-muted/30 py-16 lg:py-20"
             >
-              <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+              <div className="w-full px-4 sm:px-6 lg:px-8">
                 <div className="mx-auto max-w-2xl text-center">
                   <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
                     Come funziona
@@ -166,7 +166,7 @@ const HomePage = () => {
             </section>
 
             <section className="py-16 lg:py-20">
-              <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+              <div className="w-full px-4 sm:px-6 lg:px-8">
                 <div className="relative overflow-hidden rounded-3xl border border-border/60 bg-linear-to-br from-primary to-primary/80 px-6 py-12 text-primary-foreground sm:px-10 sm:py-14 lg:flex lg:items-center lg:justify-between lg:gap-8">
                   <div
                     aria-hidden

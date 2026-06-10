@@ -136,7 +136,7 @@ const HeroSection = ({ vehicles }: { vehicles: Vehicle[] }) => {
         className="pointer-events-none absolute -left-24 bottom-0 -z-10 size-80 rounded-full bg-muted blur-3xl"
       />
 
-      <div className="mx-auto flex max-w-7xl flex-col gap-14 px-4 py-16 sm:px-6 lg:gap-20 lg:py-24 lg:px-8">
+      <div className="flex w-full flex-col gap-14 px-4 py-16 sm:px-6 lg:gap-20 lg:py-24 lg:px-8">
         <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-2 lg:gap-16">
           <div className="flex flex-col gap-6 lg:max-w-xl">
             <div className="inline-flex w-fit items-center gap-2 rounded-full border border-border/60 bg-background/80 px-3 py-1 text-xs font-medium text-muted-foreground backdrop-blur-sm">

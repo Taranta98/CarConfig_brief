@@ -172,7 +172,7 @@ const Header = ({ className }: HeaderProps) => {
         className
       )}
     >
-      <div className="mx-auto flex h-17.5 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:gap-6 lg:px-8">
+      <div className="flex h-17.5 w-full items-center justify-between gap-4 px-4 sm:px-6 lg:gap-6 lg:px-8">
         <Link
           to="/"
           className="group flex shrink-0 items-center gap-2.5 rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"

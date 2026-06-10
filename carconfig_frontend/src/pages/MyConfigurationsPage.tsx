@@ -24,7 +24,7 @@ const MyConfigurationsPage = () => {
 
   if (!token) {
     return (
-      <main className="mx-auto max-w-7xl px-4 py-24 sm:px-6 lg:px-8">
+      <main className="w-full px-4 py-24 sm:px-6 lg:px-8">
         <h1 className="text-2xl font-semibold text-foreground">
           Le tue configurazioni
         </h1>
@@ -39,7 +39,7 @@ const MyConfigurationsPage = () => {
   }
 
   return (
-    <main className="mx-auto max-w-7xl px-4 py-24 sm:px-6 lg:px-8">
+    <main className="w-full px-4 py-24 sm:px-6 lg:px-8">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold text-foreground">
