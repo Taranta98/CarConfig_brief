@@ -3,6 +3,7 @@
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\EmailVerificationController;
 use App\Http\Controllers\Auth\PasswordResetController;
+use App\Http\Controllers\Auth\ProfileController;
 use App\Http\Controllers\ConfigurationController;
 use App\Http\Controllers\OptionalController;
 use App\Http\Controllers\TrimController;
@@ -30,6 +31,10 @@ Route::get('/vehicles/{vehicle}/optionals', [VehicleController::class, 'optional
 Route::get('/vehicles/{vehicle}/configurator', [VehicleController::class, 'configurator']);
 
 Route::middleware(['auth:sanctum'])->group(function () {
+    Route::get('/auth/me', [ProfileController::class, 'me']);
+    Route::put('/profile', [ProfileController::class, 'update']);
+    Route::put('/profile/password', [ProfileController::class, 'updatePassword']);
+
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::post('/logout-all', [AuthController::class, 'logoutAll']);
 
