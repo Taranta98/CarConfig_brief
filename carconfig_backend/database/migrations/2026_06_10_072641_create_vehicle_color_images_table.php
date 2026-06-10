@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\VehicleViewAngle;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -14,7 +15,7 @@ return new class extends Migration
         Schema::create('vehicle_color_images', function (Blueprint $table) {
             $table->id();
             $table->foreignId('vehicle_color_id')->constrained()->cascadeOnDelete();
-            $table->string('angle');
+            $table->enum('angle', VehicleViewAngle::values());
             $table->string('path');
             $table->timestamps();
 

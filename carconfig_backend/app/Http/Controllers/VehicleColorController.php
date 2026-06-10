@@ -19,9 +19,7 @@ class VehicleColorController extends Controller
             ->orderBy('sort_order')
             ->get();
 
-        return response()->json([
-            'data' => VehicleColorResource::collection($colors),
-        ]);
+        return VehicleColorResource::collection($colors)->response();
     }
 
     public function store(StoreVehicleColorRequest $request, Vehicle $vehicle): JsonResponse

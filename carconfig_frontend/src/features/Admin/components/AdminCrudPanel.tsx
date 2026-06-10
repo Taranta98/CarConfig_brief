@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { getApiErrorMessage } from "@/features/Admin/admin.errors"
 import type { AdminField } from "@/features/Admin/admin.fields"
+import { cn } from "@/lib/utils"
 
 type AdminCrudPanelProps<T extends { id: number }> = {
   items: T[]
@@ -21,11 +22,13 @@ type AdminCrudPanelProps<T extends { id: number }> = {
   emptyMessage: string
   getTitle: (item: T) => string
   getSubtitle?: (item: T) => string
+  renderLeading?: (item: T) => React.ReactNode
   mapItemToForm: (item: T) => Record<string, string | number | boolean>
   buildPayload: (values: Record<string, string | number | boolean>) => unknown
   onCreate: (payload: unknown) => Promise<unknown>
   onUpdate: (id: number, payload: unknown) => Promise<unknown>
   onDelete: (id: number) => Promise<unknown>
+  onRetry?: () => void
   isSaving?: boolean
 }
 
@@ -33,7 +36,7 @@ function emptyForm(fields: AdminField[]) {
   return Object.fromEntries(
     fields.map((field) => [
       field.name,
-      field.type === "checkbox" ? false : "",
+      field.type === "checkbox" ? false : field.type === "color" ? "#000000" : "",
     ])
   ) as Record<string, string | number | boolean>
 }
@@ -46,15 +49,18 @@ export function AdminCrudPanel<T extends { id: number }>({
   emptyMessage,
   getTitle,
   getSubtitle,
+  renderLeading,
   mapItemToForm,
   buildPayload,
   onCreate,
   onUpdate,
   onDelete,
+  onRetry,
   isSaving = false,
 }: AdminCrudPanelProps<T>) {
   const [formOpen, setFormOpen] = useState(false)
   const [editingId, setEditingId] = useState<number | null>(null)
+  const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null)
   const [values, setValues] = useState(() => emptyForm(fields))
 
   useEffect(() => {
@@ -114,12 +120,10 @@ export function AdminCrudPanel<T extends { id: number }>({
   }
 
   async function handleDelete(item: T) {
-    const label = getTitle(item)
-    if (!window.confirm(`Eliminare "${label}"?`)) return
-
     try {
       await onDelete(item.id)
       toast.success("Elemento eliminato")
+      setPendingDeleteId(null)
       if (editingId === item.id) {
         setFormOpen(false)
       }
@@ -164,6 +168,31 @@ export function AdminCrudPanel<T extends { id: number }>({
                     />
                     {field.label}
                   </label>
+                ) : field.type === "color" ? (
+                  <>
+                    <FieldLabel htmlFor={field.name}>{field.label}</FieldLabel>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="color"
+                        value={String(values[field.name] ?? "#000000")}
+                        onChange={(event) =>
+                          setField(field.name, event.target.value)
+                        }
+                        className="size-9 shrink-0 cursor-pointer rounded-md border border-input bg-transparent p-0.5"
+                        aria-label={`Selettore ${field.label}`}
+                      />
+                      <Input
+                        id={field.name}
+                        value={String(values[field.name] ?? "")}
+                        onChange={(event) =>
+                          setField(field.name, event.target.value)
+                        }
+                        placeholder="#RRGGBB"
+                        pattern="^#[0-9A-Fa-f]{6}$"
+                        required={field.required}
+                      />
+                    </div>
+                  </>
                 ) : (
                   <>
                     <FieldLabel htmlFor={field.name}>{field.label}</FieldLabel>
@@ -180,7 +209,7 @@ export function AdminCrudPanel<T extends { id: number }>({
                     ) : field.type === "select" ? (
                       <select
                         id={field.name}
-                        className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30"
+                        className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30"
                         value={String(values[field.name] ?? "")}
                         onChange={(event) =>
                           setField(field.name, event.target.value)
@@ -204,6 +233,8 @@ export function AdminCrudPanel<T extends { id: number }>({
                               ? "password"
                               : "text"
                         }
+                        min={field.type === "number" ? 0 : undefined}
+                        step={field.type === "number" ? 1 : undefined}
                         value={String(values[field.name] ?? "")}
                         onChange={(event) =>
                           setField(
@@ -240,13 +271,25 @@ export function AdminCrudPanel<T extends { id: number }>({
       )}
 
       {isLoading && (
-        <p className="text-sm text-muted-foreground">Caricamento…</p>
+        <div className="space-y-2">
+          {Array.from({ length: 3 }).map((_, index) => (
+            <div
+              key={index}
+              className="h-14 animate-pulse rounded-lg bg-muted/60"
+            />
+          ))}
+        </div>
       )}
 
       {isError && (
-        <p className="text-sm text-destructive">
-          Errore nel caricamento. Riprova più tardi.
-        </p>
+        <div className="flex flex-wrap items-center gap-3 rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3">
+          <p className="text-sm text-destructive">Errore nel caricamento.</p>
+          {onRetry && (
+            <Button type="button" size="sm" variant="outline" onClick={onRetry}>
+              Riprova
+            </Button>
+          )}
+        </div>
       )}
 
       {!isLoading && !isError && items.length === 0 && (
@@ -255,44 +298,78 @@ export function AdminCrudPanel<T extends { id: number }>({
 
       {!isLoading && !isError && items.length > 0 && (
         <ul className="divide-y divide-border/60 rounded-lg border border-border/80">
-          {items.map((item) => (
-            <li
-              key={item.id}
-              className="flex items-center justify-between gap-3 px-4 py-3"
-            >
-              <div className="min-w-0">
-                <p className="truncate font-medium">{getTitle(item)}</p>
-                {getSubtitle && (
-                  <p className="truncate text-sm text-muted-foreground">
-                    {getSubtitle(item)}
-                  </p>
-                )}
-              </div>
-              <div className="flex shrink-0 gap-1">
-                <Button
-                  type="button"
-                  size="icon-sm"
-                  variant="ghost"
-                  aria-label="Modifica"
-                  onClick={() => openEdit(item)}
-                  disabled={isSaving}
-                >
-                  <PencilIcon className="size-4" />
-                </Button>
-                <Button
-                  type="button"
-                  size="icon-sm"
-                  variant="ghost"
-                  className="text-destructive hover:text-destructive"
-                  aria-label="Elimina"
-                  onClick={() => handleDelete(item)}
-                  disabled={isSaving}
-                >
-                  <Trash2Icon className="size-4" />
-                </Button>
-              </div>
-            </li>
-          ))}
+          {items.map((item) => {
+            const isPendingDelete = pendingDeleteId === item.id
+
+            return (
+              <li
+                key={item.id}
+                className="flex items-center justify-between gap-3 px-4 py-3"
+              >
+                <div className="flex min-w-0 items-center gap-3">
+                  {renderLeading?.(item)}
+                  <div className="min-w-0">
+                    <p className="truncate font-medium">{getTitle(item)}</p>
+                    {getSubtitle && (
+                      <p className="truncate text-sm text-muted-foreground">
+                        {getSubtitle(item)}
+                      </p>
+                    )}
+                  </div>
+                </div>
+                <div className="flex shrink-0 items-center gap-1">
+                  {isPendingDelete ? (
+                    <div className="flex items-center gap-1">
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => handleDelete(item)}
+                        disabled={isSaving}
+                      >
+                        Conferma
+                      </Button>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setPendingDeleteId(null)}
+                        disabled={isSaving}
+                      >
+                        Annulla
+                      </Button>
+                    </div>
+                  ) : (
+                    <>
+                      <Button
+                        type="button"
+                        size="icon-sm"
+                        variant="ghost"
+                        aria-label="Modifica"
+                        onClick={() => openEdit(item)}
+                        disabled={isSaving}
+                      >
+                        <PencilIcon className="size-4" />
+                      </Button>
+                      <Button
+                        type="button"
+                        size="icon-sm"
+                        variant="ghost"
+                        className={cn(
+                          "text-destructive hover:text-destructive"
+                        )}
+                        aria-label="Elimina"
+                        onClick={() => setPendingDeleteId(item.id)}
+                        disabled={isSaving}
+                      >
+                        <Trash2Icon className="size-4" />
+                      </Button>
+                    </>
+                  )}
+                </div>
+              </li>
+            )
+          })}
         </ul>
       )}
     </div>

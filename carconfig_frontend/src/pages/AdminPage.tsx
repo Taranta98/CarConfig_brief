@@ -17,9 +17,8 @@ const AdminPage = () => {
         <div>
           <h1 className="text-3xl font-semibold tracking-tight">Pannello admin</h1>
           <p className="mt-2 text-muted-foreground">
-            Gestisci veicoli, allestimenti, optional e utenti. Apri una sezione
-            per visualizzare l&apos;elenco e creare, modificare o eliminare
-            elementi.
+            Gestisci veicoli, colori con angolazioni, allestimenti, optional e
+            utenti. Puoi aprire più sezioni contemporaneamente.
           </p>
         </div>
         <Button

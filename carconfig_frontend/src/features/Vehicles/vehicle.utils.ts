@@ -29,13 +29,7 @@ export const DEFAULT_VEHICLE_VIEW_ANGLE: VehicleViewAngle = "side"
 
 export const vehicleViewAngleLabels: Record<VehicleViewAngle, string> = {
   front: "Anteriore",
-  front_right: "Avanti destra",
-  right: "Destra",
-  rear_right: "Posteriore destra",
   rear: "Posteriore",
-  rear_left: "Posteriore sinistra",
-  left: "Sinistra",
-  front_left: "Avanti sinistra",
   side: "Laterale",
 }
 

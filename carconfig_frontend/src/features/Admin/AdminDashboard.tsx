@@ -2,6 +2,7 @@ import { useMemo, useState } from "react"
 import type { AdminField } from "@/features/Admin/admin.fields"
 import { AdminCrudPanel } from "@/features/Admin/components/AdminCrudPanel"
 import { AdminSectionCard } from "@/features/Admin/components/AdminSectionCard"
+import { AdminVehicleColorsPanel } from "@/features/Admin/components/AdminVehicleColorsPanel"
 import { OptionalService } from "@/features/Optionals/optional.service"
 import { optionalCategories } from "@/features/Optionals/optional.type"
 import type { Optional } from "@/features/Optionals/optional.type"
@@ -9,11 +10,18 @@ import { TrimService } from "@/features/Trims/trim.service"
 import type { Trim } from "@/features/Trims/trim.type"
 import { UserService } from "@/features/Users/user.service"
 import type { UserListItem, UserPayload } from "@/features/Users/user.type"
+import { VehicleColorService } from "@/features/Vehicles/vehicle-color.service"
 import { VehicleService } from "@/features/Vehicles/vehicle.service"
-import type { Vehicle } from "@/features/Vehicles/vehicle.type"
+import type { Vehicle, VehicleColorPayload } from "@/features/Vehicles/vehicle.type"
+import { vehicleImageUrl } from "@/features/Vehicles/vehicle.utils"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 
-type SectionId = "vehicles" | "trims" | "optionals" | "users"
+type SectionId = "vehicles" | "colors" | "trims" | "optionals" | "users"
+
+const ROLE_LABELS: Record<string, string> = {
+  admin: "Admin",
+  user: "Utente",
+}
 
 const vehicleFields: AdminField[] = [
   { name: "brand", label: "Marca", type: "text", required: true },
@@ -102,14 +110,32 @@ function vehicleLabel(vehicle: Vehicle) {
   return `${vehicle.brand} ${vehicle.model} (${vehicle.year})`
 }
 
+function toggleSection(
+  sections: Set<SectionId>,
+  id: SectionId,
+  open: boolean
+): Set<SectionId> {
+  const next = new Set(sections)
+  if (open) {
+    next.add(id)
+  } else {
+    next.delete(id)
+  }
+  return next
+}
+
 export function AdminDashboard() {
-  const [openSection, setOpenSection] = useState<SectionId | null>(null)
+  const [openSections, setOpenSections] = useState<Set<SectionId>>(new Set())
+  const [selectedVehicleId, setSelectedVehicleId] = useState<number | null>(null)
   const queryClient = useQueryClient()
 
+  const isOpen = (id: SectionId) => openSections.has(id)
+
   const vehiclesEnabled =
-    openSection === "vehicles" ||
-    openSection === "trims" ||
-    openSection === "optionals"
+    isOpen("vehicles") ||
+    isOpen("colors") ||
+    isOpen("trims") ||
+    isOpen("optionals")
 
   const vehiclesQuery = useQuery({
     queryKey: ["admin", "vehicles"],
@@ -117,22 +143,28 @@ export function AdminDashboard() {
     enabled: vehiclesEnabled,
   })
 
+  const colorsQuery = useQuery({
+    queryKey: ["admin", "colors", selectedVehicleId],
+    queryFn: () => VehicleColorService.list(selectedVehicleId!),
+    enabled: isOpen("colors") && selectedVehicleId !== null,
+  })
+
   const trimsQuery = useQuery({
     queryKey: ["admin", "trims"],
     queryFn: () => TrimService.list(),
-    enabled: openSection === "trims",
+    enabled: isOpen("trims"),
   })
 
   const optionalsQuery = useQuery({
     queryKey: ["admin", "optionals"],
     queryFn: () => OptionalService.list(),
-    enabled: openSection === "optionals",
+    enabled: isOpen("optionals"),
   })
 
   const usersQuery = useQuery({
     queryKey: ["admin", "users"],
     queryFn: () => UserService.list(),
-    enabled: openSection === "users",
+    enabled: isOpen("users"),
   })
 
   const vehicleMutations = {
@@ -162,6 +194,39 @@ export function AdminDashboard() {
           queryClient.invalidateQueries({ queryKey: ["admin", "vehicles"] }),
           queryClient.invalidateQueries({ queryKey: ["vehicles"] }),
         ])
+      },
+    }),
+  }
+
+  const colorMutations = {
+    create: useMutation({
+      mutationFn: ({
+        vehicleId,
+        data,
+      }: {
+        vehicleId: number
+        data: VehicleColorPayload
+      }) => VehicleColorService.create(vehicleId, data),
+      onSuccess: async () => {
+        await queryClient.invalidateQueries({ queryKey: ["admin", "colors"] })
+      },
+    }),
+    update: useMutation({
+      mutationFn: ({
+        id,
+        data,
+      }: {
+        id: number
+        data: Partial<VehicleColorPayload>
+      }) => VehicleColorService.update(id, data),
+      onSuccess: async () => {
+        await queryClient.invalidateQueries({ queryKey: ["admin", "colors"] })
+      },
+    }),
+    remove: useMutation({
+      mutationFn: (id: number) => VehicleColorService.delete(id),
+      onSuccess: async () => {
+        await queryClient.invalidateQueries({ queryKey: ["admin", "colors"] })
       },
     }),
   }
@@ -253,24 +318,39 @@ export function AdminDashboard() {
     [vehicleOptions]
   )
 
+  const colorsSaving =
+    colorMutations.create.isPending ||
+    colorMutations.update.isPending ||
+    colorMutations.remove.isPending
+
   return (
     <div className="space-y-4">
       <AdminSectionCard
         title="Veicoli"
         description="Catalogo modelli disponibili nel configuratore"
-        open={openSection === "vehicles"}
-        onOpenChange={(open) => setOpenSection(open ? "vehicles" : null)}
+        open={isOpen("vehicles")}
+        onOpenChange={(open) =>
+          setOpenSections((prev) => toggleSection(prev, "vehicles", open))
+        }
       >
         <AdminCrudPanel<Vehicle>
           items={vehicles}
           isLoading={vehiclesQuery.isLoading}
           isError={vehiclesQuery.isError}
+          onRetry={() => vehiclesQuery.refetch()}
           fields={vehicleFields}
           emptyMessage="Nessun veicolo presente."
           getTitle={(item) => vehicleLabel(item)}
           getSubtitle={(item) =>
             `${item.fuel_type} · da €${item.base_price.toLocaleString("it-IT")}`
           }
+          renderLeading={(item) => (
+            <img
+              src={vehicleImageUrl(item)}
+              alt=""
+              className="size-12 shrink-0 rounded-md border border-border/60 object-cover"
+            />
+          )}
           mapItemToForm={(item) => ({
             brand: item.brand,
             model: item.model,
@@ -306,17 +386,71 @@ export function AdminDashboard() {
       </AdminSectionCard>
 
       <AdminSectionCard
+        title="Colori veicolo"
+        description="Colori e immagini per angolazione usate nel configuratore"
+        open={isOpen("colors")}
+        onOpenChange={(open) =>
+          setOpenSections((prev) => toggleSection(prev, "colors", open))
+        }
+      >
+        <div className="mb-4">
+          <label
+            htmlFor="admin-color-vehicle"
+            className="mb-1.5 block text-sm font-medium"
+          >
+            Veicolo
+          </label>
+          <select
+            id="admin-color-vehicle"
+            className="flex h-9 w-full max-w-md rounded-md border border-input bg-background px-3 py-1 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30"
+            value={selectedVehicleId ?? ""}
+            onChange={(event) => {
+              const value = event.target.value
+              setSelectedVehicleId(value ? Number(value) : null)
+            }}
+          >
+            <option value="">Seleziona un veicolo…</option>
+            {vehicles.map((vehicle) => (
+              <option key={vehicle.id} value={vehicle.id}>
+                {vehicleLabel(vehicle)}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <AdminVehicleColorsPanel
+          vehicleId={selectedVehicleId}
+          colors={colorsQuery.data?.data.data ?? []}
+          isLoading={colorsQuery.isLoading && selectedVehicleId !== null}
+          isError={colorsQuery.isError}
+          onRetry={() => colorsQuery.refetch()}
+          onCreate={(payload) =>
+            colorMutations.create.mutateAsync({
+              vehicleId: selectedVehicleId!,
+              data: payload,
+            })
+          }
+          onUpdate={(id, payload) =>
+            colorMutations.update.mutateAsync({ id, data: payload })
+          }
+          onDelete={(id) => colorMutations.remove.mutateAsync(id)}
+          isSaving={colorsSaving}
+        />
+      </AdminSectionCard>
+
+      <AdminSectionCard
         title="Allestimenti"
         description="Trim e versioni collegate ai veicoli"
-        open={openSection === "trims"}
+        open={isOpen("trims")}
         onOpenChange={(open) =>
-          setOpenSection(open ? "trims" : null)
+          setOpenSections((prev) => toggleSection(prev, "trims", open))
         }
       >
         <AdminCrudPanel<Trim>
           items={trimsQuery.data?.data.data ?? []}
           isLoading={trimsQuery.isLoading}
           isError={trimsQuery.isError}
+          onRetry={() => trimsQuery.refetch()}
           fields={trimsFields}
           emptyMessage="Nessun allestimento presente."
           getTitle={(item) => item.name}
@@ -356,13 +490,16 @@ export function AdminDashboard() {
       <AdminSectionCard
         title="Optional"
         description="Pacchetti e accessori per veicolo"
-        open={openSection === "optionals"}
-        onOpenChange={(open) => setOpenSection(open ? "optionals" : null)}
+        open={isOpen("optionals")}
+        onOpenChange={(open) =>
+          setOpenSections((prev) => toggleSection(prev, "optionals", open))
+        }
       >
         <AdminCrudPanel<Optional>
           items={optionalsQuery.data?.data.data ?? []}
           isLoading={optionalsQuery.isLoading}
           isError={optionalsQuery.isError}
+          onRetry={() => optionalsQuery.refetch()}
           fields={optionalsFields}
           emptyMessage="Nessun optional presente."
           getTitle={(item) => item.name}
@@ -406,17 +543,22 @@ export function AdminDashboard() {
       <AdminSectionCard
         title="Utenti"
         description="Account registrati e ruoli"
-        open={openSection === "users"}
-        onOpenChange={(open) => setOpenSection(open ? "users" : null)}
+        open={isOpen("users")}
+        onOpenChange={(open) =>
+          setOpenSections((prev) => toggleSection(prev, "users", open))
+        }
       >
         <AdminCrudPanel<UserListItem>
           items={usersQuery.data?.data.data ?? []}
           isLoading={usersQuery.isLoading}
           isError={usersQuery.isError}
+          onRetry={() => usersQuery.refetch()}
           fields={userFields}
           emptyMessage="Nessun utente presente."
           getTitle={(item) => `${item.first_name} ${item.last_name}`}
-          getSubtitle={(item) => `${item.email} · ${item.role}`}
+          getSubtitle={(item) =>
+            `${item.email} · ${ROLE_LABELS[item.role] ?? item.role}`
+          }
           mapItemToForm={(item) => ({
             first_name: item.first_name,
             last_name: item.last_name,
