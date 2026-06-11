@@ -32,15 +32,13 @@ const VehicleImageViewer = ({
   }
 
   return (
-    <div className={cn("mx-auto w-full max-w-sm space-y-3 sm:max-w-md", className)}>
-      <div className="flex aspect-4/3 items-center justify-center rounded-xl border bg-muted/30 p-4">
-        <img
-          key={imageUrl}
-          src={imageUrl}
-          alt={alt}
-          className="max-h-full max-w-full object-contain transition-opacity duration-200"
-        />
-      </div>
+    <div className={cn("mx-auto w-full max-w-md space-y-4 sm:max-w-lg lg:max-w-xl", className)}>
+      <img
+        key={imageUrl}
+        src={imageUrl}
+        alt={alt}
+        className="mx-auto h-52 w-full object-contain transition-opacity duration-200 sm:h-60 lg:h-72"
+      />
 
       {angles.length > 0 && (
         <div className="space-y-3">

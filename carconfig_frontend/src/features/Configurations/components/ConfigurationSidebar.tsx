@@ -49,19 +49,19 @@ const ConfigurationSidebar = ({
   const optionalExtras = selectedOptionals.filter((o) => !o.is_required)
 
   return (
-    <aside className="sticky top-24 flex h-fit w-full flex-col rounded-xl border bg-card shadow-sm lg:w-80">
-      <div className="flex flex-col items-center gap-3 p-5">
+    <aside className="sticky top-24 flex h-fit w-full flex-col rounded-xl border bg-card shadow-sm lg:w-96 xl:w-104">
+      <div className="flex flex-col items-center gap-4 p-6">
         <img
           key={previewImageUrl}
           src={previewImageUrl}
           alt={vehicleDisplayName(vehicle)}
-          className="h-36 w-full object-contain transition-opacity duration-200"
+          className="h-44 w-full object-contain transition-opacity duration-200 sm:h-48"
         />
         <div className="text-center">
-          <h3 className="font-heading text-lg font-semibold">
+          <h3 className="font-heading text-xl font-semibold">
             {vehicleDisplayName(vehicle)}
           </h3>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-muted-foreground sm:text-base">
             {vehicle.model} · {vehicle.fuel_type} · {vehicle.year}
           </p>
           {selectedColor && (
@@ -74,12 +74,12 @@ const ConfigurationSidebar = ({
 
       <Separator />
 
-      <div className="flex flex-1 flex-col gap-4 p-5">
+      <div className="flex flex-1 flex-col gap-5 p-6">
         <div>
           <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
             Riepilogo
           </p>
-          <ul className="mt-3 space-y-2 text-sm">
+          <ul className="mt-3 space-y-2.5 text-sm sm:text-base">
             <li className="flex justify-between gap-2">
               <span className="text-muted-foreground">Prezzo base</span>
               <span className="font-medium">{formatCurrency(basePrice)}</span>
@@ -135,8 +135,8 @@ const ConfigurationSidebar = ({
         <Separator />
 
         <div className="flex items-baseline justify-between">
-          <span className="text-sm font-medium">Totale</span>
-          <span className="font-heading text-2xl font-semibold text-primary">
+          <span className="text-base font-medium">Totale</span>
+          <span className="font-heading text-3xl font-semibold text-primary">
             {formatCurrency(total)}
           </span>
         </div>
@@ -152,9 +152,10 @@ const ConfigurationSidebar = ({
 
       <Separator />
 
-      <div className="flex flex-col gap-2 p-5">
+      <div className="flex flex-col gap-2.5 p-6">
         <Button
           type="button"
+          size="lg"
           className="w-full"
           disabled={!canSaveAndEmail || isSaving}
           onClick={onSave}
@@ -165,6 +166,7 @@ const ConfigurationSidebar = ({
         <Button
           type="button"
           variant="outline"
+          size="lg"
           className="w-full"
           disabled={!canSaveAndEmail || isEmailing}
           onClick={onEmail}
@@ -175,6 +177,7 @@ const ConfigurationSidebar = ({
         <Button
           type="button"
           variant="secondary"
+          size="lg"
           className="w-full"
           disabled={!canDownload}
           onClick={onDownload}

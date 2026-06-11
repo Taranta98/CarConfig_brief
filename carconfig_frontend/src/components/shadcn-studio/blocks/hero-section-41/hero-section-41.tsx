@@ -201,66 +201,71 @@ const HeroSection = ({ vehicles }: { vehicles: Vehicle[] }) => {
             </div>
           </div>
 
-          <div className="relative">
-            <div className="absolute inset-0 -z-10 rounded-3xl bg-linear-to-b from-muted/50 to-transparent" />
-            <Carousel
-              setApi={setMainApi}
-              plugins={[autoplayPlugin]}
-              opts={{ loop: true }}
-              className="w-full"
-            >
-              <CarouselContent>
-                {vehicles.map((item) => (
-                  <CarouselItem key={item.id}>
-                    <div className="flex items-center justify-center px-2">
-                      <img
-                        src={vehicleImageUrl(item)}
-                        alt={vehicleDisplayName(item)}
-                        className="h-[280px] w-full object-contain drop-shadow-lg sm:h-[340px] lg:h-[400px]"
-                      />
-                    </div>
-                  </CarouselItem>
-                ))}
-              </CarouselContent>
-            </Carousel>
-
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
             {activeVehicle && (
-              <Card className="absolute bottom-4 right-4 left-4 border-border/60 bg-background/90 py-4 shadow-lg backdrop-blur-md sm:left-auto sm:w-72">
-                <CardHeader className="px-4 pb-2">
-                  <CardTitle className="text-base">
+              <Card className="order-2 shrink-0 gap-0 border-border/40 bg-background/70 py-2.5 shadow-sm backdrop-blur-sm sm:order-1 sm:w-44 lg:w-48">
+                <CardHeader className="gap-0 px-3 pb-1.5">
+                  <CardTitle className="text-sm font-medium">
                     {vehicleDisplayName(activeVehicle)}
                   </CardTitle>
-                  <CardDescription>{activeVehicle.fuel_type}</CardDescription>
+                  <CardDescription className="text-xs">
+                    {activeVehicle.model}
+                    {activeVehicle.year ? ` · ${activeVehicle.year}` : ''}
+                  </CardDescription>
                 </CardHeader>
-                <CardContent className="grid grid-cols-3 gap-3 px-4 pt-0">
-                  <div className="flex flex-col gap-1">
+                <CardContent className="flex flex-col gap-2 px-3 pt-0">
+                  <div className="flex flex-col gap-0.5">
                     <VehicleFuelIcon
                       fuelType={activeVehicle.fuel_type}
-                      className="size-4 text-muted-foreground"
+                      className="size-3.5 text-muted-foreground"
                     />
-                    <span className="text-xs text-muted-foreground">
+                    <span className="text-[10px] text-muted-foreground">
                       Alimentazione
                     </span>
-                    <span className="text-sm font-medium">
+                    <span className="text-xs font-medium leading-tight">
                       {activeVehicle.fuel_type}
                     </span>
                   </div>
-                  <div className="flex flex-col gap-1">
-                    <Gauge className="size-4 text-muted-foreground" />
-                    <span className="text-xs text-muted-foreground">CO₂</span>
-                    <span className="text-sm font-medium">
+                  <div className="flex flex-col gap-0.5">
+                    <Gauge className="size-3.5 text-muted-foreground" />
+                    <span className="text-[10px] text-muted-foreground">CO₂</span>
+                    <span className="text-xs font-medium leading-tight">
                       {activeVehicle.co2_emissions} g/km
                     </span>
                   </div>
-                  <div className="flex flex-col gap-1">
-                    <span className="text-xs text-muted-foreground">Prezzo</span>
-                    <span className="text-sm font-medium">
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-[10px] text-muted-foreground">Prezzo</span>
+                    <span className="text-xs font-medium leading-tight">
                       {formatPrice(vehicleBasePrice(activeVehicle))}
                     </span>
                   </div>
                 </CardContent>
               </Card>
             )}
+
+            <div className="relative order-1 min-w-0 flex-1 sm:order-2">
+              <div className="absolute inset-0 -z-10 rounded-3xl bg-linear-to-b from-muted/50 to-transparent" />
+              <Carousel
+                setApi={setMainApi}
+                plugins={[autoplayPlugin]}
+                opts={{ loop: true }}
+                className="w-full"
+              >
+                <CarouselContent>
+                  {vehicles.map((item) => (
+                    <CarouselItem key={item.id}>
+                      <div className="flex items-center justify-center px-2">
+                        <img
+                          src={vehicleImageUrl(item)}
+                          alt={vehicleDisplayName(item)}
+                          className="h-[280px] w-full object-contain drop-shadow-lg sm:h-[340px] lg:h-[400px]"
+                        />
+                      </div>
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+              </Carousel>
+            </div>
           </div>
         </div>
 
