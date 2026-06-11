@@ -38,8 +38,8 @@ it('returns vehicle configurator data with colors and resolved image urls', func
         ->assertJsonCount(1, 'data.colors')
         ->assertJsonPath('data.colors.0.code', 'pearl_white')
         ->assertJsonPath(
-            'data.colors.0.images.side',
-            AssetUrl::resolve('vehicle-views/test/side.png')
+            'data.colors.0.images.front',
+            AssetUrl::resolve('vehicle-views/test/front.png')
         );
 });
 

@@ -12,7 +12,10 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { getApiErrorMessage } from "@/features/Admin/admin.errors"
 import type { AdminField } from "@/features/Admin/admin.fields"
+import { AdminImageField } from "@/features/Admin/components/AdminImageField"
 import { cn } from "@/lib/utils"
+
+export type AdminFormValue = string | number | boolean | File | null
 
 type AdminCrudPanelProps<T extends { id: number }> = {
   items: T[]
@@ -23,8 +26,8 @@ type AdminCrudPanelProps<T extends { id: number }> = {
   getTitle: (item: T) => string
   getSubtitle?: (item: T) => string
   renderLeading?: (item: T) => React.ReactNode
-  mapItemToForm: (item: T) => Record<string, string | number | boolean>
-  buildPayload: (values: Record<string, string | number | boolean>) => unknown
+  mapItemToForm: (item: T) => Record<string, AdminFormValue>
+  buildPayload: (values: Record<string, AdminFormValue>) => unknown
   onCreate: (payload: unknown) => Promise<unknown>
   onUpdate: (id: number, payload: unknown) => Promise<unknown>
   onDelete: (id: number) => Promise<unknown>
@@ -38,7 +41,7 @@ function emptyForm(fields: AdminField[]) {
       field.name,
       field.type === "checkbox" ? false : field.type === "color" ? "#000000" : "",
     ])
-  ) as Record<string, string | number | boolean>
+  ) as Record<string, AdminFormValue>
 }
 
 export function AdminCrudPanel<T extends { id: number }>({
@@ -61,7 +64,9 @@ export function AdminCrudPanel<T extends { id: number }>({
   const [formOpen, setFormOpen] = useState(false)
   const [editingId, setEditingId] = useState<number | null>(null)
   const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null)
-  const [values, setValues] = useState(() => emptyForm(fields))
+  const [values, setValues] = useState<Record<string, AdminFormValue>>(() =>
+    emptyForm(fields)
+  )
 
   useEffect(() => {
     if (!formOpen) {
@@ -88,12 +93,31 @@ export function AdminCrudPanel<T extends { id: number }>({
     setFormOpen(true)
   }
 
-  function setField(name: string, value: string | number | boolean) {
+  function setField(name: string, value: AdminFormValue) {
     setValues((prev) => ({ ...prev, [name]: value }))
+  }
+
+  function hasImageValue(value: AdminFormValue): boolean {
+    if (value instanceof File) {
+      return true
+    }
+
+    return typeof value === "string" && value.trim() !== ""
   }
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault()
+
+    for (const field of visibleFields) {
+      if (field.type !== "image" || !field.required) {
+        continue
+      }
+
+      if (!hasImageValue(values[field.name])) {
+        toast.error(`Seleziona un file o inserisci un percorso per: ${field.label}`)
+        return
+      }
+    }
 
     try {
       const payload = buildPayload(values)
@@ -168,6 +192,27 @@ export function AdminCrudPanel<T extends { id: number }>({
                     />
                     {field.label}
                   </label>
+                ) : field.type === "image" ? (
+                  <>
+                    <FieldLabel htmlFor={field.name}>{field.label}</FieldLabel>
+                    <AdminImageField
+                      id={field.name}
+                      label={field.label}
+                      value={
+                        values[field.name] instanceof File
+                          ? ""
+                          : String(values[field.name] ?? "")
+                      }
+                      file={
+                        values[field.name] instanceof File
+                          ? values[field.name]
+                          : null
+                      }
+                      placeholder={field.placeholder}
+                      onValueChange={(value) => setField(field.name, value)}
+                      onFileChange={(file) => setField(field.name, file)}
+                    />
+                  </>
                 ) : field.type === "color" ? (
                   <>
                     <FieldLabel htmlFor={field.name}>{field.label}</FieldLabel>

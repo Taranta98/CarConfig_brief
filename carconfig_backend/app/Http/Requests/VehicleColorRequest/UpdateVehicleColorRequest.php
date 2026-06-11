@@ -20,6 +20,18 @@ class UpdateVehicleColorRequest extends FormRequest
     public function rules(): array
     {
         $vehicleColor = $this->route('vehicle_color');
+        $imageRules = [];
+
+        foreach (VehicleViewAngle::values() as $angle) {
+            $imageRules["images.{$angle}"] = [
+                'nullable',
+                Rule::when(
+                    $this->hasFile("images.{$angle}"),
+                    ['image', 'max:5120'],
+                    ['string', 'max:2048']
+                ),
+            ];
+        }
 
         return [
             'code' => [
@@ -34,24 +46,41 @@ class UpdateVehicleColorRequest extends FormRequest
             'hex' => ['sometimes', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'sort_order' => ['sometimes', 'integer', 'min:0'],
             'images' => ['sometimes', 'array'],
-            'images.*' => ['required_with:images', 'string', 'max:2048'],
+            ...$imageRules,
         ];
     }
 
     protected function prepareForValidation(): void
     {
-        if (! $this->has('images')) {
+        if (! $this->has('images') && ! $this->hasImageFiles()) {
             return;
         }
 
-        $images = $this->input('images', []);
-        $validAngles = VehicleViewAngle::values();
+        $images = [];
 
-        $this->merge([
-            'images' => collect($images)
-                ->only($validAngles)
-                ->filter(fn ($path) => is_string($path) && $path !== '')
-                ->all(),
-        ]);
+        foreach (VehicleViewAngle::values() as $angle) {
+            if ($this->hasFile("images.{$angle}")) {
+                continue;
+            }
+
+            $path = $this->input("images.{$angle}");
+
+            if (is_string($path) && $path !== '') {
+                $images[$angle] = $path;
+            }
+        }
+
+        $this->merge(['images' => $images]);
+    }
+
+    protected function hasImageFiles(): bool
+    {
+        foreach (VehicleViewAngle::values() as $angle) {
+            if ($this->hasFile("images.{$angle}")) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

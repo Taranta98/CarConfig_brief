@@ -1,7 +1,12 @@
 import { useMemo, useState } from "react"
 import type { AdminField } from "@/features/Admin/admin.fields"
+import type { AdminFormValue } from "@/features/Admin/components/AdminCrudPanel"
 import { AdminCrudPanel } from "@/features/Admin/components/AdminCrudPanel"
 import { AdminSectionCard } from "@/features/Admin/components/AdminSectionCard"
+import {
+  AdminVehicleFilterBar,
+  filterItemsByVehicleLabel,
+} from "@/features/Admin/components/AdminVehicleFilterBar"
 import { AdminVehicleColorsPanel } from "@/features/Admin/components/AdminVehicleColorsPanel"
 import { OptionalService } from "@/features/Optionals/optional.service"
 import { optionalCategories } from "@/features/Optionals/optional.type"
@@ -30,10 +35,10 @@ const vehicleFields: AdminField[] = [
   { name: "fuel_type", label: "Alimentazione", type: "text", required: true },
   {
     name: "image",
-    label: "Immagine (URL o percorso)",
-    type: "text",
+    label: "Immagine",
+    type: "image",
     required: true,
-    placeholder: "https://… oppure vehicles/foto.png",
+    placeholder: "Oppure incolla URL o percorso storage",
   },
   { name: "co2_emissions", label: "CO₂ (g/km)", type: "text", required: true },
   { name: "base_price", label: "Prezzo base (€)", type: "number", required: true },
@@ -45,9 +50,9 @@ const trimFields: AdminField[] = [
   { name: "price", label: "Prezzo (€)", type: "number", required: true },
   {
     name: "img",
-    label: "Immagine (URL o percorso)",
-    type: "text",
-    required: true,
+    label: "Immagine (opzionale)",
+    type: "image",
+    placeholder: "URL o percorso storage",
   },
   { name: "vehicle_id", label: "Veicolo", type: "select", required: true },
 ]
@@ -71,7 +76,7 @@ const optionalFields: AdminField[] = [
   {
     name: "image",
     label: "Immagine (opzionale)",
-    type: "text",
+    type: "image",
     placeholder: "URL o percorso storage",
   },
 ]
@@ -110,6 +115,25 @@ function vehicleLabel(vehicle: Vehicle) {
   return `${vehicle.brand} ${vehicle.model} (${vehicle.year})`
 }
 
+function imagePayloadValue(value: AdminFormValue): string | File {
+  if (value instanceof File) {
+    return value
+  }
+
+  return String(value ?? "")
+}
+
+function optionalImagePayloadValue(
+  value: AdminFormValue
+): string | File | null {
+  if (value instanceof File) {
+    return value
+  }
+
+  const path = String(value ?? "").trim()
+  return path === "" ? null : path
+}
+
 function toggleSection(
   sections: Set<SectionId>,
   id: SectionId,
@@ -127,6 +151,8 @@ function toggleSection(
 export function AdminDashboard() {
   const [openSections, setOpenSections] = useState<Set<SectionId>>(new Set())
   const [selectedVehicleId, setSelectedVehicleId] = useState<number | null>(null)
+  const [trimVehicleFilter, setTrimVehicleFilter] = useState("")
+  const [optionalVehicleFilter, setOptionalVehicleFilter] = useState("")
   const queryClient = useQueryClient()
 
   const isOpen = (id: SectionId) => openSections.has(id)
@@ -289,6 +315,26 @@ export function AdminDashboard() {
   }
 
   const vehicles = vehiclesQuery.data?.data.data ?? []
+  const trims = trimsQuery.data?.data.data ?? []
+  const optionals = optionalsQuery.data?.data.data ?? []
+
+  const filteredTrims = useMemo(
+    () =>
+      filterItemsByVehicleLabel(trims, vehicles, trimVehicleFilter, vehicleLabel),
+    [trims, vehicles, trimVehicleFilter]
+  )
+
+  const filteredOptionals = useMemo(
+    () =>
+      filterItemsByVehicleLabel(
+        optionals,
+        vehicles,
+        optionalVehicleFilter,
+        vehicleLabel
+      ),
+    [optionals, vehicles, optionalVehicleFilter]
+  )
+
   const vehicleOptions = useMemo(
     () =>
       vehicles.map((vehicle) => ({
@@ -365,7 +411,7 @@ export function AdminDashboard() {
             model: String(values.model),
             year: Number(values.year),
             fuel_type: String(values.fuel_type),
-            image: String(values.image),
+            image: imagePayloadValue(values.image),
             co2_emissions: String(values.co2_emissions),
             base_price: Number(values.base_price),
           })}
@@ -446,13 +492,26 @@ export function AdminDashboard() {
           setOpenSections((prev) => toggleSection(prev, "trims", open))
         }
       >
+        <div className="mb-4">
+          <AdminVehicleFilterBar
+            id="admin-trim-vehicle-filter"
+            value={trimVehicleFilter}
+            onChange={setTrimVehicleFilter}
+            placeholder="Filtra per modello (es. Qashqai, Tucson)…"
+          />
+        </div>
+
         <AdminCrudPanel<Trim>
-          items={trimsQuery.data?.data.data ?? []}
+          items={filteredTrims}
           isLoading={trimsQuery.isLoading}
           isError={trimsQuery.isError}
           onRetry={() => trimsQuery.refetch()}
           fields={trimsFields}
-          emptyMessage="Nessun allestimento presente."
+          emptyMessage={
+            trimVehicleFilter.trim()
+              ? "Nessun allestimento per questo modello."
+              : "Nessun allestimento presente."
+          }
           getTitle={(item) => item.name}
           getSubtitle={(item) => {
             const vehicle = vehicles.find((v) => v.id === item.vehicle_id)
@@ -471,7 +530,7 @@ export function AdminDashboard() {
             name: String(values.name),
             description: String(values.description),
             price: Number(values.price),
-            img: String(values.img),
+            img: optionalImagePayloadValue(values.img),
             vehicle_id: Number(values.vehicle_id),
           })}
           onCreate={(payload) => trimMutations.create.mutateAsync(payload as Omit<Trim, "id">)}
@@ -495,15 +554,35 @@ export function AdminDashboard() {
           setOpenSections((prev) => toggleSection(prev, "optionals", open))
         }
       >
+        <div className="mb-4">
+          <AdminVehicleFilterBar
+            id="admin-optional-vehicle-filter"
+            value={optionalVehicleFilter}
+            onChange={setOptionalVehicleFilter}
+            placeholder="Filtra per modello (es. Qashqai, Tucson)…"
+          />
+        </div>
+
         <AdminCrudPanel<Optional>
-          items={optionalsQuery.data?.data.data ?? []}
+          items={filteredOptionals}
           isLoading={optionalsQuery.isLoading}
           isError={optionalsQuery.isError}
           onRetry={() => optionalsQuery.refetch()}
           fields={optionalsFields}
-          emptyMessage="Nessun optional presente."
+          emptyMessage={
+            optionalVehicleFilter.trim()
+              ? "Nessun optional per questo modello."
+              : "Nessun optional presente."
+          }
           getTitle={(item) => item.name}
-          getSubtitle={(item) => `${item.category} · €${item.price.toLocaleString("it-IT")}`}
+          getSubtitle={(item) => {
+            const vehicle = vehicles.find((v) => v.id === item.vehicle_id)
+            const vehicleName = vehicle
+              ? vehicleLabel(vehicle)
+              : `Veicolo #${item.vehicle_id}`
+
+            return `${vehicleName} · ${item.category} · €${item.price.toLocaleString("it-IT")}`
+          }}
           mapItemToForm={(item) => ({
             name: item.name,
             description: item.description,
@@ -520,7 +599,7 @@ export function AdminDashboard() {
             category: String(values.category),
             is_required: Boolean(values.is_required),
             vehicle_id: Number(values.vehicle_id),
-            image: values.image ? String(values.image) : null,
+            image: optionalImagePayloadValue(values.image),
           })}
           onCreate={(payload) =>
             optionalMutations.create.mutateAsync(payload as Omit<Optional, "id">)

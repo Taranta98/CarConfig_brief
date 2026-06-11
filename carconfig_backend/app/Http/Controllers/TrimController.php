@@ -37,10 +37,8 @@ class TrimController extends Controller
                 $imagePath = $request->file('img')->store('trims', 'public');
             }
 
-            $data = $request->validated();
-            if ($imagePath) {
-                $data['img'] = $imagePath;
-            }
+            $data = $request->safe()->except('img');
+            $data['img'] = $imagePath ?? $request->input('img');
 
             $trim = Trim::create($data);
 
@@ -78,15 +76,24 @@ class TrimController extends Controller
                 $newImagePath = $request->file('img')->store('trims', 'public');
             }
 
-            $data = $request->validated();
+            $data = $request->safe()->except('img');
 
-            if ($newImagePath && $request->hasFile('img')) {
+            if ($request->hasFile('img')) {
                 $data['img'] = $newImagePath;
+            } elseif ($request->has('img')) {
+                $path = $request->input('img');
+                $data['img'] = is_string($path) && $path !== '' ? $path : null;
             }
 
             $trim->update($data);
 
-            if ($request->hasFile('img') && $oldImagePath && $newImagePath !== $oldImagePath) {
+            $shouldDeleteOldImage = $oldImagePath
+                && (
+                    ($request->hasFile('img') && $newImagePath !== $oldImagePath)
+                    || ($request->has('img') && empty($data['img']))
+                );
+
+            if ($shouldDeleteOldImage) {
                 Storage::disk('public')->delete($oldImagePath);
             }
 

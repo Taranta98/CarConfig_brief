@@ -43,7 +43,7 @@ class VehicleColorSeeder extends Seeder
     }
 
     /**
-     * @return array<string, array{front: string, rear: string, side: string}>
+     * @return array<string, array{front: string, rear: string}>
      */
     protected function vehicleViews(string $frontendUrl): array
     {
@@ -51,22 +51,18 @@ class VehicleColorSeeder extends Seeder
             'Qashqai MY24' => [
                 'front' => "{$frontendUrl}/qashqai-lato.png",
                 'rear' => "{$frontendUrl}/qashqai-lato.png",
-                'side' => "{$frontendUrl}/qashqai-lato.png",
             ],
             'Juke MY24' => [
                 'front' => "{$frontendUrl}/juke-lato.png",
                 'rear' => "{$frontendUrl}/juke-lato.png",
-                'side' => "{$frontendUrl}/juke-lato.png",
             ],
             'Kona EV' => [
                 'front' => "{$frontendUrl}/kona-lato.png",
                 'rear' => "{$frontendUrl}/kona-lato.png",
-                'side' => "{$frontendUrl}/kona-lato.png",
             ],
             'Tucson HEV' => [
                 'front' => "{$frontendUrl}/tucson-lato.png",
                 'rear' => "{$frontendUrl}/tucson-lato.png",
-                'side' => "{$frontendUrl}/tucson-lato.png",
             ],
         ];
     }

@@ -4,6 +4,7 @@ namespace App\Http\Requests\VehicleRequest;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateVehicleRequest extends FormRequest
 {
@@ -27,7 +28,14 @@ class UpdateVehicleRequest extends FormRequest
             'model' => 'sometimes|string|max:255',
             'year' => 'sometimes|integer|min:1900|max:2100',
             'fuel_type' => 'sometimes|string|max:255',
-            'image' => 'sometimes|string|max:2048',
+            'image' => [
+                'sometimes',
+                Rule::when(
+                    $this->hasFile('image'),
+                    ['image', 'max:5120'],
+                    ['string', 'max:2048']
+                ),
+            ],
             'co2_emissions' => 'sometimes|string|max:255',
             'base_price' => 'sometimes|numeric|min:0',
         ];

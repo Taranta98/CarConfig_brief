@@ -1,7 +1,10 @@
 import type { Optional } from "@/features/Optionals/optional.type"
 import type { Trim } from "@/features/Trims/trim.type"
+import { buildFormData, hasFileValues, type FormDataValue } from "@/lib/formData"
 import { http, type LaravelListPayload, type LaravelResourcePayload } from "@/lib/http"
 import type { Vehicle, VehicleConfigurator } from "./vehicle.type"
+
+type VehicleWritePayload = Record<string, FormDataValue>
 
 export class VehicleService {
   static async list() {
@@ -28,11 +31,22 @@ export class VehicleService {
     )
   }
 
-  static async create(data: Vehicle) {
+  static async create(data: VehicleWritePayload) {
+    if (hasFileValues(data)) {
+      return http.post<Vehicle>("/vehicles", buildFormData(data))
+    }
+
     return http.post<Vehicle>("/vehicles", data)
   }
 
-  static async update(id: number, data: Vehicle) {
+  static async update(id: number, data: VehicleWritePayload) {
+    if (hasFileValues(data)) {
+      return http.post<Vehicle>(
+        `/vehicles/${id}`,
+        buildFormData(data, "PUT")
+      )
+    }
+
     return http.put<Vehicle>(`/vehicles/${id}`, data)
   }
 

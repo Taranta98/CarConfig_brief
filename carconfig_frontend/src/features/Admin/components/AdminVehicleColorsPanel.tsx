@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { getApiErrorMessage } from "@/features/Admin/admin.errors"
-import { VehicleColorService } from "@/features/Vehicles/vehicle-color.service"
+import { AdminImageField } from "@/features/Admin/components/AdminImageField"
 import {
   VEHICLE_VIEW_ANGLES,
   type VehicleColor,
@@ -38,12 +38,19 @@ type ColorFormState = {
   hex: string
   sort_order: number
   images: Record<VehicleViewAngle, string>
+  imageFiles: Record<VehicleViewAngle, File | null>
 }
 
 function emptyImages(): Record<VehicleViewAngle, string> {
   return Object.fromEntries(
     VEHICLE_VIEW_ANGLES.map((angle) => [angle, ""])
   ) as Record<VehicleViewAngle, string>
+}
+
+function emptyImageFiles(): Record<VehicleViewAngle, File | null> {
+  return Object.fromEntries(
+    VEHICLE_VIEW_ANGLES.map((angle) => [angle, null])
+  ) as Record<VehicleViewAngle, File | null>
 }
 
 function emptyForm(): ColorFormState {
@@ -53,6 +60,7 @@ function emptyForm(): ColorFormState {
     hex: "#000000",
     sort_order: 0,
     images: emptyImages(),
+    imageFiles: emptyImageFiles(),
   }
 }
 
@@ -68,17 +76,42 @@ function mapColorToForm(color: VehicleColor): ColorFormState {
     hex: color.hex,
     sort_order: color.sort_order,
     images,
+    imageFiles: emptyImageFiles(),
   }
 }
 
 function buildImagesPayload(
-  images: Record<VehicleViewAngle, string>
-): VehicleColorImages {
-  return Object.fromEntries(
-    VEHICLE_VIEW_ANGLES.filter((angle) => images[angle].trim() !== "").map(
-      (angle) => [angle, images[angle].trim()]
-    )
-  )
+  images: Record<VehicleViewAngle, string>,
+  imageFiles: Record<VehicleViewAngle, File | null>
+): VehicleColorImages & Record<string, string | File> {
+  const payload: Record<string, string | File> = {}
+
+  for (const angle of VEHICLE_VIEW_ANGLES) {
+    if (imageFiles[angle]) {
+      payload[angle] = imageFiles[angle]!
+      continue
+    }
+
+    const path = images[angle].trim()
+    if (path !== "") {
+      payload[angle] = path
+    }
+  }
+
+  return payload
+}
+
+function countProvidedImages(
+  images: Record<VehicleViewAngle, string>,
+  imageFiles: Record<VehicleViewAngle, File | null>
+): number {
+  return VEHICLE_VIEW_ANGLES.filter((angle) => {
+    if (imageFiles[angle]) {
+      return true
+    }
+
+    return images[angle].trim() !== ""
+  }).length
 }
 
 function countImages(images: VehicleColorImages): number {
@@ -129,15 +162,27 @@ export function AdminVehicleColorsPanel({
     setValues((prev) => ({
       ...prev,
       images: { ...prev.images, [angle]: value },
+      imageFiles: value ? { ...prev.imageFiles, [angle]: null } : prev.imageFiles,
+    }))
+  }
+
+  function setImageFile(angle: VehicleViewAngle, file: File | null) {
+    setValues((prev) => ({
+      ...prev,
+      imageFiles: { ...prev.imageFiles, [angle]: file },
+      images: file ? { ...prev.images, [angle]: "" } : prev.images,
     }))
   }
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault()
 
-    const images = buildImagesPayload(values.images)
+    const images = buildImagesPayload(values.images, values.imageFiles)
 
-    if (editingId === null && countImages(images) === 0) {
+    if (
+      editingId === null &&
+      countProvidedImages(values.images, values.imageFiles) === 0
+    ) {
       toast.error("Inserisci almeno un'immagine per un'angolazione.")
       return
     }
@@ -293,8 +338,8 @@ export function AdminVehicleColorsPanel({
             <div>
               <p className="text-sm font-medium">Immagini per angolazione</p>
               <p className="text-xs text-muted-foreground">
-                Anteriore, posteriore e laterale. Almeno un&apos;angolazione è
-                obbligatoria in creazione.
+                Anteriore e posteriore. Carica dal PC o incolla un URL. Almeno
+                un&apos;angolazione è obbligatoria in creazione.
               </p>
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
@@ -303,11 +348,13 @@ export function AdminVehicleColorsPanel({
                   <FieldLabel htmlFor={`angle-${angle}`}>
                     {vehicleViewAngleLabels[angle]}
                   </FieldLabel>
-                  <Input
+                  <AdminImageField
                     id={`angle-${angle}`}
+                    label={vehicleViewAngleLabels[angle]}
                     value={values.images[angle]}
-                    onChange={(e) => setImage(angle, e.target.value)}
-                    placeholder="URL o percorso"
+                    file={values.imageFiles[angle]}
+                    onValueChange={(value) => setImage(angle, value)}
+                    onFileChange={(file) => setImageFile(angle, file)}
                   />
                 </Field>
               ))}
@@ -363,7 +410,7 @@ export function AdminVehicleColorsPanel({
         <ul className="divide-y divide-border/60 rounded-lg border border-border/80">
           {colors.map((color) => {
             const previewUrl =
-              color.images.side ??
+              color.images.front ??
               Object.values(color.images).find(Boolean) ??
               null
             const isPendingDelete = pendingDeleteId === color.id

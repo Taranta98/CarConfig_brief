@@ -4,6 +4,7 @@ namespace App\Http\Requests\TrimRequest;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateTrimRequest extends FormRequest
 {
@@ -26,7 +27,15 @@ class UpdateTrimRequest extends FormRequest
                  'name' => ['sometimes', 'string', 'max:255'],
             'description' => ['sometimes', 'string', 'max:255'],
             'price' => ['sometimes', 'integer'],
-            'img' => ['sometimes', 'string', 'max:255'],
+            'img' => [
+                'sometimes',
+                'nullable',
+                Rule::when(
+                    $this->hasFile('img'),
+                    ['image', 'max:5120'],
+                    ['string', 'max:2048']
+                ),
+            ],
             'vehicle_id' => ['sometimes','exists:vehicles,id']
         ];
     }

@@ -4,6 +4,7 @@ namespace App\Http\Requests\OptionalRequest;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateOptionalRequest extends FormRequest
 {
@@ -29,7 +30,15 @@ class UpdateOptionalRequest extends FormRequest
             'category' => 'sometimes|string|max:255',
             'is_required' => 'sometimes|boolean',
             'vehicle_id' => 'sometimes|exists:vehicles,id',
-            'image' => 'sometimes|nullable|string|max:2048',
+            'image' => [
+                'sometimes',
+                'nullable',
+                Rule::when(
+                    $this->hasFile('image'),
+                    ['image', 'max:5120'],
+                    ['string', 'max:2048']
+                ),
+            ],
         ];
     }
 }

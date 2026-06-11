@@ -1,5 +1,8 @@
+import { buildFormData, hasFileValues, type FormDataValue } from "@/lib/formData"
 import { http, type LaravelListPayload } from "@/lib/http"
 import type { Optional } from "./optional.type"
+
+type OptionalWritePayload = Record<string, FormDataValue>
 
 export class OptionalService {
   static async list(vehicleId?: number) {
@@ -12,11 +15,19 @@ export class OptionalService {
     return http.get<Optional>(`/optionals/${id}`)
   }
 
-  static async create(data: Optional) {
+  static async create(data: OptionalWritePayload) {
+    if (hasFileValues(data)) {
+      return http.post<Optional>("/optionals", buildFormData(data))
+    }
+
     return http.post<Optional>("/optionals", data)
   }
 
-  static async update(id: number, data: Optional) {
+  static async update(id: number, data: OptionalWritePayload) {
+    if (hasFileValues(data)) {
+      return http.post<Optional>(`/optionals/${id}`, buildFormData(data, "PUT"))
+    }
+
     return http.put<Optional>(`/optionals/${id}`, data)
   }
 

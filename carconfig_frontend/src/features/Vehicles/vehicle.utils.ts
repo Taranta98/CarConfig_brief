@@ -25,12 +25,11 @@ export function vehicleImageUrl(vehicle: Vehicle): string {
   return fromApi || fallbackImages[vehicle.id] || "/Logo-removebg-preview.png"
 }
 
-export const DEFAULT_VEHICLE_VIEW_ANGLE: VehicleViewAngle = "side"
+export const DEFAULT_VEHICLE_VIEW_ANGLE: VehicleViewAngle = "front"
 
 export const vehicleViewAngleLabels: Record<VehicleViewAngle, string> = {
   front: "Anteriore",
   rear: "Posteriore",
-  side: "Laterale",
 }
 
 export function getDefaultColorId(
@@ -59,8 +58,8 @@ export function vehicleColorImageUrl(
     const direct = color.images[angle]
     if (direct) return direct
 
-    const side = color.images.side
-    if (side) return side
+    const front = color.images.front
+    if (front) return front
 
     const firstAvailable = angles
       .map((item) => color.images[item])

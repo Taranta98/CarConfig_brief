@@ -6,6 +6,7 @@ export type AdminFieldType =
   | "checkbox"
   | "select"
   | "color"
+  | "image"
 
 export type AdminFieldOption = {
   value: string

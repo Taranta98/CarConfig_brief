@@ -21,28 +21,24 @@ const VehicleImageViewer = ({
   onAngleChange,
   className,
 }: VehicleImageViewerProps) => {
-  const rotationAngles = angles.filter((angle) => angle !== "side")
-
   const rotateNext = () => {
-    if (rotationAngles.length === 0) return
+    if (angles.length === 0) return
 
-    const currentIndex = rotationAngles.indexOf(selectedAngle)
+    const currentIndex = angles.indexOf(selectedAngle)
     const nextIndex =
-      currentIndex === -1
-        ? 0
-        : (currentIndex + 1) % rotationAngles.length
+      currentIndex === -1 ? 0 : (currentIndex + 1) % angles.length
 
-    onAngleChange(rotationAngles[nextIndex]!)
+    onAngleChange(angles[nextIndex]!)
   }
 
   return (
-    <div className={cn("space-y-4", className)}>
+    <div className={cn("mx-auto w-full max-w-sm space-y-3 sm:max-w-md", className)}>
       <div className="flex aspect-4/3 items-center justify-center rounded-xl border bg-muted/30 p-4">
         <img
           key={imageUrl}
           src={imageUrl}
           alt={alt}
-          className="max-h-full w-full object-contain transition-opacity duration-200"
+          className="max-h-full max-w-full object-contain transition-opacity duration-200"
         />
       </div>
 
@@ -50,7 +46,7 @@ const VehicleImageViewer = ({
         <div className="space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <p className="text-sm font-medium">Angolazione</p>
-            {rotationAngles.length > 0 && (
+            {angles.length > 1 && (
               <Button
                 type="button"
                 variant="outline"

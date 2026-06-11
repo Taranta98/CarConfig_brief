@@ -9,9 +9,9 @@ export type Vehicle = {
   base_price: number
 }
 
-export type VehicleViewAngle = "front" | "rear" | "side"
+export type VehicleViewAngle = "front" | "rear"
 
-export const VEHICLE_VIEW_ANGLES: VehicleViewAngle[] = ["front", "rear", "side"]
+export const VEHICLE_VIEW_ANGLES: VehicleViewAngle[] = ["front", "rear"]
 
 export type VehicleColorImages = Partial<Record<VehicleViewAngle, string>>
 

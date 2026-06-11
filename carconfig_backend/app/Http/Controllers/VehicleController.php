@@ -9,9 +9,7 @@ use App\Http\Resources\TrimResource;
 use App\Http\Resources\VehicleConfiguratorResource;
 use App\Http\Resources\VehicleResource;
 use App\Models\Vehicle;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-
 
 class VehicleController extends Controller
 {
@@ -52,30 +50,28 @@ class VehicleController extends Controller
      */
     public function store(StoreVehicleRequest $request)
     {
-        $imagePath= null;
+        $imagePath = null;
 
         try {
-                if($request->hasFile('img')) {
-                    $imagePath = $request->file('img')->store('vehicles', 'public');
-                }
+            if ($request->hasFile('image')) {
+                $imagePath = $request->file('image')->store('vehicles', 'public');
+            }
 
-            $data = $request->validated();
-            $data['image'] = $imagePath;
+            $data = $request->safe()->except('image');
+            $data['image'] = $imagePath ?? $request->string('image')->toString();
 
-        
             $vehicle = Vehicle::create($data);
 
             return response()->json([
                 'message' => 'Vehicle created successfully',
-                'vehicle' => new VehicleResource($vehicle)
+                'vehicle' => new VehicleResource($vehicle),
             ], 201);
         } catch (\Throwable $th) {
-           if($imagePath) {
-            Storage::disk('public')->delete($imagePath);
-           }
+            if ($imagePath) {
+                Storage::disk('public')->delete($imagePath);
+            }
             throw $th;
         }
-    
     }
 
     /**
@@ -95,35 +91,33 @@ class VehicleController extends Controller
         $newImagePath = $oldImagePath;
 
         try {
-
-            if($request->hasFile('image')) {
+            if ($request->hasFile('image')) {
                 $newImagePath = $request->file('image')->store('vehicles', 'public');
             }
 
-            $data = $request->validated();
+            $data = $request->safe()->except('image');
 
-            if($newImagePath) {
+            if ($newImagePath) {
                 $data['image'] = $newImagePath;
+            } elseif ($request->filled('image')) {
+                $data['image'] = $request->string('image')->toString();
             }
 
-            
             $vehicle->update($data);
 
-            if($request->hasFile('img') && $oldImagePath && $newImagePath !== $oldImagePath) {
+            if ($request->hasFile('image') && $oldImagePath && $newImagePath !== $oldImagePath) {
                 Storage::disk('public')->delete($oldImagePath);
             }
 
             return response()->json([
-                "message" => "Vehicle updated successfully",
-                "vehicle" => new VehicleResource($vehicle)
+                'message' => 'Vehicle updated successfully',
+                'vehicle' => new VehicleResource($vehicle),
             ], 200);
-
         } catch (\Throwable $th) {
-              if($request->hasFile('img') && $newImagePath && $newImagePath !== $oldImagePath) {
+            if ($request->hasFile('image') && $newImagePath && $newImagePath !== $oldImagePath) {
                 Storage::disk('public')->delete($newImagePath);
-
-                }
-                throw $th;
+            }
+            throw $th;
         }
     }
 
@@ -135,13 +129,13 @@ class VehicleController extends Controller
         $imagePath = $vehicle->image;
 
         $vehicle->delete();
-        
-        if($imagePath) {
+
+        if ($imagePath) {
             Storage::disk('public')->delete($imagePath);
         }
 
         return response()->json([
-            "message" => "Vehicle deleted successfully"
+            'message' => 'Vehicle deleted successfully',
         ], 200);
     }
 }

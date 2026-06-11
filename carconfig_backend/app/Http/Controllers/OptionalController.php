@@ -32,29 +32,27 @@ class OptionalController extends Controller
     {
         $imagePath = null;
 
-      try {
-            if($request->hasFile('image')) {
+        try {
+            if ($request->hasFile('image')) {
                 $imagePath = $request->file('image')->store('optionals', 'public');
             }
 
-            $data = $request->validated();
-            $data['image'] = $imagePath;
+            $data = $request->safe()->except('image');
+            $data['image'] = $imagePath ?? $request->input('image');
 
             $optional = Optional::create($data);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Optional created successfully',
-            'optional' => new OptionalResource($optional)
+            return response()->json([
+                'success' => true,
+                'message' => 'Optional created successfully',
+                'optional' => new OptionalResource($optional),
             ], 201);
-
-      } catch (\Throwable $th) {
-
-        if($imagePath) {
-            Storage::disk('public')->delete($imagePath);
+        } catch (\Throwable $th) {
+            if ($imagePath) {
+                Storage::disk('public')->delete($imagePath);
+            }
+            throw $th;
         }
-        throw $th;
-      }
     }
 
     /**
@@ -72,32 +70,36 @@ class OptionalController extends Controller
     {
         $oldImagePath = $optional->image;
         $newImagePath = $oldImagePath;
+
         try {
-                if($request->hasFile('image')) {
-                    $newImagePath = $request->file('img')->store('optionals', 'public');
-                }
+            if ($request->hasFile('image')) {
+                $newImagePath = $request->file('image')->store('optionals', 'public');
+            }
 
-                $data = $request->validated();
+            $data = $request->safe()->except('image');
 
-                if($newImagePath){
-                    $data['image'] = $newImagePath;
-                }
+            if ($newImagePath && $request->hasFile('image')) {
+                $data['image'] = $newImagePath;
+            } elseif ($request->has('image')) {
+                $data['image'] = $request->input('image');
+            }
 
-                $optional->update($data);
+            $optional->update($data);
 
-                if($request->hasFile('image') && $oldImagePath && $newImagePath !== $oldImagePath){
-                    Storage::disk('public')->delete($oldImagePath);
-                }
-                return response()->json([
-                    'success' => true,
-                    'message' => 'Optional updated successfully',
-                    'optional' => new OptionalResource($optional)
-        ]);
+            if ($request->hasFile('image') && $oldImagePath && $newImagePath !== $oldImagePath) {
+                Storage::disk('public')->delete($oldImagePath);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Optional updated successfully',
+                'optional' => new OptionalResource($optional),
+            ]);
         } catch (\Throwable $th) {
-            if($request->hasFile('image') && $newImagePath && $newImagePath !== $oldImagePath){
-            Storage::disk('public')->delete($newImagePath);
-        }
-        throw $th;
+            if ($request->hasFile('image') && $newImagePath && $newImagePath !== $oldImagePath) {
+                Storage::disk('public')->delete($newImagePath);
+            }
+            throw $th;
         }
     }
 
@@ -110,15 +112,13 @@ class OptionalController extends Controller
 
         $optional->delete();
 
-        if($imagePath){
+        if ($imagePath) {
             Storage::disk('public')->delete($imagePath);
         }
 
-        
-
         return response()->json([
             'success' => true,
-            'message' => 'Optional deleted successfully'
+            'message' => 'Optional deleted successfully',
         ]);
     }
 }
