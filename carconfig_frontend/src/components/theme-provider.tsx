@@ -18,7 +18,8 @@ type ThemeProviderState = {
 
 const COLOR_SCHEME_QUERY = "(prefers-color-scheme: dark)"
 const THEME_VALUES: Theme[] = ["dark", "light", "system"]
-const FAVICON_SRC = "/Logo-removebg-preview.png"
+const FAVICON_LIGHT_SRC = "/Logo_Nero.png"
+const FAVICON_DARK_SRC = "/Logo_Bianco.png"
 
 function updateFavicon(isDark: boolean) {
   const link =
@@ -30,26 +31,8 @@ function updateFavicon(isDark: boolean) {
       return element
     })()
 
-  const image = new Image()
-  image.src = FAVICON_SRC
-  image.onload = () => {
-    const size = 32
-    const canvas = document.createElement("canvas")
-    canvas.width = size
-    canvas.height = size
-    const context = canvas.getContext("2d")
-    if (!context) {
-      return
-    }
-
-    if (!isDark) {
-      context.filter = "brightness(0)"
-    }
-
-    context.drawImage(image, 0, 0, size, size)
-    link.type = "image/png"
-    link.href = canvas.toDataURL("image/png")
-  }
+  link.type = "image/png"
+  link.href = isDark ? FAVICON_DARK_SRC : FAVICON_LIGHT_SRC
 }
 
 const ThemeProviderContext = React.createContext<
