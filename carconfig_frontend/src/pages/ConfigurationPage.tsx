@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 import ConfigurationSidebar from "@/features/Configurations/components/ConfigurationSidebar"
+import { VehicleModelSelector } from "@/features/Configurations/components/VehicleModelSelector"
 import ConfigurationWizard, {
   type WizardStep,
 } from "@/features/Configurations/components/ConfigurationWizard"
@@ -20,16 +21,8 @@ import {
   getTrimPrice,
   vehicleBasePrice,
   vehicleDisplayName,
-  vehicleImageUrl,
 } from "@/features/Vehicles/vehicle.utils"
 import VehicleImageViewer from "@/components/VehicleImageViewer"
-import { cn } from "@/lib/utils"
-import {
-  Card,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { isAxiosError } from "axios"
@@ -299,47 +292,13 @@ const ConfigurationPage = () => {
           </p>
         )}
 
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {vehicles.map((vehicle) => {
-            const isSelected = selectedId === vehicle.id
-
-            return (
-              <button
-                key={vehicle.id}
-                type="button"
-                onClick={() => handleModelSelect(vehicle.id)}
-                className={cn(
-                  "group rounded-xl text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-                  isSelected &&
-                    "ring-2 ring-primary ring-offset-2 ring-offset-background"
-                )}
-                aria-pressed={isSelected}
-                aria-label={`Seleziona ${vehicleDisplayName(vehicle)}`}
-              >
-                <Card
-                  className={cn(
-                    "h-full cursor-pointer overflow-hidden py-0 transition-shadow hover:shadow-md",
-                    isSelected && "shadow-md"
-                  )}
-                >
-                  <div className="flex aspect-4/3 items-center justify-center bg-muted/40 p-4">
-                    <img
-                      src={vehicleImageUrl(vehicle)}
-                      alt={vehicleDisplayName(vehicle)}
-                      className="max-h-full w-full object-contain transition-transform duration-300 group-hover:scale-105"
-                    />
-                  </div>
-                  <CardHeader className="pb-4">
-                    <CardTitle>{vehicleDisplayName(vehicle)}</CardTitle>
-                    <CardDescription>
-                      {vehicle.model} · {vehicle.fuel_type} · {vehicle.year}
-                    </CardDescription>
-                  </CardHeader>
-                </Card>
-              </button>
-            )
-          })}
-        </div>
+        {vehicles.length > 0 && (
+          <VehicleModelSelector
+            vehicles={vehicles}
+            selectedId={selectedId}
+            onSelect={handleModelSelect}
+          />
+        )}
       </section>
 
       <Separator />
