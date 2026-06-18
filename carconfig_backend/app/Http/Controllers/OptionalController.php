@@ -30,29 +30,13 @@ class OptionalController extends Controller
      */
     public function store(StoreOptionalRequest $request)
     {
-        $imagePath = null;
+        $optional = Optional::create($request->validated());
 
-        try {
-            if ($request->hasFile('image')) {
-                $imagePath = $request->file('image')->store('optionals', 'public');
-            }
-
-            $data = $request->safe()->except('image');
-            $data['image'] = $imagePath ?? $request->input('image');
-
-            $optional = Optional::create($data);
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Optional created successfully',
-                'optional' => new OptionalResource($optional),
-            ], 201);
-        } catch (\Throwable $th) {
-            if ($imagePath) {
-                Storage::disk('public')->delete($imagePath);
-            }
-            throw $th;
-        }
+        return response()->json([
+            'success' => true,
+            'message' => 'Optional created successfully',
+            'optional' => new OptionalResource($optional),
+        ], 201);
     }
 
     /**
@@ -68,39 +52,13 @@ class OptionalController extends Controller
      */
     public function update(UpdateOptionalRequest $request, Optional $optional)
     {
-        $oldImagePath = $optional->image;
-        $newImagePath = $oldImagePath;
+        $optional->update($request->validated());
 
-        try {
-            if ($request->hasFile('image')) {
-                $newImagePath = $request->file('image')->store('optionals', 'public');
-            }
-
-            $data = $request->safe()->except('image');
-
-            if ($newImagePath && $request->hasFile('image')) {
-                $data['image'] = $newImagePath;
-            } elseif ($request->has('image')) {
-                $data['image'] = $request->input('image');
-            }
-
-            $optional->update($data);
-
-            if ($request->hasFile('image') && $oldImagePath && $newImagePath !== $oldImagePath) {
-                Storage::disk('public')->delete($oldImagePath);
-            }
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Optional updated successfully',
-                'optional' => new OptionalResource($optional),
-            ]);
-        } catch (\Throwable $th) {
-            if ($request->hasFile('image') && $newImagePath && $newImagePath !== $oldImagePath) {
-                Storage::disk('public')->delete($newImagePath);
-            }
-            throw $th;
-        }
+        return response()->json([
+            'success' => true,
+            'message' => 'Optional updated successfully',
+            'optional' => new OptionalResource($optional),
+        ]);
     }
 
     /**

@@ -48,12 +48,6 @@ const trimFields: AdminField[] = [
   { name: "name", label: "Nome", type: "text", required: true },
   { name: "description", label: "Descrizione", type: "textarea", required: true },
   { name: "price", label: "Prezzo (€)", type: "number", required: true },
-  {
-    name: "img",
-    label: "Immagine (opzionale)",
-    type: "image",
-    placeholder: "URL o percorso storage",
-  },
   { name: "vehicle_id", label: "Veicolo", type: "select", required: true },
 ]
 
@@ -73,12 +67,6 @@ const optionalFields: AdminField[] = [
   },
   { name: "is_required", label: "Obbligatorio", type: "checkbox" },
   { name: "vehicle_id", label: "Veicolo", type: "select", required: true },
-  {
-    name: "image",
-    label: "Immagine (opzionale)",
-    type: "image",
-    placeholder: "URL o percorso storage",
-  },
 ]
 
 const userFields: AdminField[] = [
@@ -121,17 +109,6 @@ function imagePayloadValue(value: AdminFormValue): string | File {
   }
 
   return String(value ?? "")
-}
-
-function optionalImagePayloadValue(
-  value: AdminFormValue
-): string | File | null {
-  if (value instanceof File) {
-    return value
-  }
-
-  const path = String(value ?? "").trim()
-  return path === "" ? null : path
 }
 
 function toggleSection(
@@ -523,14 +500,12 @@ export function AdminDashboard() {
             name: item.name,
             description: item.description,
             price: item.price,
-            img: item.image ?? "",
             vehicle_id: item.vehicle_id,
           })}
           buildPayload={(values) => ({
             name: String(values.name),
             description: String(values.description),
             price: Number(values.price),
-            img: optionalImagePayloadValue(values.img),
             vehicle_id: Number(values.vehicle_id),
           })}
           onCreate={(payload) => trimMutations.create.mutateAsync(payload as Omit<Trim, "id">)}
@@ -590,7 +565,6 @@ export function AdminDashboard() {
             category: item.category,
             is_required: item.is_required,
             vehicle_id: item.vehicle_id,
-            image: item.image ?? "",
           })}
           buildPayload={(values) => ({
             name: String(values.name),
@@ -599,7 +573,6 @@ export function AdminDashboard() {
             category: String(values.category),
             is_required: Boolean(values.is_required),
             vehicle_id: Number(values.vehicle_id),
-            image: optionalImagePayloadValue(values.image),
           })}
           onCreate={(payload) =>
             optionalMutations.create.mutateAsync(payload as Omit<Optional, "id">)
