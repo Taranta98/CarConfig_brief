@@ -22,6 +22,7 @@ Route::controller(AuthController::class)->group(function () {
 });
 
 Route::get('/email/verify/{id}/{hash}', [EmailVerificationController::class, 'verify'])->name('api.verification.verify');
+Route::post('/auth/resend-email-verify', [EmailVerificationController::class, 'resendByEmail']);
 
 Route::get('/vehicles', [VehicleController::class, 'index']);
 Route::get('/vehicles/{vehicle}/trims', [VehicleController::class, 'trims']);

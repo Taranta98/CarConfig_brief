@@ -1,4 +1,5 @@
 import Logo from "@/components/Logo"
+import { Button } from "@/components/ui/button"
 import {
   Card,
   CardContent,
@@ -7,11 +8,13 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Field, FieldDescription, FieldGroup } from "@/components/ui/field";
+import { AuthService } from "@/features/Auth/auth.service"
 import { useAuthStore } from "@/features/Auth/auth.store"
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
 import { z } from 'zod';
+import { isAxiosError } from "axios";
 
 export const verifyEmailSchema = z.object({
   email: z.email({message: 'Email non valida'}),
@@ -26,6 +29,7 @@ const VerifyEmail = ({ email }: VerifyEmailProps) => {
   const navigate = useNavigate()
   const token = useAuthStore((state) => state.token)
   const user = useAuthStore((state) => state.user)
+  const [isResending, setIsResending] = useState(false)
 
   useEffect(() => {
     if (!token || !user?.email_verified_at) return
@@ -33,6 +37,22 @@ const VerifyEmail = ({ email }: VerifyEmailProps) => {
     toast.success("Email verificata! Sei connesso.")
     navigate("/", { replace: true })
   }, [navigate, token, user?.email_verified_at])
+
+  async function handleResend() {
+    setIsResending(true)
+    try {
+      const res = await AuthService.resendEmailVerify(email)
+      toast.success(res.data.message)
+    } catch (error) {
+      toast.error(
+        isAxiosError(error)
+          ? error.response?.data?.message ?? "Impossibile reinviare il link"
+          : "Impossibile reinviare il link"
+      )
+    } finally {
+      setIsResending(false)
+    }
+  }
 
   return (
     <section className="bg-foreground dark:bg-background min-h-screen flex items-center relative">
@@ -64,9 +84,18 @@ const VerifyEmail = ({ email }: VerifyEmailProps) => {
                 <p className="text-center text-sm text-muted-foreground">
                   In attesa di verifica…
                 </p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full rounded-lg"
+                  disabled={isResending}
+                  onClick={handleResend}
+                >
+                  {isResending ? "Invio in corso…" : "Reinvia codice"}
+                </Button>
                 <FieldDescription className="text-center text-sm font-normal text-muted-foreground">
-                  Non hai ricevuto l&apos;email? Controlla lo spam o riprova
-                  tra qualche minuto.
+                  Non hai ricevuto l&apos;email? Controlla lo spam o usa il
+                  pulsante qui sopra per ricevere un nuovo link.
                 </FieldDescription>
               </Field>
             </FieldGroup>

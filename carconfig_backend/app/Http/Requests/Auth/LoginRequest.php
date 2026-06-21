@@ -27,4 +27,17 @@ class LoginRequest extends FormRequest
             'password' => ['required', 'string', 'min:8'],
         ];
     }
+
+    /**
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'email.required' => 'Email obbligatoria',
+            'email.email' => 'Email non valida',
+            'password.required' => 'Password obbligatoria',
+            'password.min' => 'La password deve essere lunga almeno 8 caratteri',
+        ];
+    }
 }

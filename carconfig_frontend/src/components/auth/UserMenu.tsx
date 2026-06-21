@@ -33,14 +33,11 @@ const UserMenu = () => {
         </Avatar>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
-        <DropdownMenuItem render={<Link to="/my-configurations" />}>
-          <LayoutListIcon />
-          Visualizza le tue configurazioni
-        </DropdownMenuItem>
         <DropdownMenuItem render={<Link to="/settings" />}>
           <SettingsIcon />
-          Impostazioni
+          Profilo
         </DropdownMenuItem>
+       
         <DropdownMenuSeparator />
         <DropdownMenuItem variant="destructive" onClick={handleLogout}>
           <LogOutIcon />

@@ -27,7 +27,23 @@ class RegisterRequest extends FormRequest
             'first_name' => ['required', 'string', 'max:255'],
             'last_name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
-            'password' => ['required', 'confirmed', Password::defaults()]
+            'password' => ['required', 'confirmed', Password::defaults()],
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'first_name.required' => 'Nome obbligatorio',
+            'last_name.required' => 'Cognome obbligatorio',
+            'email.required' => 'Email obbligatoria',
+            'email.email' => 'Email non valida',
+            'email.unique' => 'Questa email è già registrata',
+            'password.required' => 'Password obbligatoria',
+            'password.confirmed' => 'Le password non coincidono',
         ];
     }
 }

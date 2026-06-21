@@ -12,7 +12,6 @@ import {
   FieldError,
   FieldGroup,
   FieldLabel,
-  FieldSeparator,
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { AuthService } from "@/features/Auth/auth.service"
@@ -20,6 +19,7 @@ import { useState } from "react"
 import { Link } from "react-router"
 import { z } from "zod"
 import { toast } from "sonner"
+import { AxiosError } from "axios"
 import VerifyEmail from "../verify-email-01/verify-email"
 import { Checkbox } from "@/components/ui/checkbox"
 import { EyeClosed, EyeIcon } from "lucide-react"
@@ -34,7 +34,10 @@ import { zodResolver } from "@hookform/resolvers/zod"
 export const registerSchema = z.object({
   first_name: z.string().min(1, { message: "Nome obbligatorio" }),
   last_name: z.string().min(1, { message: "Cognome obbligatorio" }),
-  email: z.email({ message: "Email non valida" }),
+  email: z
+    .string()
+    .min(1, { message: "Email obbligatoria" })
+    .email({ message: "Email non valida" }),
   password: z
     .string()
     .min(8, { message: "La password deve essere lunga almeno 8 caratteri" }),
@@ -44,7 +47,7 @@ export const registerSchema = z.object({
   termsAndConditions: z
     .boolean()
     .refine((data) => data, {
-      message: "Devi accettare i termini e le condizioni",
+      message: "Devi accettare i termini per poter continuare",
     })
 })
 .refine((data) => data.password === data.password_confirmation, {
@@ -55,20 +58,73 @@ export const registerSchema = z.object({
 const RegisterForm = () => {
   const form = useForm<z.infer<typeof registerSchema>>({
     resolver: zodResolver(registerSchema),
+    defaultValues: {
+      termsAndConditions: false,
+    },
   })
 
   const [emailVerify, setEmailVerify] = useState("")
   const [showPsw, setShowPsw] = useState(false)
   const [showPswConfirmation, setShowPswConfirmation] = useState(false)
 
+  const validatePasswordFields = () => {
+    void form.trigger(["password", "password_confirmation"])
+  }
+
+  const registerFieldNames = [
+    "first_name",
+    "last_name",
+    "email",
+    "password",
+    "password_confirmation",
+  ] as const
+
   async function onSubmit(values: z.infer<typeof registerSchema>) {
     try {
-      console.log(values)
       await AuthService.register(values)
       setEmailVerify(values.email)
     } catch (error) {
-      console.error("Errore durante la registrazione dell'utente", error)
-      toast.error("Errore durante la registrazione dell'utente")
+      if (!(error instanceof AxiosError)) {
+        toast.error("Errore del server, riprova!")
+        return
+      }
+
+      const data = error.response?.data as {
+        message?: string
+        errors?: Record<string, string[]>
+      }
+
+      if (data?.errors) {
+        for (const [field, messages] of Object.entries(data.errors)) {
+          const message = messages[0]
+          if (!message) continue
+
+          if (field === "password_confirmation") {
+            form.setError("password_confirmation", { message })
+            continue
+          }
+
+          if (
+            registerFieldNames.includes(
+              field as (typeof registerFieldNames)[number]
+            )
+          ) {
+            form.setError(field as (typeof registerFieldNames)[number], {
+              message,
+            })
+          }
+        }
+
+        if (data.errors.email?.[0]) {
+          toast.error(data.errors.email[0])
+        }
+
+        return
+      }
+
+      toast.error(
+        data?.message ?? "Errore durante la registrazione dell'utente"
+      )
     }
   }
 
@@ -89,41 +145,6 @@ const RegisterForm = () => {
       <CardContent className="p-0">
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <FieldGroup className="gap-6">
-                <Field className="grid gap-3 md:grid-cols-2 md:gap-6">
-                  <Button
-                    variant="outline"
-                    type="button"
-                    className="text-medium h-9 cursor-pointer gap-2 rounded-lg bg-white text-sm text-card-foreground shadow-xs"
-                  >
-                    <img
-                      src="https://images.shadcnspace.com/assets/svgs/icon-google.svg"
-                      alt="google icon"
-                      className="h-4 w-4"
-                    />
-                    Entra con Google
-                  </Button>
-                  <Button
-                    variant="outline"
-                    type="button"
-                    className="text-medium h-9 cursor-pointer gap-2 rounded-lg bg-white text-sm text-card-foreground shadow-xs"
-                  >
-                    <img
-                      src="https://images.shadcnspace.com/assets/svgs/icon-facebook.svg"
-                      alt="facebook icon"
-                      className="h-4 w-4 dark:hidden"
-                    />
-                    <img
-                      src="https://images.shadcnspace.com/assets/svgs/icon-facebook.svg"
-                      alt="facebook icon"
-                      className="hidden h-4 w-4 dark:block"
-                    />
-                    Entra con Facebook
-                  </Button>
-                </Field>
-                <FieldSeparator className="bg-transparent text-sm text-muted-foreground *:data-[slot=field-separator-content]:bg-card">
-                  <span className="px-4">o iscriviti con </span>
-                </FieldSeparator>
-
                 <div className="flex flex-col gap-4">
                   <Field className="gap-1.5">
                     <FieldLabel
@@ -136,10 +157,12 @@ const RegisterForm = () => {
                       id="first_name"
                       type="text"
                       placeholder="inserisci il tuo nome"
-                      required
                       {...form.register("first_name")}
                       className="h-9 bg-white shadow-xs"
                     />
+                    <FieldError>
+                      {form.formState.errors.first_name?.message}
+                    </FieldError>
                   </Field>
                   <Field className="gap-1.5">
                     <FieldLabel
@@ -152,10 +175,12 @@ const RegisterForm = () => {
                       id="last_name"
                       type="text"
                       placeholder="inserisci il tuo cognome"
-                      required
                       className="h-9 bg-white shadow-xs"
                       {...form.register("last_name")}
                     />
+                    <FieldError>
+                      {form.formState.errors.last_name?.message}
+                    </FieldError>
                   </Field>
                   <Field className="gap-1.5">
                     <FieldLabel
@@ -168,10 +193,12 @@ const RegisterForm = () => {
                       id="email"
                       type="email"
                       placeholder="example@shadcnspace.com"
-                      required
                       className="h-9 bg-white shadow-xs"
                       {...form.register("email")}
                     />
+                    <FieldError>
+                      {form.formState.errors.email?.message}
+                    </FieldError>
                   </Field>
                   <Field className="gap-1.5">
                     <FieldLabel
@@ -185,7 +212,9 @@ const RegisterForm = () => {
                         id="password"
                         placeholder="********"
                         type={showPsw ? "text" : "password"}
-                        {...form.register("password")}
+                        {...form.register("password", {
+                          onBlur: validatePasswordFields,
+                        })}
                         required
                       />
 
@@ -211,7 +240,9 @@ const RegisterForm = () => {
               id="password_confirmation"
             placeholder="********"
             type={showPswConfirmation ? "text" : "password"}
-            {...form.register("password_confirmation")}
+            {...form.register("password_confirmation", {
+              onBlur: validatePasswordFields,
+            })}
             required
           />
 
@@ -225,18 +256,21 @@ const RegisterForm = () => {
         </InputGroup>
 
         <FieldError>
-          {form.formState.errors.password_confirmation?.message}
+          {(form.formState.touchedFields.password_confirmation ||
+            form.formState.isSubmitted) &&
+            form.formState.errors.password_confirmation?.message}
         </FieldError>
       </Field>
                   <Field className="flex flex-row items-start space-y-0 space-x-3 rounded-md border p-4">
                     <Checkbox
                       id="termsAndConditions"
                       className={"w-4!"}
-                      required
                       {...form.register("termsAndConditions")}
                       checked={form.watch("termsAndConditions")}
                       onCheckedChange={(value) =>
-                        form.setValue("termsAndConditions", value)
+                        form.setValue("termsAndConditions", value === true, {
+                          shouldValidate: true,
+                        })
                       }
                     />
                     <div className="space-y-1 leading-none">
@@ -247,7 +281,9 @@ const RegisterForm = () => {
                         Attivando la checkbox accetti i termini e le condizioni
                       </FieldDescription>
                       <FieldError>
-                        {form.formState.errors.termsAndConditions?.message}
+                        {(form.formState.touchedFields.termsAndConditions ||
+                          form.formState.isSubmitted) &&
+                          form.formState.errors.termsAndConditions?.message}
                       </FieldError>
                     </div>
                   </Field>
@@ -257,9 +293,12 @@ const RegisterForm = () => {
                   <Button
                     type="submit"
                     size={"lg"}
+                    disabled={form.formState.isSubmitting}
                     className="h-10 cursor-pointer rounded-lg hover:bg-primary/80"
                   >
-                    Registrati
+                    {form.formState.isSubmitting
+                      ? "Registrazione in corso…"
+                      : "Registrati"}
                   </Button>
                   <FieldDescription className="text-center text-sm font-normal text-muted-foreground">
                     Hai già un account?{" "}

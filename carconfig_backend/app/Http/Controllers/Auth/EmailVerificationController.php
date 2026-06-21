@@ -3,10 +3,13 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Auth\ResendEmailVerificationRequest;
 use App\Models\User;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Str;
 
 class EmailVerificationController extends Controller
 {
@@ -75,6 +78,33 @@ class EmailVerificationController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Verification notification sent successfully.'
+        ]);
+    }
+
+    public function resendByEmail(ResendEmailVerificationRequest $request)
+    {
+        $email = Str::lower($request->validated('email'));
+        $rateLimitKey = 'resend-verification:'.$email;
+
+        if (RateLimiter::tooManyAttempts($rateLimitKey, 1)) {
+            $seconds = RateLimiter::availableIn($rateLimitKey);
+
+            return response()->json([
+                'success' => false,
+                'message' => "Attendi {$seconds} secondi prima di richiedere un nuovo link.",
+            ], 429);
+        }
+
+        $user = User::where('email', $email)->first();
+
+        if ($user && ! $user->hasVerifiedEmail()) {
+            $user->sendEmailVerificationNotification();
+            RateLimiter::hit($rateLimitKey, 60);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Se esiste un account non verificato con questa email, ti abbiamo inviato un nuovo link di verifica.',
         ]);
     }
 

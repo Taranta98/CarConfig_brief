@@ -3,12 +3,18 @@ import { Card,CardContent, CardDescription, CardHeader, CardTitle } from "@/comp
 import {
   Field,
   FieldDescription,
+  FieldError,
   FieldGroup,
   FieldLabel,
-  FieldSeparator,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@/components/ui/input-group";
+import { EyeClosed, EyeIcon } from "lucide-react";
 import { z } from 'zod';
 import { Link, useNavigate } from "react-router";
 import { useForm } from "react-hook-form";
@@ -20,8 +26,14 @@ import { AxiosError } from "axios";
 import VerifyEmail from "../verify-email-01/verify-email";
 
 export const loginSchema = z.object({
-  email: z.email({message: 'Email non valida'}),
-  password: z.string().min(8, {message: 'La password deve essere lunga almeno 8 caratteri'}),
+  email: z
+    .string()
+    .min(1, { message: "Email obbligatoria" })
+    .email({ message: "Email non valida" }),
+  password: z
+    .string()
+    .min(1, { message: "Password obbligatoria" })
+    .min(8, { message: "La password deve essere lunga almeno 8 caratteri" }),
 })
 
 const LoginForm = () => {
@@ -34,27 +46,52 @@ const LoginForm = () => {
   const navigate = useNavigate();
 
   const [verifyEmail, setVerifyEmail] = useState("");
-  const [verifyEmailError, setVerifyEmailError] = useState(false);
+  const [showPsw, setShowPsw] = useState(false);
 
   async function onSubmit(values: z.infer<typeof loginSchema>) {
     try {
-      console.log(values)
       await AuthService.login(values)
-      toast.success('Login effettuato con successo')
-      navigate('/');
+      toast.success("Login effettuato con successo")
+      navigate("/")
     } catch (error) {
-      console.error("Form submission error", error)
-      console.dir(error)
-      toast.error(
-        error instanceof AxiosError
-          ? error.response?.data.message
-          : "Errore del server, riprova!"
-      )
-      if (
-        error instanceof AxiosError &&
-        error.response?.data.cause === "EMAIL_NOT_VERIFIED"
-      ) {
-        setVerifyEmailError(true)
+      if (!(error instanceof AxiosError)) {
+        toast.error("Errore del server, riprova!")
+        return
+      }
+
+      const data = error.response?.data as {
+        message?: string
+        cause?: string
+        errors?: Record<string, string[]>
+      }
+
+      if (data?.cause === "EMAIL_NOT_VERIFIED") {
+        setVerifyEmail(values.email)
+        toast.error(
+          data.message ?? "Devi verificare la tua email prima di accedere"
+        )
+        return
+      }
+
+      if (data?.errors) {
+        for (const [field, messages] of Object.entries(data.errors)) {
+          if (field === "email" || field === "password") {
+            form.setError(field, { message: messages[0] })
+          }
+        }
+        return
+      }
+
+      const message =
+        data?.message ??
+        (error.response?.status === 401
+          ? "Credenziali non valide"
+          : "Errore del server, riprova!")
+
+      toast.error(message)
+
+      if (error.response?.status === 401) {
+        form.setError("password", { message })
       }
     }
   }
@@ -76,41 +113,6 @@ const LoginForm = () => {
           <CardContent className="p-0">
             <form onSubmit={form.handleSubmit(onSubmit)}>
               <FieldGroup className="gap-6">
-                <Field className="grid md:grid-cols-2 md:gap-6 gap-3">
-                  <Button
-                    variant="outline"
-                    type="button"
-                    className="text-sm text-medium text-card-foreground gap-2 rounded-lg h-9 bg-white shadow-xs cursor-pointer"
-                  >
-                    <img
-                      src="https://images.shadcnspace.com/assets/svgs/icon-google.svg"
-                      alt="google icon"
-                      className="h-4 w-4"
-                    />
-                   Entra con Google
-                  </Button>
-                  <Button
-                    variant="outline"
-                    type="button"
-                    className="text-sm text-medium text-card-foreground gap-2 rounded-lg h-9 bg-white shadow-xs cursor-pointer"
-                  >
-                    <img
-                      src="https://images.shadcnspace.com/assets/svgs/icon-facebook.svg"
-                      alt="facebook icon"
-                      className="dark:hidden  h-4 w-4"
-                    />
-                    <img
-                      src="https://images.shadcnspace.com/assets/svgs/icon-facebook.svg"
-                      alt="facebook icon"
-                      className="hidden dark:block  h-4 w-4"
-                    />
-                  Entra con Facebook
-                  </Button>
-                </Field>
-                <FieldSeparator className="bg-transparent text-sm text-muted-foreground *:data-[slot=field-separator-content]:bg-card">
-                  <span className="px-4">o accedi con</span>
-                </FieldSeparator>
-
                 <div className="flex flex-col gap-4">
                   <Field className="gap-1.5">
                     <FieldLabel
@@ -123,10 +125,12 @@ const LoginForm = () => {
                       id="email"
                       type="email"
                       placeholder="example@shadcnspace.com"
-                      required
                       className="h-9 bg-white shadow-xs"
                       {...form.register("email")}
                     />
+                    <FieldError>
+                      {form.formState.errors.email?.message}
+                    </FieldError>
                   </Field>
                   <Field className="gap-1.5">
                     <FieldLabel
@@ -136,14 +140,25 @@ const LoginForm = () => {
                       Password*
                     </FieldLabel>
 
-                    <Input
-                      id="password"
-                      type="password"
-                      placeholder="Enter your password"
-                      required
-                      className="h-9 bg-white shadow-xs"
-                      {...form.register("password")}
-                    />
+                    <InputGroup className="bg-white">
+                      <InputGroupInput
+                        id="password"
+                        placeholder="Enter your password"
+                        type={showPsw ? "text" : "password"}
+                        {...form.register("password")}
+                      />
+
+                      <InputGroupAddon
+                        className="cursor-pointer"
+                        align={"inline-end"}
+                        onClick={() => setShowPsw(!showPsw)}
+                      >
+                        {showPsw ? <EyeClosed /> : <EyeIcon />}
+                      </InputGroupAddon>
+                    </InputGroup>
+                    <FieldError>
+                      {form.formState.errors.password?.message}
+                    </FieldError>
                   </Field>
                 </div>
 
