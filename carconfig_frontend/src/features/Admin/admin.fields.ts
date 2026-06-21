@@ -22,6 +22,8 @@ export type AdminField = {
   options?: AdminFieldOption[]
   /** Mostrato solo in creazione */
   createOnly?: boolean
+  /** Nascosto in creazione */
+  hideOnCreate?: boolean
   /** Nascosto in modifica */
   hideOnEdit?: boolean
 }

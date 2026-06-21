@@ -1,5 +1,10 @@
 import { useMemo, useState } from "react"
 import type { AdminField } from "@/features/Admin/admin.fields"
+import {
+  adminFilterClassName,
+  adminFormGridClass,
+  adminSelectClassName,
+} from "@/features/Admin/admin.form"
 import type { AdminFormValue } from "@/features/Admin/components/AdminCrudPanel"
 import { AdminCrudPanel } from "@/features/Admin/components/AdminCrudPanel"
 import { AdminSectionCard } from "@/features/Admin/components/AdminSectionCard"
@@ -18,7 +23,7 @@ import type { UserListItem, UserPayload } from "@/features/Users/user.type"
 import { VehicleColorService } from "@/features/Vehicles/vehicle-color.service"
 import { VehicleService } from "@/features/Vehicles/vehicle.service"
 import type { Vehicle, VehicleColorPayload } from "@/features/Vehicles/vehicle.type"
-import { vehicleImageUrl } from "@/features/Vehicles/vehicle.utils"
+import { formatCurrency, vehicleImageUrl } from "@/features/Vehicles/vehicle.utils"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 
 type SectionId = "vehicles" | "colors" | "trims" | "optionals" | "users"
@@ -65,7 +70,7 @@ const optionalFields: AdminField[] = [
       label: category,
     })),
   },
-  { name: "is_required", label: "Obbligatorio", type: "checkbox" },
+  { name: "is_required", label: "Obbligatorio", type: "checkbox", hideOnCreate: true },
   { name: "vehicle_id", label: "Veicolo", type: "select", required: true },
 ]
 
@@ -365,7 +370,7 @@ export function AdminDashboard() {
           emptyMessage="Nessun veicolo presente."
           getTitle={(item) => vehicleLabel(item)}
           getSubtitle={(item) =>
-            `${item.fuel_type} · da €${item.base_price.toLocaleString("it-IT")}`
+            `${item.fuel_type} · da ${formatCurrency(item.base_price)}`
           }
           renderLeading={(item) => (
             <img
@@ -416,29 +421,31 @@ export function AdminDashboard() {
           setOpenSections((prev) => toggleSection(prev, "colors", open))
         }
       >
-        <div className="mb-4">
-          <label
-            htmlFor="admin-color-vehicle"
-            className="mb-1.5 block text-sm font-medium"
-          >
-            Veicolo
-          </label>
-          <select
-            id="admin-color-vehicle"
-            className="flex h-9 w-full max-w-md rounded-md border border-input bg-background px-3 py-1 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30"
-            value={selectedVehicleId ?? ""}
-            onChange={(event) => {
-              const value = event.target.value
-              setSelectedVehicleId(value ? Number(value) : null)
-            }}
-          >
-            <option value="">Seleziona un veicolo…</option>
-            {vehicles.map((vehicle) => (
-              <option key={vehicle.id} value={vehicle.id}>
-                {vehicleLabel(vehicle)}
-              </option>
-            ))}
-          </select>
+        <div className={adminFormGridClass("mb-4")}>
+          <div className={adminFilterClassName}>
+            <label
+              htmlFor="admin-color-vehicle"
+              className="mb-1.5 block text-sm font-medium"
+            >
+              Veicolo
+            </label>
+            <select
+              id="admin-color-vehicle"
+              className={adminSelectClassName}
+              value={selectedVehicleId ?? ""}
+              onChange={(event) => {
+                const value = event.target.value
+                setSelectedVehicleId(value ? Number(value) : null)
+              }}
+            >
+              <option value="">Seleziona un veicolo…</option>
+              {vehicles.map((vehicle) => (
+                <option key={vehicle.id} value={vehicle.id}>
+                  {vehicleLabel(vehicle)}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
 
         <AdminVehicleColorsPanel
@@ -469,13 +476,15 @@ export function AdminDashboard() {
           setOpenSections((prev) => toggleSection(prev, "trims", open))
         }
       >
-        <div className="mb-4">
-          <AdminVehicleFilterBar
-            id="admin-trim-vehicle-filter"
-            value={trimVehicleFilter}
-            onChange={setTrimVehicleFilter}
-            placeholder="Filtra per modello (es. Qashqai, Tucson)…"
-          />
+        <div className={adminFormGridClass("mb-4")}>
+          <div className={adminFilterClassName}>
+            <AdminVehicleFilterBar
+              id="admin-trim-vehicle-filter"
+              value={trimVehicleFilter}
+              onChange={setTrimVehicleFilter}
+              placeholder="Filtra per modello (es. Qashqai, Tucson)…"
+            />
+          </div>
         </div>
 
         <AdminCrudPanel<Trim>
@@ -493,8 +502,8 @@ export function AdminDashboard() {
           getSubtitle={(item) => {
             const vehicle = vehicles.find((v) => v.id === item.vehicle_id)
             return vehicle
-              ? `${vehicleLabel(vehicle)} · €${item.price.toLocaleString("it-IT")}`
-              : `Veicolo #${item.vehicle_id} · €${item.price.toLocaleString("it-IT")}`
+              ? `${vehicleLabel(vehicle)} · ${formatCurrency(item.price)}`
+              : `Veicolo #${item.vehicle_id} · ${formatCurrency(item.price)}`
           }}
           mapItemToForm={(item) => ({
             name: item.name,
@@ -529,13 +538,15 @@ export function AdminDashboard() {
           setOpenSections((prev) => toggleSection(prev, "optionals", open))
         }
       >
-        <div className="mb-4">
-          <AdminVehicleFilterBar
-            id="admin-optional-vehicle-filter"
-            value={optionalVehicleFilter}
-            onChange={setOptionalVehicleFilter}
-            placeholder="Filtra per modello (es. Qashqai, Tucson)…"
-          />
+        <div className={adminFormGridClass("mb-4")}>
+          <div className={adminFilterClassName}>
+            <AdminVehicleFilterBar
+              id="admin-optional-vehicle-filter"
+              value={optionalVehicleFilter}
+              onChange={setOptionalVehicleFilter}
+              placeholder="Filtra per modello (es. Qashqai, Tucson)…"
+            />
+          </div>
         </div>
 
         <AdminCrudPanel<Optional>
@@ -556,7 +567,7 @@ export function AdminDashboard() {
               ? vehicleLabel(vehicle)
               : `Veicolo #${item.vehicle_id}`
 
-            return `${vehicleName} · ${item.category} · €${item.price.toLocaleString("it-IT")}`
+            return `${vehicleName} · ${item.category} · ${formatCurrency(item.price)}`
           }}
           mapItemToForm={(item) => ({
             name: item.name,

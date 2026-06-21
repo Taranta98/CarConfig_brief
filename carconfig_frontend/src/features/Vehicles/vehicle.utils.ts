@@ -8,6 +8,8 @@ import type {
   VehicleViewAngle,
 } from "./vehicle.type"
 
+export { formatCurrency, formatPrice } from "@/lib/formatPrice"
+
 const fallbackImages: Record<number, string> = {
   1: "/qashqai-lato.png",
   2: "/juke-lato.png",
@@ -116,12 +118,4 @@ export function calculateOptionalsTotal(
   return optionals
     .filter((o) => selectedIds.includes(o.id))
     .reduce((sum, o) => sum + o.price, 0)
-}
-
-export function formatCurrency(amount: number): string {
-  return amount.toLocaleString("it-IT", {
-    style: "currency",
-    currency: "EUR",
-    maximumFractionDigits: 0,
-  })
 }

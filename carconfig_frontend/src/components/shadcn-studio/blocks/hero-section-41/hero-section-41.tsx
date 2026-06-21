@@ -31,15 +31,9 @@ import {
   vehicleImageUrl,
   vehicleBasePrice,
 } from '@/features/Vehicles/vehicle.utils'
+import { formatCurrency } from '@/lib/formatPrice'
 import { cn } from '@/lib/utils'
 import { Link } from 'react-router'
-
-const formatPrice = (value: number) =>
-  value.toLocaleString('it-IT', {
-    style: 'currency',
-    currency: 'EUR',
-    maximumFractionDigits: 0,
-  })
 
 const ConfigureButton = ({ className }: { className?: string }) => (
   <Button
@@ -172,7 +166,7 @@ const HeroSection = ({ vehicles }: { vehicles: Vehicle[] }) => {
                   {activeVehicle.year ? ` · ${activeVehicle.year}` : ''}
                 </p>
                 <p className="mt-2 text-lg font-medium">
-                  Da {formatPrice(vehicleBasePrice(activeVehicle))}
+                  Da {formatCurrency(vehicleBasePrice(activeVehicle))}
                 </p>
               </div>
             )}
@@ -240,7 +234,7 @@ const HeroSection = ({ vehicles }: { vehicles: Vehicle[] }) => {
                   <div className="flex flex-col gap-0.5">
                     <span className="text-[10px] text-muted-foreground">Prezzo</span>
                     <span className="text-xs font-medium leading-tight">
-                      {formatPrice(vehicleBasePrice(activeVehicle))}
+                      {formatCurrency(vehicleBasePrice(activeVehicle))}
                     </span>
                   </div>
                 </CardContent>
@@ -323,7 +317,7 @@ const HeroSection = ({ vehicles }: { vehicles: Vehicle[] }) => {
                           {vehicleDisplayName(item)}
                         </p>
                         <p className="truncate text-xs text-muted-foreground">
-                          Da {formatPrice(vehicleBasePrice(item))}
+                          Da {formatCurrency(vehicleBasePrice(item))}
                         </p>
                       </div>
                     </button>

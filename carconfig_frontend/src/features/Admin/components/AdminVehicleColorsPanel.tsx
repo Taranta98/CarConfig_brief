@@ -1,15 +1,21 @@
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { ImageIcon, PencilIcon, PlusIcon, Trash2Icon } from "lucide-react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import {
   Field,
-  FieldGroup,
   FieldLabel,
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { getApiErrorMessage } from "@/features/Admin/admin.errors"
+import {
+  adminFieldClassName,
+  adminFilterClassName,
+  adminFormGridClass,
+  adminInputClassName,
+} from "@/features/Admin/admin.form"
 import { AdminImageField } from "@/features/Admin/components/AdminImageField"
+import { AdminVehicleFilterBar } from "@/features/Admin/components/AdminVehicleFilterBar"
 import {
   VEHICLE_VIEW_ANGLES,
   type VehicleColor,
@@ -36,7 +42,6 @@ type ColorFormState = {
   code: string
   name: string
   hex: string
-  sort_order: number
   images: Record<VehicleViewAngle, string>
   imageFiles: Record<VehicleViewAngle, File | null>
 }
@@ -58,10 +63,17 @@ function emptyForm(): ColorFormState {
     code: "",
     name: "",
     hex: "#000000",
-    sort_order: 0,
     images: emptyImages(),
     imageFiles: emptyImageFiles(),
   }
+}
+
+function nextSortOrder(colors: VehicleColor[]): number {
+  if (colors.length === 0) {
+    return 0
+  }
+
+  return Math.max(...colors.map((color) => color.sort_order)) + 1
 }
 
 function mapColorToForm(color: VehicleColor): ColorFormState {
@@ -74,7 +86,6 @@ function mapColorToForm(color: VehicleColor): ColorFormState {
     code: color.code,
     name: color.name,
     hex: color.hex,
-    sort_order: color.sort_order,
     images,
     imageFiles: emptyImageFiles(),
   }
@@ -118,6 +129,18 @@ function countImages(images: VehicleColorImages): number {
   return Object.keys(images).length
 }
 
+function filterColorsByCode(colors: VehicleColor[], query: string): VehicleColor[] {
+  const normalized = query.trim().toLowerCase()
+
+  if (normalized === "") {
+    return colors
+  }
+
+  return colors.filter((color) =>
+    color.code.toLowerCase().includes(normalized)
+  )
+}
+
 export function AdminVehicleColorsPanel({
   vehicleId,
   colors,
@@ -132,7 +155,13 @@ export function AdminVehicleColorsPanel({
   const [formOpen, setFormOpen] = useState(false)
   const [editingId, setEditingId] = useState<number | null>(null)
   const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null)
+  const [codeFilter, setCodeFilter] = useState("")
   const [values, setValues] = useState<ColorFormState>(emptyForm)
+
+  const filteredColors = useMemo(
+    () => filterColorsByCode(colors, codeFilter),
+    [colors, codeFilter]
+  )
 
   useEffect(() => {
     if (!formOpen) {
@@ -144,6 +173,7 @@ export function AdminVehicleColorsPanel({
   useEffect(() => {
     setFormOpen(false)
     setPendingDeleteId(null)
+    setCodeFilter("")
   }, [vehicleId])
 
   function openCreate() {
@@ -187,20 +217,22 @@ export function AdminVehicleColorsPanel({
       return
     }
 
-    const payload: VehicleColorPayload = {
+    const basePayload = {
       code: values.code.trim(),
       name: values.name.trim(),
       hex: values.hex.toUpperCase(),
-      sort_order: values.sort_order,
       images,
     }
 
     try {
       if (editingId === null) {
-        await onCreate(payload)
+        await onCreate({
+          ...basePayload,
+          sort_order: nextSortOrder(colors),
+        })
         toast.success("Colore creato")
       } else {
-        await onUpdate(editingId, payload)
+        await onUpdate(editingId, basePayload)
         toast.success("Colore aggiornato")
       }
       setFormOpen(false)
@@ -239,11 +271,19 @@ export function AdminVehicleColorsPanel({
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-end">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div className={adminFilterClassName}>
+          <AdminVehicleFilterBar
+            id="admin-color-code-filter"
+            value={codeFilter}
+            onChange={setCodeFilter}
+            placeholder="Filtra per codice (es. white, black)…"
+          />
+        </div>
         <Button
           type="button"
           size="sm"
-          className="rounded-full"
+          className="shrink-0 rounded-full"
           onClick={openCreate}
           disabled={isSaving}
         >
@@ -261,78 +301,61 @@ export function AdminVehicleColorsPanel({
             {editingId === null ? "Nuovo colore" : "Modifica colore"}
           </p>
 
-          <FieldGroup className="gap-4">
-            <div className="grid gap-4 sm:grid-cols-2">
-              <Field>
-                <FieldLabel htmlFor="color-code">Codice</FieldLabel>
-                <Input
-                  id="color-code"
-                  value={values.code}
-                  onChange={(e) =>
-                    setValues((prev) => ({ ...prev, code: e.target.value }))
-                  }
-                  placeholder="es. white"
-                  required
-                />
-              </Field>
-              <Field>
-                <FieldLabel htmlFor="color-name">Nome</FieldLabel>
-                <Input
-                  id="color-name"
-                  value={values.name}
-                  onChange={(e) =>
-                    setValues((prev) => ({ ...prev, name: e.target.value }))
-                  }
-                  placeholder="es. Bianco perla"
-                  required
-                />
-              </Field>
-            </div>
+          <div className={adminFormGridClass("gap-4")}>
+            <Field className={adminFieldClassName}>
+              <FieldLabel htmlFor="color-code">Codice</FieldLabel>
+              <Input
+                id="color-code"
+                className={adminInputClassName}
+                value={values.code}
+                onChange={(e) =>
+                  setValues((prev) => ({ ...prev, code: e.target.value }))
+                }
+                placeholder="es. white"
+                required
+              />
+            </Field>
+            <Field className={adminFieldClassName}>
+              <FieldLabel htmlFor="color-name">Nome</FieldLabel>
+              <Input
+                id="color-name"
+                className={adminInputClassName}
+                value={values.name}
+                onChange={(e) =>
+                  setValues((prev) => ({ ...prev, name: e.target.value }))
+                }
+                placeholder="es. Bianco perla"
+                required
+              />
+            </Field>
 
-            <div className="grid gap-4 sm:grid-cols-2">
-              <Field>
-                <FieldLabel htmlFor="color-hex">Colore hex</FieldLabel>
-                <div className="flex items-center gap-2">
-                  <input
-                    id="color-hex-picker"
-                    type="color"
-                    value={values.hex}
-                    onChange={(e) =>
-                      setValues((prev) => ({ ...prev, hex: e.target.value }))
-                    }
-                    className="size-9 shrink-0 cursor-pointer rounded-md border border-input bg-transparent p-0.5"
-                    aria-label="Selettore colore"
-                  />
-                  <Input
-                    id="color-hex"
-                    value={values.hex}
-                    onChange={(e) =>
-                      setValues((prev) => ({ ...prev, hex: e.target.value }))
-                    }
-                    placeholder="#RRGGBB"
-                    pattern="^#[0-9A-Fa-f]{6}$"
-                    required
-                  />
-                </div>
-              </Field>
-              <Field>
-                <FieldLabel htmlFor="color-sort">Ordine</FieldLabel>
-                <Input
-                  id="color-sort"
-                  type="number"
-                  min={0}
-                  step={1}
-                  value={values.sort_order}
+            <Field className={adminFieldClassName}>
+              <FieldLabel htmlFor="color-hex">Colore hex</FieldLabel>
+              <div className="flex w-full min-w-0 items-center gap-2">
+                <input
+                  id="color-hex-picker"
+                  type="color"
+                  value={values.hex}
                   onChange={(e) =>
-                    setValues((prev) => ({
-                      ...prev,
-                      sort_order: Number(e.target.value),
-                    }))
+                    setValues((prev) => ({ ...prev, hex: e.target.value }))
                   }
+                  className="size-9 shrink-0 cursor-pointer rounded-md border border-input bg-transparent p-0.5"
+                  aria-label="Selettore colore"
                 />
-              </Field>
-            </div>
-          </FieldGroup>
+                <Input
+                  id="color-hex"
+                  className={cn(adminInputClassName, "min-w-0 flex-1")}
+                  value={values.hex}
+                  onChange={(e) =>
+                    setValues((prev) => ({ ...prev, hex: e.target.value }))
+                  }
+                  placeholder="#RRGGBB"
+                  pattern="^#[0-9A-Fa-f]{6}$"
+                  required
+                />
+              </div>
+            </Field>
+          </div>
 
           <div className="space-y-3">
             <div>
@@ -342,9 +365,9 @@ export function AdminVehicleColorsPanel({
                 un&apos;angolazione è obbligatoria in creazione.
               </p>
             </div>
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className={adminFormGridClass("gap-3")}>
               {VEHICLE_VIEW_ANGLES.map((angle) => (
-                <Field key={angle}>
+                <Field key={angle} className={adminFieldClassName}>
                   <FieldLabel htmlFor={`angle-${angle}`}>
                     {vehicleViewAngleLabels[angle]}
                   </FieldLabel>
@@ -406,9 +429,15 @@ export function AdminVehicleColorsPanel({
         </p>
       )}
 
-      {!isLoading && !isError && colors.length > 0 && (
+      {!isLoading && !isError && colors.length > 0 && filteredColors.length === 0 && (
+        <p className="text-sm text-muted-foreground">
+          Nessun colore corrisponde al codice &quot;{codeFilter.trim()}&quot;.
+        </p>
+      )}
+
+      {!isLoading && !isError && filteredColors.length > 0 && (
         <ul className="divide-y divide-border/60 rounded-lg border border-border/80">
-          {colors.map((color) => {
+          {filteredColors.map((color) => {
             const previewUrl =
               color.images.front ??
               Object.values(color.images).find(Boolean) ??

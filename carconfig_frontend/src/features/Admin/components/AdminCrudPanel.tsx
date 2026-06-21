@@ -5,12 +5,17 @@ import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
   Field,
-  FieldGroup,
   FieldLabel,
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { getApiErrorMessage } from "@/features/Admin/admin.errors"
+import {
+  adminFieldSpanClass,
+  adminFormGridClass,
+  adminInputClassName,
+  adminSelectClassName,
+} from "@/features/Admin/admin.form"
 import type { AdminField } from "@/features/Admin/admin.fields"
 import { AdminImageField } from "@/features/Admin/components/AdminImageField"
 import { cn } from "@/lib/utils"
@@ -76,6 +81,7 @@ export function AdminCrudPanel<T extends { id: number }>({
   }, [formOpen, fields])
 
   const visibleFields = fields.filter((field) => {
+    if (editingId === null && field.hideOnCreate) return false
     if (editingId !== null && field.createOnly) return false
     if (editingId !== null && field.hideOnEdit) return false
     return true
@@ -179,9 +185,9 @@ export function AdminCrudPanel<T extends { id: number }>({
           <p className="text-sm font-medium">
             {editingId === null ? "Nuovo elemento" : "Modifica elemento"}
           </p>
-          <FieldGroup className="gap-4">
+          <div className={adminFormGridClass("gap-4")}>
             {visibleFields.map((field) => (
-              <Field key={field.name}>
+              <Field key={field.name} className={adminFieldSpanClass(field)}>
                 {field.type === "checkbox" ? (
                   <label className="flex cursor-pointer items-center gap-2 text-sm">
                     <Checkbox
@@ -216,7 +222,7 @@ export function AdminCrudPanel<T extends { id: number }>({
                 ) : field.type === "color" ? (
                   <>
                     <FieldLabel htmlFor={field.name}>{field.label}</FieldLabel>
-                    <div className="flex items-center gap-2">
+                    <div className="flex w-full min-w-0 items-center gap-2">
                       <input
                         type="color"
                         value={String(values[field.name] ?? "#000000")}
@@ -228,6 +234,7 @@ export function AdminCrudPanel<T extends { id: number }>({
                       />
                       <Input
                         id={field.name}
+                        className={cn(adminInputClassName, "min-w-0 flex-1")}
                         value={String(values[field.name] ?? "")}
                         onChange={(event) =>
                           setField(field.name, event.target.value)
@@ -244,6 +251,7 @@ export function AdminCrudPanel<T extends { id: number }>({
                     {field.type === "textarea" ? (
                       <Textarea
                         id={field.name}
+                        className={adminInputClassName}
                         value={String(values[field.name] ?? "")}
                         onChange={(event) =>
                           setField(field.name, event.target.value)
@@ -254,7 +262,7 @@ export function AdminCrudPanel<T extends { id: number }>({
                     ) : field.type === "select" ? (
                       <select
                         id={field.name}
-                        className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30"
+                        className={adminSelectClassName}
                         value={String(values[field.name] ?? "")}
                         onChange={(event) =>
                           setField(field.name, event.target.value)
@@ -271,6 +279,7 @@ export function AdminCrudPanel<T extends { id: number }>({
                     ) : (
                       <Input
                         id={field.name}
+                        className={adminInputClassName}
                         type={
                           field.type === "number"
                             ? "number"
@@ -297,7 +306,7 @@ export function AdminCrudPanel<T extends { id: number }>({
                 )}
               </Field>
             ))}
-          </FieldGroup>
+          </div>
           <div className="flex flex-wrap gap-2">
             <Button type="submit" size="sm" disabled={isSaving}>
               {editingId === null ? "Crea" : "Salva"}

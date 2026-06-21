@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef } from "react"
 import { ImageIcon } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { resolveStorageUrl } from "@/lib/api"
+import { adminInputClassName } from "@/features/Admin/admin.form"
 import { cn } from "@/lib/utils"
 
 type AdminImageFieldProps = {
@@ -45,7 +46,7 @@ export function AdminImageField({
   const hasPreview = Boolean(previewUrl)
 
   return (
-    <div className="space-y-2">
+    <div className="w-full min-w-0 space-y-2">
       <div className="flex flex-wrap items-start gap-3">
         <div
           className={cn(
@@ -74,9 +75,10 @@ export function AdminImageField({
               onFileChange(event.target.files?.[0] ?? null)
             }}
             aria-label={`${label} da PC`}
-            className="flex h-9 w-full rounded-md border border-input bg-transparent px-2.5 py-1 text-sm shadow-xs file:mr-3 file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground"
+            className="flex h-9 w-full max-w-full rounded-md border border-input bg-transparent px-2.5 py-1 text-sm shadow-xs file:mr-3 file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground"
           />
           <Input
+            className={adminInputClassName}
             value={value}
             onChange={(event) => {
               onValueChange(event.target.value)

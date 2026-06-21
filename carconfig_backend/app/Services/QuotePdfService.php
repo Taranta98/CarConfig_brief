@@ -614,7 +614,10 @@ class QuotePdfService
 
     protected function currency(float $amount): string
     {
-        return number_format($amount, 0, ',', '.').' EUR';
+        $hasCents = fmod(abs($amount), 1.0) >= 0.005;
+        $decimals = $hasCents ? 2 : 0;
+
+        return number_format($amount, $decimals, ',', '.').' EUR';
     }
 
     protected function escapePdfText(string $value): string

@@ -1,6 +1,8 @@
 import { SearchIcon } from "lucide-react"
 import { Input } from "@/components/ui/input"
+import { adminInputClassName } from "@/features/Admin/admin.form"
 import type { Vehicle } from "@/features/Vehicles/vehicle.type"
+import { cn } from "@/lib/utils"
 
 type AdminVehicleFilterBarProps = {
   id: string
@@ -16,7 +18,7 @@ export function AdminVehicleFilterBar({
   placeholder = "Filtra per modello…",
 }: AdminVehicleFilterBarProps) {
   return (
-    <div className="relative max-w-md">
+    <div className="relative">
       <SearchIcon
         className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground"
         aria-hidden
@@ -27,7 +29,7 @@ export function AdminVehicleFilterBar({
         value={value}
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
-        className="pl-8"
+        className={cn("pl-8", adminInputClassName)}
         aria-label={placeholder}
       />
     </div>

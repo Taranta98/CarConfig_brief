@@ -11,14 +11,8 @@ import {
   type Optional,
   type OptionalCategory,
 } from "@/features/Optionals/optional.type"
+import { formatCurrency } from "@/lib/formatPrice"
 import { cn } from "@/lib/utils"
-
-const formatPrice = (price: number) =>
-  price.toLocaleString("it-IT", {
-    style: "currency",
-    currency: "EUR",
-    maximumFractionDigits: 0,
-  })
 
 type ConfigurationOptionalsProps = {
   optionals: Optional[]
@@ -146,7 +140,7 @@ const ConfigurationOptionals = ({
                         <span className="block text-sm font-medium">
                           {optional.price === 0
                             ? "Incluso nel prezzo"
-                            : `+ ${formatPrice(optional.price)}`}
+                            : `+ ${formatCurrency(optional.price)}`}
                         </span>
                       </span>
                     </button>

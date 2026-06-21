@@ -6,14 +6,8 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import type { Trim } from "@/features/Trims/trim.type"
+import { formatCurrency } from "@/lib/formatPrice"
 import { cn } from "@/lib/utils"
-
-const formatPrice = (price: number) =>
-  price.toLocaleString("it-IT", {
-    style: "currency",
-    currency: "EUR",
-    maximumFractionDigits: 0,
-  })
 
 type ConfigurationTrimProps = {
   trims: Trim[]
@@ -106,7 +100,7 @@ const ConfigurationTrim = ({
                     <span className="block text-sm font-medium">
                       {trim.price === 0
                         ? "Incluso nel prezzo base"
-                        : `+ ${formatPrice(trim.price)}`}
+                        : `+ ${formatCurrency(trim.price)}`}
                     </span>
                   </span>
                 </button>

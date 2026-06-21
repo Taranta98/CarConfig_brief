@@ -208,9 +208,7 @@ const Header = ({ className }: HeaderProps) => {
           }}
           className="group flex shrink-0 items-center gap-2.5 rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
         >
-          <span className="flex size-16 items-center justify-center rounded-xl border border-border/60 bg-card/80 shadow-sm transition-colors group-hover:border-primary/30">
-            <Logo className="size-12" alt="" aria-hidden />
-          </span>
+          <Logo className="size-12" alt="" aria-hidden />
           <span className="hidden flex-col sm:flex">
             <span className="text-base font-semibold leading-tight tracking-tight">
               Car Config
