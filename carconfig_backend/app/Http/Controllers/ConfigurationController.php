@@ -12,6 +12,7 @@ use App\Models\Optional;
 use App\Models\Trim;
 use App\Models\Vehicle;
 use App\Models\VehicleColor;
+use App\Services\ConfigurationStalePriceService;
 use App\Services\QuotePdfService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
@@ -20,12 +21,14 @@ use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 
 class ConfigurationController extends Controller
 {
-    public function index(Request $request) {
+    public function index(Request $request, ConfigurationStalePriceService $stalePriceService) {
         $configurations = Configuration::query()
             ->with(['vehicle', 'trim', 'vehicleColor', 'optionals'])
             ->where('user_id', $request->user()->id)
             ->latest()
             ->get();
+
+        $configurations = $stalePriceService->purgeStale($configurations);
 
         return ConfigurationResource::collection($configurations);
     }
@@ -57,10 +60,14 @@ class ConfigurationController extends Controller
         return new ConfigurationResource($config);
     }
 
-    public function show(Request $request, Configuration $configuration) {
+    public function show(Request $request, Configuration $configuration, ConfigurationStalePriceService $stalePriceService) {
         $this->authorizeConfiguration($request, $configuration);
 
         $configuration->load(['vehicle', 'trim', 'vehicleColor', 'optionals']);
+
+        if ($stalePriceService->deleteIfStale($configuration)) {
+            abort(404, 'Configurazione non più disponibile: i prezzi sono stati aggiornati.');
+        }
 
         return new ConfigurationResource($configuration);
     }
@@ -165,7 +172,13 @@ class ConfigurationController extends Controller
                 ->value('name');
         }
 
-        $pdfContent = (new QuotePdfService)->generate($vehicle, $trim, $optionals, $colorName);
+        $pdfContent = (new QuotePdfService)->generate(
+            $vehicle,
+            $trim,
+            $optionals,
+            $colorName,
+            $request->filled('vehicle_color_id') ? $request->integer('vehicle_color_id') : null,
+        );
         $filename = Str::slug('preventivo-'.$vehicle->brand.'-'.$vehicle->model).'.pdf';
 
         return [

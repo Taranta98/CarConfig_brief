@@ -1,9 +1,16 @@
 import { ConfigurationListCard } from "@/features/Configurations/components/ConfigurationListCard"
 import { ConfigurationService } from "@/features/Configurations/configuration.service"
+import {
+  savedConfigurationToPayload,
+  type SavedConfiguration,
+} from "@/features/Configurations/configuration.type"
+import { downloadPdfFile, fetchQuotePdf } from "@/features/Configurations/quotePdf"
 import { useAuthStore } from "@/features/Auth/auth.store"
 import { Button } from "@/components/ui/button"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { Info } from "lucide-react"
 import { Link, useNavigate } from "react-router"
+import { useState } from "react"
 import { toast } from "sonner"
 
 const MyConfigurationsPage = () => {
@@ -17,6 +24,8 @@ const MyConfigurationsPage = () => {
   })
   const configurations = configurationsResponse?.data.data ?? []
 
+  const [downloadingId, setDownloadingId] = useState<number | null>(null)
+
   const deleteMutation = useMutation({
     mutationFn: (id: number) => ConfigurationService.delete(id),
     onSuccess: async () => {
@@ -27,6 +36,35 @@ const MyConfigurationsPage = () => {
       toast.error("Impossibile eliminare la configurazione")
     },
   })
+
+  const downloadMutation = useMutation({
+    mutationFn: fetchQuotePdf,
+  })
+
+  const handleDownload = async (config: SavedConfiguration) => {
+    const payload = savedConfigurationToPayload(config)
+    if (!payload) {
+      toast.error("Impossibile generare il PDF per questa configurazione")
+      return
+    }
+
+    const filename = `preventivo-${config.vehicle.brand}-${config.vehicle.model}.pdf`
+      .replace(/\s+/g, "-")
+      .toLowerCase()
+
+    setDownloadingId(config.id)
+    try {
+      const blob = await downloadMutation.mutateAsync(payload)
+      downloadPdfFile(blob, filename)
+      toast.success("PDF scaricato")
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Download PDF non riuscito"
+      )
+    } finally {
+      setDownloadingId(null)
+    }
+  }
 
   if (!token) {
     return (
@@ -58,6 +96,18 @@ const MyConfigurationsPage = () => {
         <Button render={<Link to="/configuration" />}>Nuova configurazione</Button>
       </div>
 
+      <div
+        role="note"
+        className="mt-6 flex gap-3 rounded-lg border border-border/60 bg-muted/30 px-4 py-3 text-sm text-muted-foreground"
+      >
+        <Info className="mt-0.5 size-4 shrink-0 text-foreground" aria-hidden />
+        <p>
+          Se vengono aggiornati i prezzi del veicolo, dell&apos;allestimento o
+          degli optional, la configurazione salvata verrà eliminata
+          automaticamente. In quel caso dovrai ricrearla dal configuratore.
+        </p>
+      </div>
+
       {isLoading && (
         <p className="mt-10 text-muted-foreground">Caricamento…</p>
       )}
@@ -80,10 +130,13 @@ const MyConfigurationsPage = () => {
             <ConfigurationListCard
               config={config}
               onDelete={(id) => deleteMutation.mutate(id)}
+              onDownload={handleDownload}
               isDeleting={
                 deleteMutation.isPending &&
                 deleteMutation.variables === config.id
               }
+              isDownloading={downloadingId === config.id}
+              canDownload={Boolean(config.trim)}
             />
           </li>
         ))}

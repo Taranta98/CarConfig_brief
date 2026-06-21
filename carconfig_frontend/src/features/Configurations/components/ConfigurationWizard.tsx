@@ -213,14 +213,10 @@ const ConfigurationWizard = ({
           <ChevronLeft className="size-4" />
           Indietro
         </Button>
-        {step !== "optionals" ? (
+        {step !== "optionals" && (
           <Button type="button" disabled={!canGoNext} onClick={goNext}>
             {step === "color" ? "Avanti: allestimento" : "Avanti: optional"}
             <ChevronRight className="size-4" />
-          </Button>
-        ) : (
-          <Button type="button" variant="secondary" onClick={() => onStepChange("trim")}>
-            Modifica allestimento
           </Button>
         )}
       </div>

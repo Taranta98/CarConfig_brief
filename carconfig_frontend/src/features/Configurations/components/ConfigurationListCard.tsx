@@ -17,19 +17,25 @@ import {
   vehicleDisplayName,
 } from "@/features/Vehicles/vehicle.utils"
 import { cn } from "@/lib/utils"
-import { ChevronDownIcon, Eye, Trash2 } from "lucide-react"
+import { ChevronDownIcon, Download, Eye, Trash2 } from "lucide-react"
 import type { SavedConfiguration } from "../configuration.type"
 
 type ConfigurationListCardProps = {
   config: SavedConfiguration
   onDelete: (id: number) => void
+  onDownload: (config: SavedConfiguration) => void
   isDeleting?: boolean
+  isDownloading?: boolean
+  canDownload?: boolean
 }
 
 export function ConfigurationListCard({
   config,
   onDelete,
+  onDownload,
   isDeleting = false,
+  isDownloading = false,
+  canDownload = true,
 }: ConfigurationListCardProps) {
   const [open, setOpen] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
@@ -97,26 +103,38 @@ export function ConfigurationListCard({
             </div>
           </div>
         ) : (
-          <div className="flex flex-wrap gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              className="flex-1"
-              onClick={() => setOpen((current) => !current)}
-            >
-              <Eye className="size-4" />
-              {open ? "Nascondi" : "Visualizza"}
-              <ChevronDownIcon
-                className={cn(
-                  "size-4 transition-transform duration-200",
-                  open && "rotate-180"
-                )}
-              />
-            </Button>
+          <div className="flex flex-col gap-2">
+            <div className="flex flex-wrap gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                className="flex-1"
+                onClick={() => setOpen((current) => !current)}
+              >
+                <Eye className="size-4" />
+                {open ? "Nascondi" : "Visualizza"}
+                <ChevronDownIcon
+                  className={cn(
+                    "size-4 transition-transform duration-200",
+                    open && "rotate-180"
+                  )}
+                />
+              </Button>
+              <Button
+                type="button"
+                variant="secondary"
+                className="flex-1"
+                disabled={!canDownload || isDownloading}
+                onClick={() => onDownload(config)}
+              >
+                <Download className="size-4" />
+                {isDownloading ? "Generazione PDF…" : "Scarica PDF"}
+              </Button>
+            </div>
             <Button
               type="button"
               variant="destructive"
-              className="flex-1"
+              className="w-full"
               onClick={() => {
                 setOpen(false)
                 setShowDeleteConfirm(true)

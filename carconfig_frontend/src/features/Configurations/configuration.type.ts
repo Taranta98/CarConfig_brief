@@ -24,6 +24,21 @@ export type SaveConfigurationPayload = {
   optionals: number[]
 }
 
+export function savedConfigurationToPayload(
+  config: SavedConfiguration
+): SaveConfigurationPayload | null {
+  if (!config.trim) {
+    return null
+  }
+
+  return {
+    vehicle_id: config.vehicle.id,
+    trim_id: config.trim.id,
+    vehicle_color_id: config.vehicle_color?.id ?? null,
+    optionals: config.optionals.map((optional) => optional.id),
+  }
+}
+
 export type QuotePdfData = {
   vehicleLabel: string
   vehicleDetails: string
