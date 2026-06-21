@@ -5,20 +5,17 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\UpdatePasswordRequest;
 use App\Http\Requests\Auth\UpdateProfileRequest;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Hash;
 
 class ProfileController extends Controller
 {
-    public function me(): JsonResponse
-    {
+    public function me() {
         return response()->json([
             'user' => request()->user(),
         ]);
     }
 
-    public function update(UpdateProfileRequest $request): JsonResponse
-    {
+    public function update(UpdateProfileRequest $request) {
         $user = $request->user();
         $user->update($request->validated());
 
@@ -28,8 +25,7 @@ class ProfileController extends Controller
         ]);
     }
 
-    public function updatePassword(UpdatePasswordRequest $request): JsonResponse
-    {
+    public function updatePassword(UpdatePasswordRequest $request) {
         $user = $request->user();
 
         $user->update([

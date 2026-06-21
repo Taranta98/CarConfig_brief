@@ -7,14 +7,12 @@ use App\Http\Requests\Auth\ForgotPasswordRequest;
 use App\Http\Requests\Auth\ResetPasswordRequest;
 use App\Models\User;
 use Illuminate\Auth\Events\PasswordReset;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 
 class PasswordResetController extends Controller
 {
-    public function forgotPassword(ForgotPasswordRequest $request): JsonResponse
-    {
+    public function forgotPassword(ForgotPasswordRequest $request) {
         $data = $request->validated();
 
         $status = Password::sendResetLink([
@@ -34,15 +32,14 @@ class PasswordResetController extends Controller
         ]);
     }
 
-    public function resetPassword(ResetPasswordRequest $request): JsonResponse
-    {
+    public function resetPassword(ResetPasswordRequest $request) {
         $data = $request->validated();
 
         $status = Password::reset(
             $data,
-            function (User $user, string $password): void {
+            function (User $user, string $password) {
                 $user->forceFill([
-                    'password' => Hash::make($password),
+                    'password' => Hash::make($password)
                 ])->save();
 
                 event(new PasswordReset($user));

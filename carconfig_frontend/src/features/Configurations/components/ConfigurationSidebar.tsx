@@ -23,6 +23,7 @@ type ConfigurationSidebarProps = {
   canSaveAndEmail: boolean
   isSaving?: boolean
   isEmailing?: boolean
+  isDownloading?: boolean
   onSave: () => void
   onEmail: () => void
   onDownload: () => void
@@ -42,6 +43,7 @@ const ConfigurationSidebar = ({
   canSaveAndEmail,
   isSaving = false,
   isEmailing = false,
+  isDownloading = false,
   onSave,
   onEmail,
   onDownload,
@@ -179,11 +181,11 @@ const ConfigurationSidebar = ({
           variant="secondary"
           size="lg"
           className="w-full"
-          disabled={!canDownload}
+          disabled={!canDownload || isDownloading}
           onClick={onDownload}
         >
           <Download className="size-4" />
-          Scarica PDF
+          {isDownloading ? "Generazione PDF…" : "Scarica PDF"}
         </Button>
         {!canSaveAndEmail && (
           <p className="text-center text-xs text-muted-foreground">

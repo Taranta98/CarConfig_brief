@@ -19,9 +19,8 @@ class EnsureUserIsAdmin
             return response()->json([
                 'message' => 'Unauthorized. Admin only'
             ], 403);
-
         }
-           
+
         return $next($request);
     }
 }

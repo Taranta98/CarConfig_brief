@@ -11,15 +11,13 @@ use Illuminate\Support\Facades\Config;
 class EmailVerificationController extends Controller
 {
     public function verify(Request $request) {
+        $frontend_url = Config::get('app.frontend_url');
 
-      $frontend_url = Config::get('app.frontend_url');
+        $user = User::find($request->route('id'));
 
-      $user = User::find($request->route('id'));
-
-     
         if(!$user || !hash_equals(sha1($user->getEmailForVerification()), $request->route('hash'))) {
             $message = 'Cannot verify email';
-        
+
             if ($request->expectsJson()) {
                 return response()->json([
                     'success' => false,
@@ -69,8 +67,15 @@ class EmailVerificationController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Email already verified'
-            ],422);
+            ], 422);
         }
+
+        $user->sendEmailVerificationNotification();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Verification notification sent successfully.'
+        ]);
     }
 
     private function verifiedPayload(User $user, string $message): array

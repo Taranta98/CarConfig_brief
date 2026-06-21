@@ -13,30 +13,23 @@ use Illuminate\Support\Facades\Storage;
 
 class VehicleController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
-    {
+    public function index() {
         return VehicleResource::collection(Vehicle::orderBy('brand')->orderBy('model')->get());
     }
 
-    public function trims(Vehicle $vehicle)
-    {
+    public function trims(Vehicle $vehicle) {
         return TrimResource::collection(
             $vehicle->trims()->orderBy('price')->get()
         );
     }
 
-    public function optionals(Vehicle $vehicle)
-    {
+    public function optionals(Vehicle $vehicle) {
         return OptionalResource::collection(
             $vehicle->optionals()->orderBy('category')->orderBy('name')->get()
         );
     }
 
-    public function configurator(Vehicle $vehicle): VehicleConfiguratorResource
-    {
+    public function configurator(Vehicle $vehicle) {
         $vehicle->load([
             'colors' => fn ($query) => $query->orderBy('sort_order'),
             'colors.images',
@@ -45,11 +38,7 @@ class VehicleController extends Controller
         return new VehicleConfiguratorResource($vehicle);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(StoreVehicleRequest $request)
-    {
+    public function store(StoreVehicleRequest $request) {
         $imagePath = null;
 
         try {
@@ -74,19 +63,11 @@ class VehicleController extends Controller
         }
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Vehicle $vehicle)
-    {
+    public function show(Vehicle $vehicle) {
         return new VehicleResource($vehicle);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(UpdateVehicleRequest $request, Vehicle $vehicle)
-    {
+    public function update(UpdateVehicleRequest $request, Vehicle $vehicle) {
         $oldImagePath = $vehicle->image;
         $newImagePath = $oldImagePath;
 
@@ -112,7 +93,7 @@ class VehicleController extends Controller
             return response()->json([
                 'message' => 'Vehicle updated successfully',
                 'vehicle' => new VehicleResource($vehicle),
-            ], 200);
+            ]);
         } catch (\Throwable $th) {
             if ($request->hasFile('image') && $newImagePath && $newImagePath !== $oldImagePath) {
                 Storage::disk('public')->delete($newImagePath);
@@ -121,11 +102,7 @@ class VehicleController extends Controller
         }
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Vehicle $vehicle)
-    {
+    public function destroy(Vehicle $vehicle) {
         $imagePath = $vehicle->image;
 
         $vehicle->delete();
@@ -136,6 +113,6 @@ class VehicleController extends Controller
 
         return response()->json([
             'message' => 'Vehicle deleted successfully',
-        ], 200);
+        ]);
     }
 }

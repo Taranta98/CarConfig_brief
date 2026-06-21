@@ -22,7 +22,7 @@ class OptionalResource extends JsonResource
             'category' => $this->category,
             'is_required' => $this->is_required,
             'vehicle_id' => $this->vehicle_id,
-            'vehicle' => new VehicleResource($this->whenLoaded('vehicle')), //Controllare se include il veicolo associato
+            'vehicle' => new VehicleResource($this->whenLoaded('vehicle')),
             'image' => $this->image
         ];
     }

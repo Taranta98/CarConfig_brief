@@ -11,11 +11,7 @@ use Illuminate\Support\Facades\Storage;
 
 class OptionalController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index(Request $request)
-    {
+    public function index(Request $request) {
         $query = Optional::query()->orderBy('category')->orderBy('name');
 
         if ($request->filled('vehicle_id')) {
@@ -25,47 +21,23 @@ class OptionalController extends Controller
         return OptionalResource::collection($query->get());
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(StoreOptionalRequest $request)
-    {
+    public function store(StoreOptionalRequest $request) {
         $optional = Optional::create($request->validated());
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Optional created successfully',
-            'optional' => new OptionalResource($optional),
-        ], 201);
+        return (new OptionalResource($optional))->response()->setStatusCode(201);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Optional $optional)
-    {
+    public function show(Optional $optional) {
         return new OptionalResource($optional);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(UpdateOptionalRequest $request, Optional $optional)
-    {
-        $optional->update($request->validated());
+    public function update(UpdateOptionalRequest $request, Optional $optional) {
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Optional updated successfully',
-            'optional' => new OptionalResource($optional),
-        ]);
+        $optional->update($request->validated());
+        return new OptionalResource($optional->fresh());
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Optional $optional)
-    {
+    public function destroy(Optional $optional) {
         $imagePath = $optional->image;
 
         $optional->delete();
@@ -75,7 +47,6 @@ class OptionalController extends Controller
         }
 
         return response()->json([
-            'success' => true,
             'message' => 'Optional deleted successfully',
         ]);
     }

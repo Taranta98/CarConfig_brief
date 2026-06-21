@@ -3,14 +3,13 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Models\User;
-use App\Models\Vehicle;
-use App\Models\Trim;
-use App\Models\Optional;
-
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Configuration extends Model
 {
+    const STATUS_COMPLETED = 'completed';
+
     protected $fillable = [
         'user_id',
         'vehicle_id',
@@ -19,36 +18,35 @@ class Configuration extends Model
         'total_price',
         'status',
     ];
-    
 
-    protected $casts = [
-        'total_price' => 'float',
-    ];
-
-    const STATUS_IN_PROGRESS = 'in_progress';
-
-    const STATUS_COMPLETED = 'completed';
-
-    public function user()
+    protected function casts(): array
     {
-       return $this->belongsTo(User::class); 
+        return [
+            'total_price' => 'float',
+        ];
     }
-    
-    public function vehicle()
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function vehicle(): BelongsTo
     {
         return $this->belongsTo(Vehicle::class);
     }
-    
-    public function trim()
+
+    public function trim(): BelongsTo
     {
         return $this->belongsTo(Trim::class);
     }
 
-    public function vehicleColor()
+    public function vehicleColor(): BelongsTo
     {
         return $this->belongsTo(VehicleColor::class);
     }
-    public function optionals()
+
+    public function optionals(): BelongsToMany
     {
         return $this->belongsToMany(Optional::class, 'configuration_optionals')
             ->withPivot('price_snapshot')

@@ -8,25 +8,22 @@ use App\Http\Requests\VehicleColorRequest\UpdateVehicleColorRequest;
 use App\Http\Resources\VehicleColorResource;
 use App\Models\Vehicle;
 use App\Models\VehicleColor;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 class VehicleColorController extends Controller
 {
-    public function index(Vehicle $vehicle): JsonResponse
-    {
+    public function index(Vehicle $vehicle) {
         $colors = $vehicle->colors()
             ->with('images')
             ->orderBy('sort_order')
             ->get();
 
-        return VehicleColorResource::collection($colors)->response();
+        return VehicleColorResource::collection($colors);
     }
 
-    public function store(StoreVehicleColorRequest $request, Vehicle $vehicle): JsonResponse
-    {
+    public function store(StoreVehicleColorRequest $request, Vehicle $vehicle) {
         $uploadedPaths = [];
 
         try {
@@ -55,17 +52,13 @@ class VehicleColorController extends Controller
         }
     }
 
-    public function show(VehicleColor $vehicleColor): VehicleColorResource
-    {
+    public function show(VehicleColor $vehicleColor) {
         $vehicleColor->load('images');
 
         return new VehicleColorResource($vehicleColor);
     }
 
-    public function update(
-        UpdateVehicleColorRequest $request,
-        VehicleColor $vehicleColor
-    ): JsonResponse {
+    public function update(UpdateVehicleColorRequest $request, VehicleColor $vehicleColor) {
         $uploadedPaths = [];
 
         try {
@@ -96,8 +89,7 @@ class VehicleColorController extends Controller
         }
     }
 
-    public function destroy(VehicleColor $vehicleColor): JsonResponse
-    {
+    public function destroy(VehicleColor $vehicleColor) {
         $vehicleColor->delete();
 
         return response()->json([

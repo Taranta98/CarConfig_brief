@@ -18,7 +18,7 @@ class ConfigurationQuoteMail extends Mailable
     public function __construct(
         public User $user,
         public Vehicle $vehicle,
-        public string $pdfStoragePath,
+        public string $pdfContent,
         public string $pdfFilename,
     ) {}
 
@@ -46,8 +46,7 @@ class ConfigurationQuoteMail extends Mailable
     public function attachments(): array
     {
         return [
-            Attachment::fromStorageDisk('local', $this->pdfStoragePath)
-                ->as($this->pdfFilename)
+            Attachment::fromData(fn () => $this->pdfContent, $this->pdfFilename)
                 ->withMime('application/pdf'),
         ];
     }

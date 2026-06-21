@@ -5,8 +5,7 @@ import ConfigurationWizard, {
   type WizardStep,
 } from "@/features/Configurations/components/ConfigurationWizard"
 import { ConfigurationService } from "@/features/Configurations/configuration.service"
-import type { QuotePdfData } from "@/features/Configurations/configuration.type"
-import { downloadQuotePdf } from "@/features/Configurations/quotePdf"
+import { downloadPdfFile, fetchQuotePdf } from "@/features/Configurations/quotePdf"
 import { useAuthStore } from "@/features/Auth/auth.store"
 import { VehicleService } from "@/features/Vehicles/vehicle.service"
 import type { VehicleViewAngle } from "@/features/Vehicles/vehicle.type"
@@ -88,6 +87,10 @@ const ConfigurationPage = () => {
     mutationFn: ConfigurationService.emailQuote,
   })
 
+  const downloadMutation = useMutation({
+    mutationFn: fetchQuotePdf,
+  })
+
   const selectedVehicle = vehicles.find((v) => v.id === selectedId)
   const selectedColor = findVehicleColor(colors, selectedColorId)
   const selectedTrim = trims.find((t) => t.id === selectedTrimId) ?? null
@@ -112,36 +115,10 @@ const ConfigurationPage = () => {
   const colorStepComplete = !hasColors || selectedColorId !== null
   const canDownload = selectedTrimId !== null && colorStepComplete
   const canSaveAndEmail =
-    selectedTrimId !== null && colorStepComplete && wizardStep === "optionals"
-
-  const quotePdfData = useMemo((): QuotePdfData | null => {
-    if (!selectedVehicle || selectedTrimId === null) return null
-
-    return {
-      vehicleLabel: vehicleDisplayName(selectedVehicle),
-      vehicleDetails: `${selectedVehicle.model} · ${selectedVehicle.fuel_type} · ${selectedVehicle.year}`,
-      colorName: selectedColor?.name ?? null,
-      trimName: selectedTrim?.name ?? null,
-      trimPrice: trimTotal,
-      basePrice: vehicleBasePrice(selectedVehicle),
-      optionals: selectedOptionals.map((o) => ({
-        name: o.name,
-        price: o.price,
-      })),
-      optionalsTotal,
-      total: configurationTotal,
-      generatedAt: new Date().toLocaleString("it-IT"),
-    }
-  }, [
-    selectedVehicle,
-    selectedTrimId,
-    selectedColor,
-    selectedTrim,
-    trimTotal,
-    selectedOptionals,
-    optionalsTotal,
-    configurationTotal,
-  ])
+    selectedTrimId !== null &&
+    colorStepComplete &&
+    wizardStep === "optionals" &&
+    !optionalsLoading
 
   const savePayload = useMemo(() => {
     if (selectedId === null || selectedTrimId === null) return null
@@ -234,15 +211,26 @@ const ConfigurationPage = () => {
     }
   }
 
-  const handleDownload = () => {
-    if (!quotePdfData || !selectedVehicle) return
+  const handleDownload = async () => {
+    if (!savePayload || !selectedVehicle) return
 
     const filename = `preventivo-${selectedVehicle.brand}-${selectedVehicle.model}.pdf`
       .replace(/\s+/g, "-")
       .toLowerCase()
 
-    downloadQuotePdf(quotePdfData, filename)
-    toast.success("PDF scaricato")
+    try {
+      const blob = await downloadMutation.mutateAsync(savePayload)
+      downloadPdfFile(blob, filename)
+      toast.success("PDF scaricato")
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : isAxiosError(error)
+            ? (error.response?.data?.message ?? "Download PDF non riuscito")
+            : "Download PDF non riuscito"
+      )
+    }
   }
 
   const handleEmail = async () => {
@@ -362,6 +350,7 @@ const ConfigurationPage = () => {
                 canSaveAndEmail={canSaveAndEmail}
                 isSaving={saveMutation.isPending}
                 isEmailing={emailMutation.isPending}
+                isDownloading={downloadMutation.isPending}
                 onSave={handleSave}
                 onEmail={handleEmail}
                 onDownload={handleDownload}

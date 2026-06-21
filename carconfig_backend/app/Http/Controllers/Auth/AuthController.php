@@ -13,9 +13,7 @@ use Illuminate\Support\Facades\Hash;
 class AuthController extends Controller
 {
     public function register(RegisterRequest $request) {
-
         $data = $request->validated();
-
         $user = User::create([
             'first_name' => $data['first_name'],
             'last_name' => $data['last_name'],
@@ -26,17 +24,17 @@ class AuthController extends Controller
         event(new Registered($user));
 
         return response()->json([
-            'message' => 'User registered successfully',
+            'message' => 'Registrazione completata con successo.',
             'user' => $user
         ], 201);
     }
 
     public function login(LoginRequest $request) {
-        $data = $request->validated();
-        
-        if(!Auth::attempt($data)) {
+        $credentials = $request->validated();
+
+        if(!Auth::attempt($credentials)) {
             return response()->json([
-                'message' => 'Invalid credentials'
+                'message' => 'Credenziali non valide.'
             ], 401);
         }
 
@@ -44,28 +42,23 @@ class AuthController extends Controller
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
-            'message' => 'Login successful',
+            'message' => 'Login effettuato con successo.',
             'user' => $user,
-            'token' => $token,
-            
+            'token' => $token
         ]);
     }
 
     public function logout() {
         Auth::user()->currentAccessToken()->delete();
         return response()->json([
-            'message' => 'Logout successful'
+            'message' => 'Logout effettuato con successo'
         ]);
     }
 
     public function logoutAll() {
         Auth::user()->tokens()->delete();
         return response()->json([
-            'message' => 'Logged out from all devices successfully'
+            'message' => 'Logout da tutti i dispositivi effettuato con successo'
         ]);
     }
-
-
-    
-    
 }

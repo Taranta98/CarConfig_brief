@@ -11,11 +11,7 @@ use Illuminate\Support\Facades\Storage;
 
 class TrimController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index(Request $request)
-    {
+    public function index(Request $request) {
         $query = Trim::query()->orderBy('price');
 
         if ($request->filled('vehicle_id')) {
@@ -25,47 +21,23 @@ class TrimController extends Controller
         return TrimResource::collection($query->get());
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(StoreTrimRequest $request)
-    {
+    public function store(StoreTrimRequest $request) {
         $trim = Trim::create($request->validated());
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Trim created successfully',
-            'trim' => new TrimResource($trim),
-        ], 201);
+        return (new TrimResource($trim))->response()->setStatusCode(201);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Trim $trim)
-    {
+    public function show(Trim $trim) {
         return new TrimResource($trim);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(UpdateTrimRequest $request, Trim $trim)
-    {
-        $trim->update($request->validated());
+    public function update(UpdateTrimRequest $request, Trim $trim) {
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Trim updated successfully',
-            'trim' => new TrimResource($trim),
-        ]);
+        $trim->update($request->validated());
+        return new TrimResource($trim->fresh());
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Trim $trim)
-    {
+    public function destroy(Trim $trim) {
         $imagePath = $trim->img;
 
         $trim->delete();
@@ -75,7 +47,6 @@ class TrimController extends Controller
         }
 
         return response()->json([
-            'success' => true,
             'message' => 'Trim deleted successfully',
         ]);
     }
