@@ -32,3 +32,5 @@ export type LaravelListPayload<T> = {
 export type LaravelResourcePayload<T> = {
   data: T
 }
+
+export type { PaginatedResponse, PaginationMetadata } from "./pagination"

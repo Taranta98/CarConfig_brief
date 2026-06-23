@@ -6,12 +6,16 @@ import {
 } from "@/features/Configurations/configuration.type"
 import { downloadPdfFile, fetchQuotePdf } from "@/features/Configurations/quotePdf"
 import { useAuthStore } from "@/features/Auth/auth.store"
+import Paginator from "@/components/Paginator"
 import { Button } from "@/components/ui/button"
+import { useClientPagination } from "@/hooks/useClientPagination"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Info } from "lucide-react"
 import { Link, useNavigate } from "react-router"
 import { useState } from "react"
 import { toast } from "sonner"
+
+const CONFIGURATIONS_PAGE_SIZE = 9
 
 const MyConfigurationsPage = () => {
   const navigate = useNavigate()
@@ -23,6 +27,10 @@ const MyConfigurationsPage = () => {
     enabled: Boolean(token),
   })
   const configurations = configurationsResponse?.data.data ?? []
+  const { metadata, paginatedItems, setPage } = useClientPagination(
+    configurations,
+    CONFIGURATIONS_PAGE_SIZE
+  )
 
   const [downloadingId, setDownloadingId] = useState<number | null>(null)
 
@@ -125,7 +133,7 @@ const MyConfigurationsPage = () => {
       )}
 
       <ul className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {configurations.map((config) => (
+        {paginatedItems.map((config) => (
           <li key={config.id}>
             <ConfigurationListCard
               config={config}
@@ -141,6 +149,12 @@ const MyConfigurationsPage = () => {
           </li>
         ))}
       </ul>
+
+      {configurations.length > 0 && (
+        <div className="mt-8">
+          <Paginator metadata={metadata} onPageChange={setPage} />
+        </div>
+      )}
     </main>
   )
 }

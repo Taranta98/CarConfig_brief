@@ -17,7 +17,10 @@ import {
   adminSelectClassName,
 } from "@/features/Admin/admin.form"
 import type { AdminField } from "@/features/Admin/admin.fields"
+import Paginator from "@/components/Paginator"
 import { AdminImageField } from "@/features/Admin/components/AdminImageField"
+import { useClientPagination } from "@/hooks/useClientPagination"
+import { DEFAULT_PAGE_SIZE } from "@/lib/pagination"
 import { cn } from "@/lib/utils"
 
 export type AdminFormValue = string | number | boolean | File | null
@@ -38,6 +41,7 @@ type AdminCrudPanelProps<T extends { id: number }> = {
   onDelete: (id: number) => Promise<unknown>
   onRetry?: () => void
   isSaving?: boolean
+  pageSize?: number
 }
 
 function emptyForm(fields: AdminField[]) {
@@ -65,7 +69,9 @@ export function AdminCrudPanel<T extends { id: number }>({
   onDelete,
   onRetry,
   isSaving = false,
+  pageSize = DEFAULT_PAGE_SIZE,
 }: AdminCrudPanelProps<T>) {
+  const { metadata, paginatedItems, setPage } = useClientPagination(items, pageSize)
   const [formOpen, setFormOpen] = useState(false)
   const [editingId, setEditingId] = useState<number | null>(null)
   const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null)
@@ -352,7 +358,7 @@ export function AdminCrudPanel<T extends { id: number }>({
 
       {!isLoading && !isError && items.length > 0 && (
         <ul className="divide-y divide-border/60 rounded-lg border border-border/80">
-          {items.map((item) => {
+          {paginatedItems.map((item) => {
             const isPendingDelete = pendingDeleteId === item.id
 
             return (
@@ -425,6 +431,10 @@ export function AdminCrudPanel<T extends { id: number }>({
             )
           })}
         </ul>
+      )}
+
+      {!isLoading && !isError && items.length > 0 && (
+        <Paginator metadata={metadata} onPageChange={setPage} />
       )}
     </div>
   )
