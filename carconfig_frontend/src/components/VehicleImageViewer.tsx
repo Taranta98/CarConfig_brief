@@ -4,6 +4,8 @@ import { vehicleViewAngleLabels } from "@/features/Vehicles/vehicle.utils"
 import { cn } from "@/lib/utils"
 import { RotateCw } from "lucide-react"
 
+const CONFIGURATOR_BACKGROUND_SRC = "/back_auto.png"
+
 type VehicleImageViewerProps = {
   imageUrl: string
   alt: string
@@ -33,16 +35,22 @@ const VehicleImageViewer = ({
 
   return (
     <div className={cn("w-full space-y-6", className)}>
-      <div className="relative overflow-hidden rounded-2xl bg-linear-to-b from-zinc-100 via-zinc-50 to-white px-4 pt-8 pb-4 ring-1 ring-black/5 sm:px-8 sm:pt-12">
+      <div className="relative overflow-hidden rounded-2xl ring-1 ring-black/5">
+        <img
+          src={CONFIGURATOR_BACKGROUND_SRC}
+          alt=""
+          aria-hidden
+          className="absolute inset-0 h-full w-full scale-110 object-cover object-center"
+        />
         <div
-          className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-linear-to-t from-zinc-200/60 to-transparent"
+          className="pointer-events-none absolute inset-0 bg-linear-to-t from-black/10 via-transparent to-black/5"
           aria-hidden
         />
         <img
           key={imageUrl}
           src={imageUrl}
           alt={alt}
-          className="relative z-10 mx-auto h-56 w-full max-w-4xl object-contain transition-opacity duration-300 sm:h-72 lg:h-80 xl:h-96"
+          className="relative z-10 mx-auto h-56 w-full max-w-4xl object-contain px-4 pt-8 pb-4 transition-opacity duration-300 sm:h-72 sm:px-8 sm:pt-12 lg:h-80 xl:h-96"
         />
       </div>
 

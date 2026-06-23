@@ -1,38 +1,9 @@
-import { useEffect } from 'react'
 import HeroSection from '@/components/shadcn-studio/blocks/hero-section-41/hero-section-41'
 import { Button } from '@/components/ui/button'
-import {
-  Card,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
 import { VehicleService } from '@/features/Vehicles/vehicle.service'
 import { useQuery } from '@tanstack/react-query'
-import { COME_FUNZIONA_SECTION_ID, scrollToSection } from '@/lib/scroll'
-import { ArrowRight, Layers, Settings2, Sparkles } from 'lucide-react'
-import { Link, useLocation, useNavigate } from 'react-router'
-
-const steps = [
-  {
-    icon: Sparkles,
-    title: 'Scegli il modello',
-    description:
-      'Esplora il catalogo e seleziona il veicolo che fa per te.',
-  },
-  {
-    icon: Layers,
-    title: 'Personalizza',
-    description:
-      'Allestimenti e optional con prezzo aggiornato in tempo reale.',
-  },
-  {
-    icon: Settings2,
-    title: 'Salva e confronta',
-    description:
-      'Tieni traccia delle tue configurazioni e riparti quando vuoi.',
-  },
-] as const
+import { ArrowRight } from 'lucide-react'
+import { Link } from 'react-router'
 
 function HeroSkeleton() {
   return (
@@ -61,34 +32,6 @@ const HomePage = () => {
   })
   const vehicles = vehiclesResponse?.data.data ?? []
   const showContent = !isLoading && !isError && vehicles.length > 0
-  const location = useLocation()
-  const navigate = useNavigate()
-
-  useEffect(() => {
-    if (!showContent) return
-
-    const state = location.state as { scrollTo?: string } | null
-    const shouldScrollFromState =
-      state?.scrollTo === COME_FUNZIONA_SECTION_ID
-    const shouldScrollFromHash =
-      location.hash === `#${COME_FUNZIONA_SECTION_ID}`
-
-    if (!shouldScrollFromState && !shouldScrollFromHash) return
-
-    requestAnimationFrame(() => {
-      scrollToSection(COME_FUNZIONA_SECTION_ID)
-    })
-
-    if (shouldScrollFromState) {
-      navigate(location.pathname, { replace: true, state: null })
-    }
-  }, [
-    showContent,
-    location.state,
-    location.hash,
-    location.pathname,
-    navigate,
-  ])
 
   return (
     <div className="overflow-x-hidden">
@@ -125,76 +68,35 @@ const HomePage = () => {
         )}
 
         {showContent && (
-          <>
-            <section
-              id={COME_FUNZIONA_SECTION_ID}
-              className="scroll-mt-24 border-t border-border/60 bg-muted/30 py-16 lg:py-20"
-            >
-              <div className="w-full px-4 sm:px-6 lg:px-8">
-                <div className="mx-auto max-w-2xl text-center">
+          <section className="py-16 lg:py-20">
+            <div className="w-full px-4 sm:px-6 lg:px-8">
+              <div className="relative overflow-hidden rounded-3xl border border-border/60 bg-linear-to-br from-primary to-primary/80 px-6 py-12 text-primary-foreground sm:px-10 sm:py-14 lg:flex lg:items-center lg:justify-between lg:gap-8">
+                <div
+                  aria-hidden
+                  className="pointer-events-none absolute -right-16 -top-16 size-64 rounded-full bg-white/10 blur-2xl"
+                />
+                <div className="relative max-w-xl">
                   <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
-                    Come funziona
+                    Pronto a configurare?
                   </h2>
-                  <p className="mt-3 text-muted-foreground">
-                    Tre passaggi per passare dall&apos;idea alla configurazione
-                    completa.
+                  <p className="mt-3 text-primary-foreground/85">
+                    {vehicles.length} modelli disponibili. Inizia ora e
+                    costruisci l&apos;auto che hai in mente.
                   </p>
                 </div>
-
-                <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                  {steps.map((step, index) => (
-                    <Card
-                      key={step.title}
-                      className="relative border-border/60 bg-card/80 backdrop-blur-sm"
-                    >
-                      <CardHeader>
-                        <div className="mb-2 flex items-center justify-between">
-                          <span className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                            <step.icon className="size-5" />
-                          </span>
-                          <span className="text-xs font-medium tabular-nums text-muted-foreground">
-                            {String(index + 1).padStart(2, '0')}
-                          </span>
-                        </div>
-                        <CardTitle>{step.title}</CardTitle>
-                        <CardDescription>{step.description}</CardDescription>
-                      </CardHeader>
-                    </Card>
-                  ))}
-                </div>
+                <Button
+                  size="lg"
+                  variant="secondary"
+                  className="relative mt-8 shrink-0 rounded-full lg:mt-0"
+                  render={<Link to="/configuration" />}
+                  nativeButton={false}
+                >
+                  Vai al configuratore
+                  <ArrowRight className="size-4" />
+                </Button>
               </div>
-            </section>
-
-            <section className="py-16 lg:py-20">
-              <div className="w-full px-4 sm:px-6 lg:px-8">
-                <div className="relative overflow-hidden rounded-3xl border border-border/60 bg-linear-to-br from-primary to-primary/80 px-6 py-12 text-primary-foreground sm:px-10 sm:py-14 lg:flex lg:items-center lg:justify-between lg:gap-8">
-                  <div
-                    aria-hidden
-                    className="pointer-events-none absolute -right-16 -top-16 size-64 rounded-full bg-white/10 blur-2xl"
-                  />
-                  <div className="relative max-w-xl">
-                    <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
-                      Pronto a configurare?
-                    </h2>
-                    <p className="mt-3 text-primary-foreground/85">
-                      {vehicles.length} modelli disponibili. Inizia ora e
-                      costruisci l&apos;auto che hai in mente.
-                    </p>
-                  </div>
-                  <Button
-                    size="lg"
-                    variant="secondary"
-                    className="relative mt-8 shrink-0 rounded-full lg:mt-0"
-                    render={<Link to="/configuration" />}
-                    nativeButton={false}
-                  >
-                    Vai al configuratore
-                    <ArrowRight className="size-4" />
-                  </Button>
-                </div>
-              </div>
-            </section>
-          </>
+            </div>
+          </section>
         )}
       </main>
     </div>

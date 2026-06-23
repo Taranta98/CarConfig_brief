@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState, type MouseEvent } from 'react'
 
-import { MenuIcon, MoonIcon, SunIcon } from 'lucide-react'
+import { ArrowRight, MenuIcon, MoonIcon, SunIcon } from 'lucide-react'
 
 import Logo from '@/components/Logo'
+import { useTheme } from '@/components/theme-provider'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -13,31 +14,36 @@ import {
 } from '@/components/ui/dropdown-menu'
 import UserMenu from '@/components/auth/UserMenu'
 import { useAuthStore } from '@/features/Auth/auth.store'
-import {
-  COME_FUNZIONA_SECTION_ID,
-  scrollToSection,
-  scrollToTop,
-} from '@/lib/scroll'
+import { scrollToTop } from '@/lib/scroll'
 import { cn } from '@/lib/utils'
-import { Link, useLocation, useNavigate } from 'react-router'
+import { Link, useLocation } from 'react-router'
 
-type NavItem =
-  | { key: string; title: string; type: 'link'; href: string }
-  | { key: string; title: string; type: 'action'; onClick: () => void }
+type NavItem = {
+  key: string
+  title: string
+  href: string
+}
 
 type HeaderProps = {
   className?: string
 }
 
+function getResolvedTheme(theme: string) {
+  if (theme === 'dark' || theme === 'light') return theme
+  return window.matchMedia('(prefers-color-scheme: dark)').matches
+    ? 'dark'
+    : 'light'
+}
+
 const Header = ({ className }: HeaderProps) => {
   const [isScrolled, setIsScrolled] = useState(false)
-  const [theme, setTheme] = useState<'light' | 'dark'>('light')
+  const { theme, setTheme } = useTheme()
   const token = useAuthStore((state) => state.token)
   const user = useAuthStore((state) => state.user)
   const isLoggedIn = Boolean(token)
   const isAdmin = user?.role === 'admin'
   const location = useLocation()
-  const navigate = useNavigate()
+  const isDark = getResolvedTheme(theme) === 'dark'
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 8)
@@ -48,189 +54,115 @@ const Header = ({ className }: HeaderProps) => {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  useEffect(() => {
-    const saved = localStorage.getItem('theme') as 'light' | 'dark' | null
-
-    if (saved) {
-      setTheme(saved)
-      document.documentElement.classList.toggle('dark', saved === 'dark')
-    } else {
-      const prefersDark = window.matchMedia(
-        '(prefers-color-scheme: dark)'
-      ).matches
-      const initial = prefersDark ? 'dark' : 'light'
-
-      setTheme(initial)
-      document.documentElement.classList.toggle('dark', prefersDark)
-    }
-  }, [])
-
   const toggleTheme = () => {
-    const newTheme = theme === 'dark' ? 'light' : 'dark'
-
-    setTheme(newTheme)
-    localStorage.setItem('theme', newTheme)
-    document.documentElement.classList.toggle('dark', newTheme === 'dark')
+    setTheme(isDark ? 'light' : 'dark')
   }
-
-  const goToHome = useCallback(() => {
-    if (location.pathname === '/') {
-      navigate('/', { replace: true })
-      scrollToTop()
-      return
-    }
-
-    navigate('/')
-  }, [location.pathname, navigate])
-
-  const goToComeFunziona = useCallback(() => {
-    if (location.pathname === '/') {
-      if (document.getElementById(COME_FUNZIONA_SECTION_ID)) {
-        navigate(
-          { pathname: '/', hash: COME_FUNZIONA_SECTION_ID },
-          { replace: true }
-        )
-        requestAnimationFrame(() => scrollToSection(COME_FUNZIONA_SECTION_ID))
-      } else {
-        navigate('/', {
-          state: { scrollTo: COME_FUNZIONA_SECTION_ID },
-          replace: true,
-        })
-      }
-      return
-    }
-
-    navigate('/', { state: { scrollTo: COME_FUNZIONA_SECTION_ID } })
-  }, [location.pathname, navigate])
 
   const navItems = useMemo<NavItem[]>(() => {
     const items: NavItem[] = [
-      { key: 'home', title: 'Home', type: 'action', onClick: goToHome },
-      {
-        key: 'how-it-works',
-        title: 'Come funziona',
-        type: 'action',
-        onClick: goToComeFunziona,
-      },
+      { key: 'models', title: 'Modelli', href: '/' },
+      { key: 'configuration', title: 'Configuratore', href: '/configuration' },
     ]
 
     if (isLoggedIn) {
-      items.push(
-        {
-          key: 'configuration',
-          title: 'Configuratore',
-          type: 'link',
-          href: '/configuration',
-        },
-        {
-          key: 'my-configurations',
-          title: 'Le mie configurazioni',
-          type: 'link',
-          href: '/my-configurations',
-        }
-      )
+      items.push({
+        key: 'my-configurations',
+        title: 'Le mie configurazioni',
+        href: '/my-configurations',
+      })
     }
 
     if (isAdmin) {
       items.push({
         key: 'admin',
-        title: 'Pannello admin',
-        type: 'link',
+        title: 'Area admin',
         href: '/admin',
       })
     }
 
     return items
-  }, [isLoggedIn, isAdmin, goToHome, goToComeFunziona])
+  }, [isLoggedIn, isAdmin])
 
-  const isNavActive = (href: string) => location.pathname === href
+  const isNavActive = useCallback(
+    (href: string) => {
+      if (href === '/') return location.pathname === '/'
+      return location.pathname.startsWith(href)
+    },
+    [location.pathname]
+  )
 
-  const isHomeActive =
-    location.pathname === '/' &&
-    location.hash !== `#${COME_FUNZIONA_SECTION_ID}`
-
-  const isComeFunzionaActive =
-    location.pathname === '/' &&
-    location.hash === `#${COME_FUNZIONA_SECTION_ID}`
+  const handleModelsClick = useCallback(
+    (event: MouseEvent<HTMLAnchorElement>) => {
+      if (location.pathname !== '/') return
+      event.preventDefault()
+      scrollToTop()
+    },
+    [location.pathname]
+  )
 
   const navLinkClass = (active: boolean) =>
     cn(
-      'rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors',
+      'relative whitespace-nowrap px-1 py-4 text-[13px] font-medium uppercase tracking-[0.1em] transition-colors',
       active
-        ? 'bg-primary/10 text-foreground'
-        : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
+        ? 'text-foreground after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 after:rounded-full after:bg-foreground after:content-[""]'
+        : 'text-muted-foreground hover:text-foreground'
     )
 
-  const renderNavItem = (item: NavItem, className?: string) => {
-    if (item.type === 'action') {
-      const active =
-        (item.key === 'home' && isHomeActive) ||
-        (item.key === 'how-it-works' && isComeFunzionaActive)
-      return (
-        <button
-          key={item.key}
-          type="button"
-          onClick={item.onClick}
-          className={cn(navLinkClass(active), className)}
-        >
-          {item.title}
-        </button>
-      )
-    }
-
-    return (
-      <Link
-        key={item.key}
-        to={item.href}
-        className={cn(navLinkClass(isNavActive(item.href)), className)}
-      >
-        {item.title}
-      </Link>
-    )
-  }
+  const renderNavLink = (item: NavItem, className?: string) => (
+    <Link
+      key={item.key}
+      to={item.href}
+      onClick={item.key === 'models' ? handleModelsClick : undefined}
+      className={cn(navLinkClass(isNavActive(item.href)), className)}
+    >
+      {item.title}
+    </Link>
+  )
 
   return (
     <header
       className={cn(
         'fixed top-0 z-50 w-full transition-all duration-300',
         isScrolled
-          ? 'border-b border-border/60 bg-background/90 shadow-sm backdrop-blur-md'
-          : 'border-b border-border/40 bg-background/70 backdrop-blur-sm',
+          ? 'border-b border-border/70 bg-background/95 shadow-sm backdrop-blur-lg'
+          : 'border-b border-border/50 bg-background/85 backdrop-blur-md',
         className
       )}
     >
-      <div className="flex h-17.5 w-full items-center justify-between gap-4 px-4 sm:px-6 lg:gap-6 lg:px-8">
-        <Link
-          to="/"
-          onClick={(event) => {
-            event.preventDefault()
-            goToHome()
-          }}
-          className="group flex shrink-0 items-center gap-2.5 rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-        >
-          <Logo className="size-12" alt="" aria-hidden />
-          <span className="hidden flex-col sm:flex">
-            <span className="text-base font-semibold leading-tight tracking-tight">
-              Car Config
+      <div className="mx-auto flex h-16 w-full max-w-7xl items-center gap-3 px-4 sm:gap-4 sm:px-6 lg:px-8">
+        <div className="flex min-w-0 flex-1 items-center">
+          <Link
+            to="/"
+            onClick={handleModelsClick}
+            className="group flex min-w-0 items-center gap-3 outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          >
+            <Logo className="size-10 shrink-0 sm:size-11" alt="" aria-hidden />
+            <span className="hidden min-w-0 flex-col sm:flex">
+              <span className="truncate text-[15px] font-semibold leading-none tracking-tight">
+                Car Config
+              </span>
+              <span className="mt-1 truncate text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
+                Configuratore online
+              </span>
             </span>
-          </span>
-        </Link>
+          </Link>
+        </div>
 
         <nav
           aria-label="Navigazione principale"
-          className="hidden items-center gap-0.5 lg:flex"
+          className="hidden items-center gap-7 lg:flex"
         >
-          {navItems.map((item) => renderNavItem(item))}
+          {navItems.map((item) => renderNavLink(item))}
         </nav>
 
-        <div className="flex items-center gap-2 sm:gap-2.5">
+        <div className="flex flex-1 items-center justify-end gap-1.5 sm:gap-2">
           <Button
             size="icon"
-            variant="outline"
-            className="size-9 rounded-full border-border/60 bg-background/80"
+            variant="ghost"
+            className="size-9 rounded-full text-muted-foreground hover:text-foreground"
             onClick={toggleTheme}
           >
-            {theme === 'dark' ? (
+            {isDark ? (
               <SunIcon className="size-4" />
             ) : (
               <MoonIcon className="size-4" />
@@ -238,29 +170,30 @@ const Header = ({ className }: HeaderProps) => {
             <span className="sr-only">Cambia tema</span>
           </Button>
 
+          {!isLoggedIn && (
+            <Button
+              size="sm"
+              className="hidden rounded-full px-4 sm:inline-flex"
+              render={<Link to="/configuration" />}
+              nativeButton={false}
+            >
+              Inizia configurazione
+              <ArrowRight className="size-3.5" />
+            </Button>
+          )}
+
           {isLoggedIn ? (
             <UserMenu />
           ) : (
-            <>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="hidden rounded-full sm:inline-flex"
-                render={<Link to="/auth/login" />}
-                nativeButton={false}
-              >
-                Accedi
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                className="hidden rounded-full border-border/60 sm:inline-flex"
-                render={<Link to="/auth/register" />}
-                nativeButton={false}
-              >
-                Registrati
-              </Button>
-            </>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="hidden rounded-full text-muted-foreground hover:text-foreground sm:inline-flex"
+              render={<Link to="/auth/login" />}
+              nativeButton={false}
+            >
+              Accedi
+            </Button>
           )}
 
           <DropdownMenu>
@@ -268,36 +201,41 @@ const Header = ({ className }: HeaderProps) => {
               <Button
                 variant="outline"
                 size="icon"
-                className="size-9 rounded-full border-border/60 bg-background/80"
+                className="size-9 rounded-full border-border/60"
               >
                 <MenuIcon className="size-4" />
                 <span className="sr-only">Apri menu</span>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              {navItems.map((item) =>
-                item.type === 'action' ? (
+            <DropdownMenuContent align="end" className="w-60">
+              {!isLoggedIn && (
+                <>
                   <DropdownMenuItem
-                    key={item.key}
-                    onClick={item.onClick}
-                    className={cn(
-                      ((item.key === 'home' && isHomeActive) ||
-                        (item.key === 'how-it-works' && isComeFunzionaActive)) &&
-                        'bg-muted'
-                    )}
+                    render={<Link to="/configuration" />}
+                    className="font-medium"
                   >
-                    {item.title}
+                    Inizia configurazione
+                    <ArrowRight className="ms-auto size-3.5" />
                   </DropdownMenuItem>
-                ) : (
-                  <DropdownMenuItem
-                    key={item.key}
-                    render={<Link to={item.href} />}
-                    className={cn(isNavActive(item.href) && 'bg-muted')}
-                  >
-                    {item.title}
-                  </DropdownMenuItem>
-                )
+                  <DropdownMenuSeparator />
+                </>
               )}
+              {navItems.map((item) => (
+                <DropdownMenuItem
+                  key={item.key}
+                  render={
+                    <Link
+                      to={item.href}
+                      onClick={
+                        item.key === 'models' ? handleModelsClick : undefined
+                      }
+                    />
+                  }
+                  className={cn(isNavActive(item.href) && 'bg-muted font-medium')}
+                >
+                  {item.title}
+                </DropdownMenuItem>
+              ))}
               {!isLoggedIn && (
                 <>
                   <DropdownMenuSeparator />
