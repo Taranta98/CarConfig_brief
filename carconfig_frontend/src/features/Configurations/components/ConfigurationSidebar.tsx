@@ -6,6 +6,7 @@ import {
   formatCurrency,
   vehicleDisplayName,
 } from "@/features/Vehicles/vehicle.utils"
+import { cn } from "@/lib/utils"
 import { Download, Mail, Save } from "lucide-react"
 
 type ConfigurationSidebarProps = {
@@ -99,7 +100,12 @@ const ConfigurationSidebar = ({
                     className="flex justify-between gap-3 text-xs"
                   >
                     <span>{optional.name}</span>
-                    <span className="shrink-0 font-medium">
+                    <span
+                      className={cn(
+                        "shrink-0 font-medium",
+                        optional.price === 0 && "text-success"
+                      )}
+                    >
                       {optional.price > 0
                         ? `+${formatCurrency(optional.price)}`
                         : "Incluso"}
@@ -112,7 +118,7 @@ const ConfigurationSidebar = ({
         </ul>
       </div>
 
-      <div className="rounded-2xl bg-muted/50 p-5">
+      <div className="surface-panel p-5">
         <div className="flex items-end justify-between gap-4">
           <span className="text-sm font-medium text-muted-foreground">
             Prezzo totale

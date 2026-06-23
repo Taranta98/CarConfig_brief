@@ -87,36 +87,36 @@ export function VehicleModelSelector({
                   type="button"
                   onClick={() => onSelect(vehicle.id)}
                   className={cn(
-                    "group flex h-full w-full flex-col overflow-hidden rounded-2xl border text-left transition-all duration-300",
-                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950",
+                    "surface-panel group flex h-full w-full flex-col overflow-hidden text-left transition-all duration-300",
+                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
                     isSelected
-                      ? "border-white/80 bg-white/10 shadow-[0_0_0_1px_rgba(255,255,255,0.2)]"
-                      : "border-white/10 bg-white/5 hover:border-white/30 hover:bg-white/10"
+                      ? "border-foreground/40 shadow-sm"
+                      : "hover:border-foreground/25"
                   )}
                   aria-pressed={isSelected}
                   aria-label={`Seleziona ${vehicleDisplayName(vehicle)}`}
                 >
-                  <div className="flex aspect-16/10 items-center justify-center bg-linear-to-b from-white/10 to-transparent p-6">
+                  <div className="flex aspect-16/10 items-center justify-center bg-card/40 p-6">
                     <img
                       src={vehicleImageUrl(vehicle)}
                       alt={vehicleDisplayName(vehicle)}
                       className="max-h-full w-full object-contain transition-transform duration-500 group-hover:scale-105"
                     />
                   </div>
-                  <div className="space-y-2 border-t border-white/10 px-5 py-5">
-                    <p className="text-lg font-medium text-white">
+                  <div className="space-y-2 border-t border-border px-5 py-5">
+                    <p className="text-lg font-medium text-foreground">
                       {vehicleDisplayName(vehicle)}
                     </p>
-                    <p className="text-sm text-zinc-400">
+                    <p className="text-sm text-muted-foreground">
                       {vehicle.fuel_type} · {vehicle.year}
                     </p>
-                    <p className="text-sm font-medium text-zinc-200">
+                    <p className="text-sm font-medium">
                       da {formatCurrency(vehicle.base_price)}
                     </p>
                     <span
                       className={cn(
                         "inline-flex text-xs font-medium tracking-wide uppercase",
-                        isSelected ? "text-white" : "text-zinc-500"
+                        isSelected ? "text-foreground" : "text-muted-foreground"
                       )}
                     >
                       {isSelected ? "Selezionato" : "Configura"}
@@ -133,7 +133,7 @@ export function VehicleModelSelector({
         type="button"
         variant="outline"
         size="icon"
-        className="absolute top-1/2 left-0 size-10 -translate-y-1/2 rounded-full border-white/20 bg-zinc-900/80 text-white hover:bg-zinc-800"
+        className="absolute top-1/2 left-0 size-10 -translate-y-1/2 rounded-full"
         disabled={!canScrollPrev}
         onClick={() => api?.scrollPrev()}
         aria-label="Modelli precedenti"
@@ -145,7 +145,7 @@ export function VehicleModelSelector({
         type="button"
         variant="outline"
         size="icon"
-        className="absolute top-1/2 right-0 size-10 -translate-y-1/2 rounded-full border-white/20 bg-zinc-900/80 text-white hover:bg-zinc-800"
+        className="absolute top-1/2 right-0 size-10 -translate-y-1/2 rounded-full"
         disabled={!canScrollNext}
         onClick={() => api?.scrollNext()}
         aria-label="Modelli successivi"
@@ -170,8 +170,8 @@ export function VehicleModelSelector({
               className={cn(
                 "h-1 rounded-full transition-all",
                 currentPage === index
-                  ? "w-8 bg-white"
-                  : "w-4 bg-white/30 hover:bg-white/50"
+                  ? "w-8 bg-foreground"
+                  : "w-4 bg-foreground/30 hover:bg-foreground/50"
               )}
             />
           ))}

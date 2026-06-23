@@ -252,16 +252,16 @@ const ConfigurationPage = () => {
 
   return (
     <div className="flex flex-col pt-17.5">
-      <section className="bg-zinc-950 text-white">
+      <section className="bg-background">
         <div className="mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
           <div className="mx-auto max-w-3xl text-center">
-            <p className="text-xs font-medium tracking-[0.22em] text-zinc-400 uppercase">
+            <p className="text-xs font-medium tracking-[0.22em] text-muted-foreground uppercase">
               Configuratore online
             </p>
             <h1 className="mt-4 font-heading text-3xl font-semibold tracking-tight sm:text-5xl">
               Scegli il tuo modello
             </h1>
-            <p className="mt-4 text-base text-zinc-400 sm:text-lg">
+            <p className="mt-4 text-base text-muted-foreground sm:text-lg">
               Personalizza colore, allestimento e optional con un&apos;esperienza
               simile ai configuratore dei brand automotive.
             </p>
@@ -269,17 +269,17 @@ const ConfigurationPage = () => {
 
           <div className="mt-12">
             {vehiclesLoading && (
-              <p className="text-center text-zinc-400">Caricamento veicoli…</p>
+              <p className="text-center text-muted-foreground">Caricamento veicoli…</p>
             )}
 
             {vehiclesError && (
-              <p className="text-center text-red-300">
+              <p className="text-center text-destructive">
                 Impossibile caricare i veicoli. Riprova più tardi.
               </p>
             )}
 
             {!vehiclesLoading && !vehiclesError && vehicles.length === 0 && (
-              <p className="text-center text-zinc-400">
+              <p className="text-center text-muted-foreground">
                 Nessun veicolo disponibile al momento.
               </p>
             )}
@@ -302,7 +302,7 @@ const ConfigurationPage = () => {
       >
         {selectedVehicle ? (
           <>
-            <div className="sticky top-17.5 z-30 border-b border-border bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/80">
+            <div className="sticky top-17.5 z-30 border-b border-border bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/90">
               <div className="mx-auto flex w-full max-w-7xl flex-wrap items-end justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
                 <div>
                   <p className="text-xs font-medium tracking-[0.18em] text-muted-foreground uppercase">
@@ -339,41 +339,43 @@ const ConfigurationPage = () => {
               </div>
 
               <div className="px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
-                <ConfigurationWizard
-                  step={wizardStep}
-                  onStepChange={setWizardStep}
-                  colors={colors}
-                  colorsLoading={configuratorLoading}
-                  selectedColorId={selectedColorId}
-                  onColorChange={setSelectedColorId}
-                  trims={trims}
-                  trimsLoading={trimsLoading}
-                  selectedTrimId={selectedTrimId}
-                  onTrimChange={setSelectedTrimId}
-                  optionals={optionals}
-                  optionalsLoading={optionalsLoading}
-                  selectedOptionalIds={selectedOptionalIds}
-                  onOptionalsChange={setSelectedOptionalIds}
-                />
+                <div className="surface-panel p-5 sm:p-6 lg:p-8">
+                  <ConfigurationWizard
+                    step={wizardStep}
+                    onStepChange={setWizardStep}
+                    colors={colors}
+                    colorsLoading={configuratorLoading}
+                    selectedColorId={selectedColorId}
+                    onColorChange={setSelectedColorId}
+                    trims={trims}
+                    trimsLoading={trimsLoading}
+                    selectedTrimId={selectedTrimId}
+                    onTrimChange={setSelectedTrimId}
+                    optionals={optionals}
+                    optionalsLoading={optionalsLoading}
+                    selectedOptionalIds={selectedOptionalIds}
+                    onOptionalsChange={setSelectedOptionalIds}
+                  />
 
-                <ConfigurationSidebar
-                  vehicle={selectedVehicle}
-                  selectedColor={selectedColor}
-                  trim={selectedTrim}
-                  selectedOptionals={selectedOptionals}
-                  basePrice={vehicleBasePrice(selectedVehicle)}
-                  trimTotal={trimTotal}
-                  optionalsTotal={optionalsTotal}
-                  total={configurationTotal}
-                  canDownload={canDownload}
-                  canSaveAndEmail={canSaveAndEmail}
-                  isSaving={saveMutation.isPending}
-                  isEmailing={emailMutation.isPending}
-                  isDownloading={downloadMutation.isPending}
-                  onSave={handleSave}
-                  onEmail={handleEmail}
-                  onDownload={handleDownload}
-                />
+                  <ConfigurationSidebar
+                    vehicle={selectedVehicle}
+                    selectedColor={selectedColor}
+                    trim={selectedTrim}
+                    selectedOptionals={selectedOptionals}
+                    basePrice={vehicleBasePrice(selectedVehicle)}
+                    trimTotal={trimTotal}
+                    optionalsTotal={optionalsTotal}
+                    total={configurationTotal}
+                    canDownload={canDownload}
+                    canSaveAndEmail={canSaveAndEmail}
+                    isSaving={saveMutation.isPending}
+                    isEmailing={emailMutation.isPending}
+                    isDownloading={downloadMutation.isPending}
+                    onSave={handleSave}
+                    onEmail={handleEmail}
+                    onDownload={handleDownload}
+                  />
+                </div>
               </div>
             </div>
           </>
@@ -395,7 +397,7 @@ const ConfigurationPage = () => {
       </section>
 
       {selectedVehicle && (
-        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 p-4 backdrop-blur lg:hidden">
+        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 p-4 backdrop-blur supports-backdrop-filter:bg-background/90 lg:hidden">
           <div className="flex items-center justify-between gap-4">
             <div>
               <p className="text-xs text-muted-foreground">Totale</p>

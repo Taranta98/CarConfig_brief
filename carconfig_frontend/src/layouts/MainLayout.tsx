@@ -7,7 +7,7 @@ const WebsiteLayout = () => {
     <>
       <Header />
       <Outlet />
-      <Toaster richColors position="top-center" />
+      <Toaster position="top-center" />
     </>
   )
 }

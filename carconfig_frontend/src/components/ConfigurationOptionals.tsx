@@ -101,11 +101,11 @@ const ConfigurationOptionals = ({
                     aria-pressed={isSelected}
                     aria-label={`${isSelected ? "Rimuovi" : "Aggiungi"} ${optional.name}`}
                     className={cn(
-                      "group flex w-full items-start gap-4 rounded-xl border p-4 text-left transition-all",
+                      "configurator-choice group flex w-full items-start gap-4 p-4 text-left",
                       "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
                       isSelected
-                        ? "border-foreground bg-muted/40"
-                        : "border-border hover:border-foreground/30 hover:bg-muted/20",
+                        ? "border-foreground bg-card"
+                        : "hover:border-foreground/30 hover:bg-card/80",
                       optional.is_required && "cursor-default"
                     )}
                   >
@@ -126,16 +126,18 @@ const ConfigurationOptionals = ({
                           {optional.name}
                         </span>
                         <span className="text-sm font-medium">
-                          {optional.price === 0
-                            ? "Incluso"
-                            : `+ ${formatCurrency(optional.price)}`}
+                          {optional.price === 0 ? (
+                            <span className="text-success">Incluso</span>
+                          ) : (
+                            `+ ${formatCurrency(optional.price)}`
+                          )}
                         </span>
                       </span>
                       <span className="block text-sm leading-relaxed text-muted-foreground">
                         {optional.description}
                       </span>
                       {optional.is_required && (
-                        <span className="inline-flex rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
+                        <span className="badge-success">
                           Incluso nell&apos;allestimento
                         </span>
                       )}

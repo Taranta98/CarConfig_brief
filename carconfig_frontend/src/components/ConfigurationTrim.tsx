@@ -69,16 +69,16 @@ const ConfigurationTrim = ({
                 aria-checked={isSelected}
                 onClick={() => onChange(trim.id)}
                 className={cn(
-                  "flex w-full items-start gap-4 rounded-xl border p-5 text-left transition-all",
+                  "configurator-choice flex w-full items-start gap-4 p-5 text-left",
                   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
                   isSelected
-                    ? "border-foreground bg-muted/40 shadow-sm"
-                    : "border-border hover:border-foreground/30 hover:bg-muted/20"
+                    ? "border-foreground bg-card"
+                    : "hover:border-foreground/30 hover:bg-card/80"
                 )}
               >
                 <span
                   className={cn(
-                    "mt-1 flex size-5 shrink-0 items-center justify-center rounded-full border-2 transition-colors",
+                    "mt-1 flex size-5 shrink-0 items-center justify-center rounded-full border transition-colors",
                     isSelected ? "border-foreground" : "border-muted-foreground/40"
                   )}
                   aria-hidden
@@ -93,9 +93,11 @@ const ConfigurationTrim = ({
                       {trim.name}
                     </span>
                     <span className="text-sm font-medium">
-                      {trim.price === 0
-                        ? "Incluso"
-                        : `+ ${formatCurrency(trim.price)}`}
+                      {trim.price === 0 ? (
+                        <span className="text-success">Incluso</span>
+                      ) : (
+                        `+ ${formatCurrency(trim.price)}`
+                      )}
                     </span>
                   </span>
                   <span className="block text-sm leading-relaxed text-muted-foreground">

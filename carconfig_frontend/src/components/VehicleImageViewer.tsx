@@ -35,7 +35,7 @@ const VehicleImageViewer = ({
 
   return (
     <div className={cn("w-full space-y-6", className)}>
-      <div className="relative overflow-hidden rounded-2xl ring-1 ring-black/5">
+      <div className="relative overflow-hidden rounded-2xl border border-border">
         <img
           src={CONFIGURATOR_BACKGROUND_SRC}
           alt=""
@@ -62,7 +62,7 @@ const VehicleImageViewer = ({
 
           <div className="flex flex-wrap items-center gap-2">
             <div
-              className="inline-flex flex-wrap gap-1 rounded-full border border-border/80 bg-background p-1 shadow-sm"
+              className="inline-flex flex-wrap gap-1 rounded-full border border-border bg-card p-1"
               role="radiogroup"
               aria-label="Seleziona angolazione"
             >
