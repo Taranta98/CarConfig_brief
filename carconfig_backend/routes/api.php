@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AdminStatsController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\EmailVerificationController;
 use App\Http\Controllers\Auth\PasswordResetController;
@@ -54,6 +55,7 @@ Route::controller(PasswordResetController::class)->group(function () {
 });
 
 Route::middleware(['auth:sanctum', 'admin'])->group(function () {
+    Route::get('/admin/stats', [AdminStatsController::class, 'index']);
     Route::apiResource('users', UserController::class);
     Route::apiResource('vehicles', VehicleController::class)->except(['index']);
     Route::apiResource('trims', TrimController::class);

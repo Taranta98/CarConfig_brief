@@ -27,22 +27,10 @@ type ConfigurationWizardProps = {
   onOptionalsChange: (ids: number[]) => void
 }
 
-const steps: { id: WizardStep; label: string; description: string }[] = [
-  {
-    id: "color",
-    label: "Colore",
-    description: "Scegli la verniciatura del veicolo",
-  },
-  {
-    id: "trim",
-    label: "Allestimento",
-    description: "Scegli il livello di equipaggiamento",
-  },
-  {
-    id: "optionals",
-    label: "Optional",
-    description: "Personalizza con accessori e pacchetti",
-  },
+const steps: { id: WizardStep; label: string }[] = [
+  { id: "color", label: "Colore" },
+  { id: "trim", label: "Allestimento" },
+  { id: "optionals", label: "Optional" },
 ]
 
 const ConfigurationWizard = ({
@@ -63,8 +51,7 @@ const ConfigurationWizard = ({
 }: ConfigurationWizardProps) => {
   const currentIndex = steps.findIndex((item) => item.id === step)
   const hasColors = colors.length > 0
-  const colorStepComplete =
-    !hasColors || selectedColorId !== null
+  const colorStepComplete = !hasColors || selectedColorId !== null
   const canGoNext =
     (step === "color" && colorStepComplete) ||
     (step === "trim" && selectedTrimId !== null)
@@ -102,16 +89,16 @@ const ConfigurationWizard = ({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <nav aria-label="Passaggi configurazione">
-        <ol className="flex flex-col gap-3 sm:flex-row sm:items-stretch sm:gap-4">
+        <ol className="flex border-b border-border">
           {steps.map((wizardStep, index) => {
             const isActive = wizardStep.id === step
             const isDone = index < currentIndex
             const isDisabled = !canOpenStep(wizardStep.id, index)
 
             return (
-              <li key={wizardStep.id} className="flex flex-1 items-center gap-3">
+              <li key={wizardStep.id} className="flex-1">
                 <button
                   type="button"
                   onClick={() => {
@@ -121,37 +108,38 @@ const ConfigurationWizard = ({
                   }}
                   disabled={isDisabled}
                   className={cn(
-                    "flex w-full items-start gap-3 rounded-lg border p-4 text-left transition-colors",
-                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                    isActive && "border-primary bg-primary/5 ring-1 ring-primary",
-                    isDone && !isActive && "border-primary/30 bg-muted/30",
-                    !isActive && !isDone && "border-border hover:bg-muted/40",
-                    isDisabled && "cursor-not-allowed opacity-50"
+                    "relative flex w-full flex-col items-center gap-2 px-2 py-4 text-center transition-colors",
+                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                    isDisabled && "cursor-not-allowed opacity-40"
                   )}
                 >
                   <span
                     className={cn(
-                      "flex size-8 shrink-0 items-center justify-center rounded-full text-sm font-semibold",
-                      isActive || isDone
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-muted text-muted-foreground"
+                      "text-[11px] font-medium tracking-[0.16em] uppercase",
+                      isActive
+                        ? "text-foreground"
+                        : isDone
+                          ? "text-muted-foreground"
+                          : "text-muted-foreground/70"
                     )}
                   >
-                    {index + 1}
+                    {String(index + 1).padStart(2, "0")}
                   </span>
-                  <span>
-                    <span className="block font-medium">{wizardStep.label}</span>
-                    <span className="block text-sm text-muted-foreground">
-                      {wizardStep.description}
-                    </span>
+                  <span
+                    className={cn(
+                      "text-sm font-medium",
+                      isActive ? "text-foreground" : "text-muted-foreground"
+                    )}
+                  >
+                    {wizardStep.label}
                   </span>
-                </button>
-                {index < steps.length - 1 && (
-                  <ChevronRight
-                    className="hidden size-5 shrink-0 text-muted-foreground sm:block"
-                    aria-hidden
+                  <span
+                    className={cn(
+                      "absolute inset-x-0 bottom-0 h-0.5 transition-colors",
+                      isActive ? "bg-foreground" : "bg-transparent"
+                    )}
                   />
-                )}
+                </button>
               </li>
             )
           })}
@@ -203,10 +191,11 @@ const ConfigurationWizard = ({
         />
       </div>
 
-      <div className="flex justify-between gap-3 pt-2">
+      <div className="flex justify-between gap-3 border-t border-border pt-6">
         <Button
           type="button"
-          variant="outline"
+          variant="ghost"
+          className="rounded-full"
           disabled={!canGoPrev}
           onClick={goPrev}
         >
@@ -214,8 +203,13 @@ const ConfigurationWizard = ({
           Indietro
         </Button>
         {step !== "optionals" && (
-          <Button type="button" disabled={!canGoNext} onClick={goNext}>
-            {step === "color" ? "Avanti: allestimento" : "Avanti: optional"}
+          <Button
+            type="button"
+            className="rounded-full"
+            disabled={!canGoNext}
+            onClick={goNext}
+          >
+            Continua
             <ChevronRight className="size-4" />
           </Button>
         )}

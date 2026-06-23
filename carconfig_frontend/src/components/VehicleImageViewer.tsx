@@ -32,58 +32,68 @@ const VehicleImageViewer = ({
   }
 
   return (
-    <div className={cn("mx-auto w-full max-w-md space-y-4 sm:max-w-lg lg:max-w-xl", className)}>
-      <img
-        key={imageUrl}
-        src={imageUrl}
-        alt={alt}
-        className="mx-auto h-52 w-full object-contain transition-opacity duration-200 sm:h-60 lg:h-72"
-      />
+    <div className={cn("w-full space-y-6", className)}>
+      <div className="relative overflow-hidden rounded-2xl bg-linear-to-b from-zinc-100 via-zinc-50 to-white px-4 pt-8 pb-4 ring-1 ring-black/5 sm:px-8 sm:pt-12">
+        <div
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-linear-to-t from-zinc-200/60 to-transparent"
+          aria-hidden
+        />
+        <img
+          key={imageUrl}
+          src={imageUrl}
+          alt={alt}
+          className="relative z-10 mx-auto h-56 w-full max-w-4xl object-contain transition-opacity duration-300 sm:h-72 lg:h-80 xl:h-96"
+        />
+      </div>
 
       {angles.length > 0 && (
-        <div className="space-y-3">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <p className="text-sm font-medium">Angolazione</p>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-xs font-medium tracking-[0.18em] text-muted-foreground uppercase">
+            Vista veicolo
+          </p>
+
+          <div className="flex flex-wrap items-center gap-2">
+            <div
+              className="inline-flex flex-wrap gap-1 rounded-full border border-border/80 bg-background p-1 shadow-sm"
+              role="radiogroup"
+              aria-label="Seleziona angolazione"
+            >
+              {angles.map((angle) => {
+                const isSelected = selectedAngle === angle
+
+                return (
+                  <button
+                    key={angle}
+                    type="button"
+                    role="radio"
+                    aria-checked={isSelected}
+                    onClick={() => onAngleChange(angle)}
+                    className={cn(
+                      "rounded-full px-3 py-1.5 text-xs font-medium transition-colors",
+                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                      isSelected
+                        ? "bg-foreground text-background"
+                        : "text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    {vehicleViewAngleLabels[angle]}
+                  </button>
+                )
+              })}
+            </div>
+
             {angles.length > 1 && (
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
+                className="rounded-full"
                 onClick={rotateNext}
               >
                 <RotateCw className="size-4" />
                 Ruota
               </Button>
             )}
-          </div>
-
-          <div
-            className="flex flex-wrap gap-2"
-            role="radiogroup"
-            aria-label="Seleziona angolazione"
-          >
-            {angles.map((angle) => {
-              const isSelected = selectedAngle === angle
-
-              return (
-                <button
-                  key={angle}
-                  type="button"
-                  role="radio"
-                  aria-checked={isSelected}
-                  onClick={() => onAngleChange(angle)}
-                  className={cn(
-                    "rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
-                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                    isSelected
-                      ? "border-primary bg-primary text-primary-foreground"
-                      : "border-border bg-background text-muted-foreground hover:border-primary/40 hover:text-foreground"
-                  )}
-                >
-                  {vehicleViewAngleLabels[angle]}
-                </button>
-              )
-            })}
           </div>
         </div>
       )}

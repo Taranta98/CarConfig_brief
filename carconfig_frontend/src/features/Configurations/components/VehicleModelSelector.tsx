@@ -1,11 +1,5 @@
 import { useEffect, useState } from "react"
 import {
-  Card,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
-import {
   Carousel,
   type CarouselApi,
   CarouselContent,
@@ -14,13 +8,14 @@ import {
 import { Button } from "@/components/ui/button"
 import type { Vehicle } from "@/features/Vehicles/vehicle.type"
 import {
+  formatCurrency,
   vehicleDisplayName,
   vehicleImageUrl,
 } from "@/features/Vehicles/vehicle.utils"
 import { cn } from "@/lib/utils"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 
-const MODELS_PER_PAGE = 4
+const MODELS_PER_PAGE = 3
 
 type VehicleModelSelectorProps = {
   vehicles: Vehicle[]
@@ -69,7 +64,7 @@ export function VehicleModelSelector({
   }
 
   return (
-    <div className="relative px-10 sm:px-12">
+    <div className="relative mx-auto max-w-6xl px-10 sm:px-12">
       <Carousel
         setApi={setApi}
         opts={{
@@ -79,48 +74,54 @@ export function VehicleModelSelector({
         }}
         className="w-full"
       >
-        <CarouselContent className="-ml-3">
+        <CarouselContent className="-ml-4">
           {vehicles.map((vehicle) => {
             const isSelected = selectedId === vehicle.id
 
             return (
               <CarouselItem
                 key={vehicle.id}
-                className="basis-full pl-3 sm:basis-1/2 lg:basis-1/4"
+                className="basis-full pl-4 sm:basis-1/2 lg:basis-1/3"
               >
                 <button
                   type="button"
                   onClick={() => onSelect(vehicle.id)}
                   className={cn(
-                    "group h-full w-full rounded-xl text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-                    isSelected &&
-                      "ring-2 ring-primary ring-offset-2 ring-offset-background"
+                    "group flex h-full w-full flex-col overflow-hidden rounded-2xl border text-left transition-all duration-300",
+                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950",
+                    isSelected
+                      ? "border-white/80 bg-white/10 shadow-[0_0_0_1px_rgba(255,255,255,0.2)]"
+                      : "border-white/10 bg-white/5 hover:border-white/30 hover:bg-white/10"
                   )}
                   aria-pressed={isSelected}
                   aria-label={`Seleziona ${vehicleDisplayName(vehicle)}`}
                 >
-                  <Card
-                    className={cn(
-                      "h-full cursor-pointer overflow-hidden py-0 transition-shadow hover:shadow-md",
-                      isSelected && "shadow-md"
-                    )}
-                  >
-                    <div className="flex aspect-4/3 items-center justify-center bg-muted/40 p-4">
-                      <img
-                        src={vehicleImageUrl(vehicle)}
-                        alt={vehicleDisplayName(vehicle)}
-                        className="max-h-full w-full object-contain transition-transform duration-300 group-hover:scale-105"
-                      />
-                    </div>
-                    <CardHeader className="pb-4">
-                      <CardTitle className="text-base">
-                        {vehicleDisplayName(vehicle)}
-                      </CardTitle>
-                      <CardDescription>
-                        {vehicle.model} · {vehicle.fuel_type} · {vehicle.year}
-                      </CardDescription>
-                    </CardHeader>
-                  </Card>
+                  <div className="flex aspect-16/10 items-center justify-center bg-linear-to-b from-white/10 to-transparent p-6">
+                    <img
+                      src={vehicleImageUrl(vehicle)}
+                      alt={vehicleDisplayName(vehicle)}
+                      className="max-h-full w-full object-contain transition-transform duration-500 group-hover:scale-105"
+                    />
+                  </div>
+                  <div className="space-y-2 border-t border-white/10 px-5 py-5">
+                    <p className="text-lg font-medium text-white">
+                      {vehicleDisplayName(vehicle)}
+                    </p>
+                    <p className="text-sm text-zinc-400">
+                      {vehicle.fuel_type} · {vehicle.year}
+                    </p>
+                    <p className="text-sm font-medium text-zinc-200">
+                      da {formatCurrency(vehicle.base_price)}
+                    </p>
+                    <span
+                      className={cn(
+                        "inline-flex text-xs font-medium tracking-wide uppercase",
+                        isSelected ? "text-white" : "text-zinc-500"
+                      )}
+                    >
+                      {isSelected ? "Selezionato" : "Configura"}
+                    </span>
+                  </div>
                 </button>
               </CarouselItem>
             )
@@ -132,7 +133,7 @@ export function VehicleModelSelector({
         type="button"
         variant="outline"
         size="icon"
-        className="absolute top-1/2 left-0 size-9 -translate-y-1/2 rounded-full shadow-sm"
+        className="absolute top-1/2 left-0 size-10 -translate-y-1/2 rounded-full border-white/20 bg-zinc-900/80 text-white hover:bg-zinc-800"
         disabled={!canScrollPrev}
         onClick={() => api?.scrollPrev()}
         aria-label="Modelli precedenti"
@@ -144,7 +145,7 @@ export function VehicleModelSelector({
         type="button"
         variant="outline"
         size="icon"
-        className="absolute top-1/2 right-0 size-9 -translate-y-1/2 rounded-full shadow-sm"
+        className="absolute top-1/2 right-0 size-10 -translate-y-1/2 rounded-full border-white/20 bg-zinc-900/80 text-white hover:bg-zinc-800"
         disabled={!canScrollNext}
         onClick={() => api?.scrollNext()}
         aria-label="Modelli successivi"
@@ -154,7 +155,7 @@ export function VehicleModelSelector({
 
       {pageCount > 1 && (
         <div
-          className="mt-6 flex items-center justify-center gap-2"
+          className="mt-8 flex items-center justify-center gap-2"
           role="tablist"
           aria-label="Pagine modelli"
         >
@@ -167,20 +168,14 @@ export function VehicleModelSelector({
               aria-label={`Pagina ${index + 1} di ${pageCount}`}
               onClick={() => scrollToPage(index)}
               className={cn(
-                "h-2 rounded-full transition-all",
+                "h-1 rounded-full transition-all",
                 currentPage === index
-                  ? "w-6 bg-primary"
-                  : "w-2 bg-muted-foreground/30 hover:bg-muted-foreground/50"
+                  ? "w-8 bg-white"
+                  : "w-4 bg-white/30 hover:bg-white/50"
               )}
             />
           ))}
         </div>
-      )}
-
-      {vehicles.length > 0 && (
-        <p className="mt-3 text-center text-xs text-muted-foreground">
-          Pagina {currentPage + 1} di {pageCount} · {vehicles.length} modelli
-        </p>
       )}
     </div>
   )

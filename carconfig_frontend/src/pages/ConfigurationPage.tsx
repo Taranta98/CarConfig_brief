@@ -14,6 +14,7 @@ import {
   configuratorPreviewImage,
   DEFAULT_VEHICLE_VIEW_ANGLE,
   findVehicleColor,
+  formatCurrency,
   getDefaultColorId,
   getDefaultTrimId,
   getRequiredOptionalIds,
@@ -22,7 +23,6 @@ import {
   vehicleDisplayName,
 } from "@/features/Vehicles/vehicle.utils"
 import VehicleImageViewer from "@/components/VehicleImageViewer"
-import { Separator } from "@/components/ui/separator"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { isAxiosError } from "axios"
 import { useNavigate } from "react-router"
@@ -252,64 +252,83 @@ const ConfigurationPage = () => {
 
   return (
     <div className="flex flex-col pt-17.5">
-      <section className="w-full px-4 py-12 sm:px-6 lg:px-8">
-        <div className="mb-10 text-center">
-          <h1 className="font-heading text-3xl font-semibold tracking-tight sm:text-4xl">
-            Scegli il tuo modello
-          </h1>
-          <p className="mt-3 text-muted-foreground">
-            Seleziona un veicolo per iniziare la configurazione
-          </p>
+      <section className="bg-zinc-950 text-white">
+        <div className="mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
+          <div className="mx-auto max-w-3xl text-center">
+            <p className="text-xs font-medium tracking-[0.22em] text-zinc-400 uppercase">
+              Configuratore online
+            </p>
+            <h1 className="mt-4 font-heading text-3xl font-semibold tracking-tight sm:text-5xl">
+              Scegli il tuo modello
+            </h1>
+            <p className="mt-4 text-base text-zinc-400 sm:text-lg">
+              Personalizza colore, allestimento e optional con un&apos;esperienza
+              simile ai configuratore dei brand automotive.
+            </p>
+          </div>
+
+          <div className="mt-12">
+            {vehiclesLoading && (
+              <p className="text-center text-zinc-400">Caricamento veicoli…</p>
+            )}
+
+            {vehiclesError && (
+              <p className="text-center text-red-300">
+                Impossibile caricare i veicoli. Riprova più tardi.
+              </p>
+            )}
+
+            {!vehiclesLoading && !vehiclesError && vehicles.length === 0 && (
+              <p className="text-center text-zinc-400">
+                Nessun veicolo disponibile al momento.
+              </p>
+            )}
+
+            {vehicles.length > 0 && (
+              <VehicleModelSelector
+                vehicles={vehicles}
+                selectedId={selectedId}
+                onSelect={handleModelSelect}
+              />
+            )}
+          </div>
         </div>
-
-        {vehiclesLoading && (
-          <p className="text-center text-muted-foreground">
-            Caricamento veicoli…
-          </p>
-        )}
-
-        {vehiclesError && (
-          <p className="text-center text-destructive">
-            Impossibile caricare i veicoli. Riprova più tardi.
-          </p>
-        )}
-
-        {!vehiclesLoading && !vehiclesError && vehicles.length === 0 && (
-          <p className="text-center text-muted-foreground">
-            Nessun veicolo disponibile al momento.
-          </p>
-        )}
-
-        {vehicles.length > 0 && (
-          <VehicleModelSelector
-            vehicles={vehicles}
-            selectedId={selectedId}
-            onSelect={handleModelSelect}
-          />
-        )}
       </section>
-
-      <Separator />
 
       <section
         ref={configSectionRef}
         id="vehicle-configuration"
-        className="scroll-mt-24 min-h-[60vh] bg-muted/20"
+        className="scroll-mt-24 min-h-screen bg-background"
       >
-        <div className="w-full px-4 py-16 sm:px-6 lg:px-8">
-          {selectedVehicle ? (
-            <div className="flex flex-col gap-8 lg:flex-row lg:items-start">
-              <div className="min-w-0 flex-1 space-y-6">
+        {selectedVehicle ? (
+          <>
+            <div className="sticky top-17.5 z-30 border-b border-border bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/80">
+              <div className="mx-auto flex w-full max-w-7xl flex-wrap items-end justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
                 <div>
-                  <h2 className="font-heading text-2xl font-semibold sm:text-3xl">
-                    Configura la tua {vehicleDisplayName(selectedVehicle)}
+                  <p className="text-xs font-medium tracking-[0.18em] text-muted-foreground uppercase">
+                    Configurazione in corso
+                  </p>
+                  <h2 className="mt-1 font-heading text-2xl font-semibold tracking-tight sm:text-3xl">
+                    {vehicleDisplayName(selectedVehicle)}
                   </h2>
-                  <p className="mt-2 text-muted-foreground">
-                    Segui i passaggi del wizard. Il riepilogo a destra si
-                    aggiorna in tempo reale.
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {selectedVehicle.fuel_type} · {selectedVehicle.year}
+                    {selectedColor ? ` · ${selectedColor.name}` : ""}
                   </p>
                 </div>
+                <div className="text-right">
+                  <p className="text-xs font-medium tracking-[0.18em] text-muted-foreground uppercase">
+                    Prezzo stimato
+                  </p>
+                  <p className="font-heading text-3xl font-semibold tracking-tight">
+                    {formatCurrency(configurationTotal)}
+                  </p>
+                </div>
+              </div>
+            </div>
 
+            <div className="mx-auto grid w-full max-w-7xl lg:grid-cols-[minmax(0,1.15fr)_minmax(380px,440px)] lg:gap-0">
+              <div className="border-b border-border px-4 py-8 sm:px-6 lg:sticky lg:top-40 lg:self-start lg:border-b-0 lg:border-r lg:px-8 lg:py-10">
                 <VehicleImageViewer
                   imageUrl={previewImageUrl}
                   alt={vehicleDisplayName(selectedVehicle)}
@@ -317,7 +336,9 @@ const ConfigurationPage = () => {
                   selectedAngle={selectedAngle}
                   onAngleChange={setSelectedAngle}
                 />
+              </div>
 
+              <div className="px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
                 <ConfigurationWizard
                   step={wizardStep}
                   onStepChange={setWizardStep}
@@ -334,37 +355,60 @@ const ConfigurationPage = () => {
                   selectedOptionalIds={selectedOptionalIds}
                   onOptionalsChange={setSelectedOptionalIds}
                 />
-              </div>
 
-              <ConfigurationSidebar
-                vehicle={selectedVehicle}
-                selectedColor={selectedColor}
-                previewImageUrl={previewImageUrl}
-                trim={selectedTrim}
-                selectedOptionals={selectedOptionals}
-                basePrice={vehicleBasePrice(selectedVehicle)}
-                trimTotal={trimTotal}
-                optionalsTotal={optionalsTotal}
-                total={configurationTotal}
-                canDownload={canDownload}
-                canSaveAndEmail={canSaveAndEmail}
-                isSaving={saveMutation.isPending}
-                isEmailing={emailMutation.isPending}
-                isDownloading={downloadMutation.isPending}
-                onSave={handleSave}
-                onEmail={handleEmail}
-                onDownload={handleDownload}
-              />
+                <ConfigurationSidebar
+                  vehicle={selectedVehicle}
+                  selectedColor={selectedColor}
+                  trim={selectedTrim}
+                  selectedOptionals={selectedOptionals}
+                  basePrice={vehicleBasePrice(selectedVehicle)}
+                  trimTotal={trimTotal}
+                  optionalsTotal={optionalsTotal}
+                  total={configurationTotal}
+                  canDownload={canDownload}
+                  canSaveAndEmail={canSaveAndEmail}
+                  isSaving={saveMutation.isPending}
+                  isEmailing={emailMutation.isPending}
+                  isDownloading={downloadMutation.isPending}
+                  onSave={handleSave}
+                  onEmail={handleEmail}
+                  onDownload={handleDownload}
+                />
+              </div>
             </div>
-          ) : (
-            <div className="flex min-h-[40vh] flex-col items-center justify-center text-center">
-              <p className="text-lg text-muted-foreground">
-                Seleziona un modello sopra per continuare con la configurazione
+          </>
+        ) : (
+          <div className="mx-auto flex min-h-[50vh] w-full max-w-3xl flex-col items-center justify-center px-4 py-20 text-center sm:px-6">
+            <p className="text-xs font-medium tracking-[0.18em] text-muted-foreground uppercase">
+              Inizia la configurazione
+            </p>
+            <p className="mt-4 text-2xl font-medium">
+              Seleziona un modello per visualizzare l&apos;anteprima e
+              personalizzare il veicolo
+            </p>
+            <p className="mt-3 text-muted-foreground">
+              Scegli una vettura dalla gallery sopra per accedere al
+              configuratore completo.
+            </p>
+          </div>
+        )}
+      </section>
+
+      {selectedVehicle && (
+        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 p-4 backdrop-blur lg:hidden">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <p className="text-xs text-muted-foreground">Totale</p>
+              <p className="text-xl font-semibold">
+                {formatCurrency(configurationTotal)}
               </p>
             </div>
-          )}
+            <p className="text-right text-xs text-muted-foreground">
+              {vehicleDisplayName(selectedVehicle)}
+            </p>
+          </div>
         </div>
-      </section>
+      )}
     </div>
   )
 }

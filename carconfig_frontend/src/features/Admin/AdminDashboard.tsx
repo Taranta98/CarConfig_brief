@@ -13,6 +13,8 @@ import {
   filterItemsByVehicleLabel,
 } from "@/features/Admin/components/AdminVehicleFilterBar"
 import { AdminVehicleColorsPanel } from "@/features/Admin/components/AdminVehicleColorsPanel"
+import { AdminStatsCharts } from "@/features/Admin/components/AdminStatsCharts"
+import { AdminStatsService } from "@/features/Admin/admin.stats.service"
 import { OptionalService } from "@/features/Optionals/optional.service"
 import { optionalCategories } from "@/features/Optionals/optional.type"
 import type { Optional } from "@/features/Optionals/optional.type"
@@ -169,6 +171,11 @@ export function AdminDashboard() {
     enabled: isOpen("optionals"),
   })
 
+  const adminStatsQuery = useQuery({
+    queryKey: ["admin", "stats"],
+    queryFn: () => AdminStatsService.get(),
+  })
+
   const usersQuery = useQuery({
     queryKey: ["admin", "users"],
     queryFn: () => UserService.list(),
@@ -280,19 +287,25 @@ export function AdminDashboard() {
   const userMutations = {
     create: useMutation({
       mutationFn: (data: UserPayload) => UserService.create(data),
-      onSuccess: () =>
-        queryClient.invalidateQueries({ queryKey: ["admin", "users"] }),
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ["admin", "users"] })
+        queryClient.invalidateQueries({ queryKey: ["admin", "stats"] })
+      },
     }),
     update: useMutation({
       mutationFn: ({ id, data }: { id: number; data: Partial<UserPayload> }) =>
         UserService.update(id, data),
-      onSuccess: () =>
-        queryClient.invalidateQueries({ queryKey: ["admin", "users"] }),
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ["admin", "users"] })
+        queryClient.invalidateQueries({ queryKey: ["admin", "stats"] })
+      },
     }),
     remove: useMutation({
       mutationFn: (id: number) => UserService.delete(id),
-      onSuccess: () =>
-        queryClient.invalidateQueries({ queryKey: ["admin", "users"] }),
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ["admin", "users"] })
+        queryClient.invalidateQueries({ queryKey: ["admin", "stats"] })
+      },
     }),
   }
 
@@ -353,6 +366,12 @@ export function AdminDashboard() {
 
   return (
     <div className="space-y-4">
+      <AdminStatsCharts
+        stats={adminStatsQuery.data?.data.data}
+        isLoading={adminStatsQuery.isLoading}
+        isError={adminStatsQuery.isError}
+      />
+
       <AdminSectionCard
         title="Veicoli"
         description="Catalogo modelli disponibili nel configuratore"
