@@ -89,12 +89,11 @@ const ConfigurationWizard = ({
   }
 
   return (
-    <div className="space-y-8">
+    <div className="min-w-0 space-y-6">
       <nav aria-label="Passaggi configurazione">
         <ol className="flex border-b border-border">
           {steps.map((wizardStep, index) => {
             const isActive = wizardStep.id === step
-            const isDone = index < currentIndex
             const isDisabled = !canOpenStep(wizardStep.id, index)
 
             return (
@@ -108,23 +107,11 @@ const ConfigurationWizard = ({
                   }}
                   disabled={isDisabled}
                   className={cn(
-                    "relative flex w-full flex-col items-center gap-2 px-2 py-4 text-center transition-colors",
+                    "relative flex w-full flex-col items-center gap-1 px-1 py-3 text-center transition-colors",
                     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
                     isDisabled && "cursor-not-allowed opacity-40"
                   )}
                 >
-                  <span
-                    className={cn(
-                      "text-[11px] font-medium tracking-[0.16em] uppercase",
-                      isActive
-                        ? "text-foreground"
-                        : isDone
-                          ? "text-muted-foreground"
-                          : "text-muted-foreground/70"
-                    )}
-                  >
-                    {String(index + 1).padStart(2, "0")}
-                  </span>
                   <span
                     className={cn(
                       "text-sm font-medium",
@@ -146,49 +133,33 @@ const ConfigurationWizard = ({
         </ol>
       </nav>
 
-      <div
-        className={cn(
-          "transition-opacity duration-300",
-          step === "color" ? "opacity-100" : "hidden opacity-0"
+      <div className="min-w-0">
+        {step === "color" && (
+          <ConfigurationColor
+            colors={colors}
+            isLoading={colorsLoading}
+            selectedId={selectedColorId}
+            onChange={onColorChange}
+          />
         )}
-        aria-hidden={step !== "color"}
-      >
-        <ConfigurationColor
-          colors={colors}
-          isLoading={colorsLoading}
-          selectedId={selectedColorId}
-          onChange={onColorChange}
-        />
-      </div>
 
-      <div
-        className={cn(
-          "transition-opacity duration-300",
-          step === "trim" ? "opacity-100" : "hidden opacity-0"
+        {step === "trim" && (
+          <ConfigurationTrim
+            trims={trims}
+            isLoading={trimsLoading}
+            selectedId={selectedTrimId}
+            onChange={onTrimChange}
+          />
         )}
-        aria-hidden={step !== "trim"}
-      >
-        <ConfigurationTrim
-          trims={trims}
-          isLoading={trimsLoading}
-          selectedId={selectedTrimId}
-          onChange={onTrimChange}
-        />
-      </div>
 
-      <div
-        className={cn(
-          "transition-opacity duration-300",
-          step === "optionals" ? "opacity-100" : "hidden opacity-0"
+        {step === "optionals" && (
+          <ConfigurationOptionals
+            optionals={optionals}
+            isLoading={optionalsLoading}
+            selectedIds={selectedOptionalIds}
+            onChange={onOptionalsChange}
+          />
         )}
-        aria-hidden={step !== "optionals"}
-      >
-        <ConfigurationOptionals
-          optionals={optionals}
-          isLoading={optionalsLoading}
-          selectedIds={selectedOptionalIds}
-          onChange={onOptionalsChange}
-        />
       </div>
 
       <div className="flex justify-between gap-3 border-t border-border pt-6">

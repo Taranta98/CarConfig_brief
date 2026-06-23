@@ -21,9 +21,10 @@ use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 
 class ConfigurationController extends Controller
 {
-    public function index(Request $request, ConfigurationStalePriceService $stalePriceService) {
+    public function index(Request $request, ConfigurationStalePriceService $stalePriceService)
+    {
         $configurations = Configuration::query()
-            ->with(['vehicle', 'trim', 'vehicleColor', 'optionals'])
+            ->with(['vehicle', 'trim', 'vehicleColor.images', 'optionals'])
             ->where('user_id', $request->user()->id)
             ->latest()
             ->get();
@@ -33,7 +34,8 @@ class ConfigurationController extends Controller
         return ConfigurationResource::collection($configurations);
     }
 
-    public function store(StoreConfigurationRequest $request) {
+    public function store(StoreConfigurationRequest $request)
+    {
         $this->assertTrimBelongsToVehicle(
             $request->integer('trim_id'),
             $request->integer('vehicle_id'),
@@ -60,7 +62,8 @@ class ConfigurationController extends Controller
         return new ConfigurationResource($config);
     }
 
-    public function show(Request $request, Configuration $configuration, ConfigurationStalePriceService $stalePriceService) {
+    public function show(Request $request, Configuration $configuration, ConfigurationStalePriceService $stalePriceService)
+    {
         $this->authorizeConfiguration($request, $configuration);
 
         $configuration->load(['vehicle', 'trim', 'vehicleColor', 'optionals']);
@@ -72,7 +75,8 @@ class ConfigurationController extends Controller
         return new ConfigurationResource($configuration);
     }
 
-    public function destroy(Request $request, Configuration $configuration) {
+    public function destroy(Request $request, Configuration $configuration)
+    {
         $this->authorizeConfiguration($request, $configuration);
 
         $configuration->delete();
@@ -82,7 +86,8 @@ class ConfigurationController extends Controller
         ]);
     }
 
-    public function downloadQuote(QuotePdfRequest $request) {
+    public function downloadQuote(QuotePdfRequest $request)
+    {
         ['pdfContent' => $pdfContent, 'filename' => $filename] = $this->buildQuotePdf($request);
 
         if (! str_starts_with($pdfContent, '%PDF')) {
@@ -97,7 +102,8 @@ class ConfigurationController extends Controller
         ]);
     }
 
-    public function emailQuote(QuotePdfEmailRequest $request) {
+    public function emailQuote(QuotePdfEmailRequest $request)
+    {
         ['pdfContent' => $pdfContent, 'filename' => $filename, 'vehicle' => $vehicle] = $this->buildQuotePdf($request);
 
         if (! str_starts_with($pdfContent, '%PDF')) {
@@ -219,7 +225,7 @@ class ConfigurationController extends Controller
 
     protected function getConfiguration(int $id): Configuration
     {
-        return Configuration::with(['vehicle', 'trim', 'vehicleColor', 'optionals'])
+        return Configuration::with(['vehicle', 'trim', 'vehicleColor.images', 'optionals'])
             ->findOrFail($id);
     }
 

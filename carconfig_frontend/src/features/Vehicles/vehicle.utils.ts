@@ -1,12 +1,14 @@
 import type { Optional } from "@/features/Optionals/optional.type"
 import type { Trim } from "@/features/Trims/trim.type"
 import { resolveStorageUrl } from "@/lib/api"
+import type { SavedConfiguration } from "@/features/Configurations/configuration.type"
 import type {
   Vehicle,
   VehicleColor,
   VehicleConfigurator,
   VehicleViewAngle,
 } from "./vehicle.type"
+import { VEHICLE_VIEW_ANGLES } from "./vehicle.type"
 
 export { formatCurrency, formatPrice } from "@/lib/formatPrice"
 
@@ -22,7 +24,7 @@ export function vehicleDisplayName(vehicle: Pick<Vehicle, "brand" | "model">): s
   return `${vehicle.brand} ${shortModel}`
 }
 
-export function vehicleImageUrl(vehicle: Vehicle): string {
+export function vehicleImageUrl(vehicle: Pick<Vehicle, "id" | "image">): string {
   const fromApi = resolveStorageUrl(vehicle.image)
   return fromApi || fallbackImages[vehicle.id] || "/Logo-removebg-preview.png"
 }
@@ -54,7 +56,7 @@ export function vehicleColorImageUrl(
   color: VehicleColor | null,
   angle: VehicleViewAngle,
   angles: VehicleViewAngle[],
-  fallbackVehicle?: Vehicle
+  fallbackVehicle?: Pick<Vehicle, "id" | "image">
 ): string {
   if (color) {
     const direct = color.images[angle]
@@ -91,6 +93,26 @@ export function configuratorPreviewImage(
     angle,
     configurator.angles,
     configurator.vehicle
+  )
+}
+
+export function savedConfigurationPreviewImage(
+  config: SavedConfiguration,
+  angle: VehicleViewAngle = DEFAULT_VEHICLE_VIEW_ANGLE
+): string {
+  const color = config.vehicle_color
+    ? ({
+        ...config.vehicle_color,
+        images: config.vehicle_color.images ?? {},
+        sort_order: 0,
+      } satisfies VehicleColor)
+    : null
+
+  return vehicleColorImageUrl(
+    color,
+    angle,
+    VEHICLE_VIEW_ANGLES,
+    config.vehicle
   )
 }
 

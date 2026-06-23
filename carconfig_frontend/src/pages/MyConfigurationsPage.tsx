@@ -10,8 +10,7 @@ import Paginator from "@/components/Paginator"
 import { Button } from "@/components/ui/button"
 import { useClientPagination } from "@/hooks/useClientPagination"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { Info } from "lucide-react"
-import { Link, useNavigate } from "react-router"
+import { useNavigate } from "react-router"
 import { useState } from "react"
 import { toast } from "sonner"
 
@@ -76,85 +75,81 @@ const MyConfigurationsPage = () => {
 
   if (!token) {
     return (
-      <main className="w-full px-4 py-24 sm:px-6 lg:px-8">
-        <h1 className="text-2xl font-semibold text-foreground">
-          Le tue configurazioni
-        </h1>
-        <p className="mt-4 text-muted-foreground">
-          Accedi per vedere le configurazioni salvate.
-        </p>
-        <Button className="mt-6" onClick={() => navigate("/auth/login")}>
-          Accedi
-        </Button>
+      <main className="w-full px-4 pt-17.5 pb-8 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-md text-center">
+          <p className="text-xs font-medium tracking-[0.22em] text-muted-foreground uppercase">
+            Area personale
+          </p>
+          <h1 className="mt-4 font-heading text-3xl font-semibold tracking-tight">
+            Le mie configurazioni
+          </h1>
+          <p className="mt-4 text-muted-foreground">
+            Accedi per vedere le configurazioni salvate.
+          </p>
+          <Button className="mt-8" onClick={() => navigate("/auth/login")}>
+            Accedi
+          </Button>
+        </div>
       </main>
     )
   }
 
   return (
-    <main className="w-full px-4 py-24 sm:px-6 lg:px-8">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold text-foreground">
-            Le tue configurazioni
-          </h1>
-          <p className="mt-2 text-muted-foreground">
-            Tutte le configurazioni che hai salvato dal configuratore.
+    <main className="w-full px-4 pt-17.5 pb-8 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-7xl">
+        <div className="mx-auto max-w-2xl text-center">
+          <p className="text-xs font-medium tracking-[0.22em] text-muted-foreground uppercase">
+            Area personale
           </p>
+          <h1 className="mt-4 font-heading text-3xl font-semibold tracking-tight sm:text-4xl">
+            Le mie configurazioni
+          </h1>
         </div>
-        <Button render={<Link to="/configuration" />}>Nuova configurazione</Button>
+
+        {isLoading && (
+          <p className="mt-16 text-center text-muted-foreground">
+            Caricamento…
+          </p>
+        )}
+
+        {isError && (
+          <p className="mt-16 text-center text-destructive">
+            Impossibile caricare le configurazioni.
+          </p>
+        )}
+
+        {!isLoading && !isError && configurations.length === 0 && (
+          <p className="mt-16 text-center text-muted-foreground">
+            Nessuna configurazione salvata.
+          </p>
+        )}
+
+        {configurations.length > 0 && (
+          <>
+            <ul className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {paginatedItems.map((config) => (
+                <li key={config.id}>
+                  <ConfigurationListCard
+                    config={config}
+                    onDelete={(id) => deleteMutation.mutate(id)}
+                    onDownload={handleDownload}
+                    isDeleting={
+                      deleteMutation.isPending &&
+                      deleteMutation.variables === config.id
+                    }
+                    isDownloading={downloadingId === config.id}
+                    canDownload={Boolean(config.trim)}
+                  />
+                </li>
+              ))}
+            </ul>
+
+            <div className="mt-10 flex justify-center">
+              <Paginator metadata={metadata} onPageChange={setPage} />
+            </div>
+          </>
+        )}
       </div>
-
-      <div
-        role="note"
-        className="mt-6 flex gap-3 rounded-lg border border-border/60 bg-muted/30 px-4 py-3 text-sm text-muted-foreground"
-      >
-        <Info className="mt-0.5 size-4 shrink-0 text-foreground" aria-hidden />
-        <p>
-          Se vengono aggiornati i prezzi del veicolo, dell&apos;allestimento o
-          degli optional, la configurazione salvata verrà eliminata
-          automaticamente. In quel caso dovrai ricrearla dal configuratore.
-        </p>
-      </div>
-
-      {isLoading && (
-        <p className="mt-10 text-muted-foreground">Caricamento…</p>
-      )}
-
-      {isError && (
-        <p className="mt-10 text-destructive">
-          Impossibile caricare le configurazioni.
-        </p>
-      )}
-
-      {!isLoading && !isError && configurations.length === 0 && (
-        <p className="mt-10 text-muted-foreground">
-          Non hai ancora salvato nessuna configurazione.
-        </p>
-      )}
-
-      <ul className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {paginatedItems.map((config) => (
-          <li key={config.id}>
-            <ConfigurationListCard
-              config={config}
-              onDelete={(id) => deleteMutation.mutate(id)}
-              onDownload={handleDownload}
-              isDeleting={
-                deleteMutation.isPending &&
-                deleteMutation.variables === config.id
-              }
-              isDownloading={downloadingId === config.id}
-              canDownload={Boolean(config.trim)}
-            />
-          </li>
-        ))}
-      </ul>
-
-      {configurations.length > 0 && (
-        <div className="mt-8">
-          <Paginator metadata={metadata} onPageChange={setPage} />
-        </div>
-      )}
     </main>
   )
 }

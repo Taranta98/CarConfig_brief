@@ -14,6 +14,91 @@ type ConfigurationOptionalsProps = {
   onChange: (selectedIds: number[]) => void
 }
 
+const categoryLabels: Record<string, string> = {
+  Comfort: "Comfort",
+  Technology: "Tecnologia",
+  Safety: "Sicurezza",
+  Exterior: "Esterni",
+  Altri: "Altri",
+}
+
+function groupOptionalsByCategory(optionals: Optional[]) {
+  const grouped = optionalCategories
+    .map((category) => ({
+      category,
+      label: categoryLabels[category] ?? category,
+      items: optionals.filter((optional) => optional.category === category),
+    }))
+    .filter((group) => group.items.length > 0)
+
+  const uncategorized = optionals.filter(
+    (optional) =>
+      !optionalCategories.includes(optional.category as OptionalCategory)
+  )
+
+  if (uncategorized.length > 0) {
+    grouped.push({
+      category: "Altri",
+      label: categoryLabels.Altri,
+      items: uncategorized,
+    })
+  }
+
+  return grouped
+}
+
+type OptionalItemProps = {
+  optional: Optional
+  isSelected: boolean
+  onToggle: (optional: Optional) => void
+}
+
+function OptionalItem({ optional, isSelected, onToggle }: OptionalItemProps) {
+  return (
+    <li className="min-w-0">
+      <button
+        type="button"
+        onClick={() => onToggle(optional)}
+        disabled={optional.is_required}
+        aria-pressed={isSelected}
+        aria-label={`${isSelected ? "Rimuovi" : "Aggiungi"} ${optional.name}`}
+        className={cn(
+          "configurator-choice group flex h-full w-full min-w-0 flex-col gap-2 p-2.5 text-left",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-0",
+          isSelected
+            ? "border-foreground bg-card"
+            : "hover:border-foreground/30 hover:bg-card/80",
+          optional.is_required && "cursor-default"
+        )}
+      >
+        <span className="flex items-start gap-2">
+          <span
+            className={cn(
+              "mt-0.5 flex size-4 shrink-0 items-center justify-center rounded border transition-colors",
+              isSelected
+                ? "border-foreground bg-foreground text-background"
+                : "border-muted-foreground/30 bg-background group-hover:border-foreground/50"
+            )}
+            aria-hidden
+          >
+            {isSelected && <Check className="size-3" />}
+          </span>
+          <span className="min-w-0 flex-1 text-sm font-medium leading-snug wrap-break-word">
+            {optional.name}
+          </span>
+        </span>
+        <span className="pl-6 text-xs font-medium text-muted-foreground">
+          {optional.price === 0 ? (
+            <span className="text-success">Incluso</span>
+          ) : (
+            `+ ${formatCurrency(optional.price)}`
+          )}
+        </span>
+      </button>
+    </li>
+  )
+}
+
 const ConfigurationOptionals = ({
   optionals,
   isLoading = false,
@@ -21,28 +106,14 @@ const ConfigurationOptionals = ({
   onChange,
 }: ConfigurationOptionalsProps) => {
   if (isLoading) {
-    return (
-      <section className="space-y-4">
-        <div>
-          <h3 className="text-lg font-medium">Optional</h3>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Caricamento pacchetti e accessori…
-          </p>
-        </div>
-      </section>
-    )
+    return <p className="text-center text-sm text-muted-foreground">Caricamento…</p>
   }
 
   if (optionals.length === 0) {
     return (
-      <section className="space-y-4">
-        <div>
-          <h3 className="text-lg font-medium">Optional</h3>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Nessun optional disponibile per questo modello.
-          </p>
-        </div>
-      </section>
+      <p className="text-center text-sm text-muted-foreground">
+        Nessun optional disponibile.
+      </p>
     )
   }
 
@@ -56,100 +127,28 @@ const ConfigurationOptionals = ({
     onChange(next)
   }
 
-  const grouped: { category: string; items: Optional[] }[] = optionalCategories
-    .map((category) => ({
-      category,
-      items: optionals.filter((o) => o.category === category),
-    }))
-    .filter((group) => group.items.length > 0)
-
-  const uncategorized = optionals.filter(
-    (o) => !optionalCategories.includes(o.category as OptionalCategory)
-  )
-  if (uncategorized.length > 0) {
-    grouped.push({ category: "Altri", items: uncategorized })
-  }
+  const groups = groupOptionalsByCategory(optionals)
 
   return (
-    <section className="space-y-8">
-      <div>
-        <p className="text-xs font-medium tracking-[0.18em] text-muted-foreground uppercase">
-          Personalizzazione
-        </p>
-        <h3 className="mt-2 text-xl font-medium">Optional e pacchetti</h3>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Aggiungi equipaggiamenti al modello base. Gli elementi inclusi
-          nell&apos;allestimento sono già selezionati.
-        </p>
-      </div>
-
-      {grouped.map(({ category, items }) => (
-        <div key={category} className="space-y-4">
-          <h4 className="text-xs font-medium tracking-[0.14em] text-muted-foreground uppercase">
-            {category}
+    <div className="min-w-0 space-y-6">
+      {groups.map((group) => (
+        <section key={group.category} className="min-w-0 space-y-3">
+          <h4 className="text-center text-xs font-medium tracking-[0.14em] text-muted-foreground uppercase">
+            {group.label}
           </h4>
-          <ul className="grid gap-3">
-            {items.map((optional) => {
-              const isSelected = selectedIds.includes(optional.id)
-
-              return (
-                <li key={optional.id}>
-                  <button
-                    type="button"
-                    onClick={() => toggleOptional(optional)}
-                    disabled={optional.is_required}
-                    aria-pressed={isSelected}
-                    aria-label={`${isSelected ? "Rimuovi" : "Aggiungi"} ${optional.name}`}
-                    className={cn(
-                      "configurator-choice group flex w-full items-start gap-4 p-4 text-left",
-                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-                      isSelected
-                        ? "border-foreground bg-card"
-                        : "hover:border-foreground/30 hover:bg-card/80",
-                      optional.is_required && "cursor-default"
-                    )}
-                  >
-                    <span
-                      className={cn(
-                        "mt-0.5 flex size-5 shrink-0 items-center justify-center rounded border transition-colors",
-                        isSelected
-                          ? "border-foreground bg-foreground text-background"
-                          : "border-muted-foreground/30 bg-background group-hover:border-foreground/50"
-                      )}
-                      aria-hidden
-                    >
-                      {isSelected && <Check className="size-3.5" />}
-                    </span>
-                    <span className="min-w-0 flex-1 space-y-2">
-                      <span className="flex flex-wrap items-center justify-between gap-2">
-                        <span className="font-medium leading-tight">
-                          {optional.name}
-                        </span>
-                        <span className="text-sm font-medium">
-                          {optional.price === 0 ? (
-                            <span className="text-success">Incluso</span>
-                          ) : (
-                            `+ ${formatCurrency(optional.price)}`
-                          )}
-                        </span>
-                      </span>
-                      <span className="block text-sm leading-relaxed text-muted-foreground">
-                        {optional.description}
-                      </span>
-                      {optional.is_required && (
-                        <span className="badge-success">
-                          Incluso nell&apos;allestimento
-                        </span>
-                      )}
-                    </span>
-                  </button>
-                </li>
-              )
-            })}
+          <ul className="grid min-w-0 grid-cols-2 gap-2">
+            {group.items.map((optional) => (
+              <OptionalItem
+                key={optional.id}
+                optional={optional}
+                isSelected={selectedIds.includes(optional.id)}
+                onToggle={toggleOptional}
+              />
+            ))}
           </ul>
-        </div>
+        </section>
       ))}
-    </section>
+    </div>
   )
 }
 

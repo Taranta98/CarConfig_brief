@@ -10,7 +10,7 @@ type LogoProps = ImgHTMLAttributes<HTMLImageElement> & {
 }
 
 const Logo = ({
-  alt = "Car Config",
+  alt = "CARCONFIG",
   className,
   variant = "theme",
   ...props

@@ -15,50 +15,27 @@ const ConfigurationColor = ({
   onChange,
 }: ConfigurationColorProps) => {
   if (isLoading) {
-    return (
-      <section className="space-y-4">
-        <div>
-          <h3 className="text-lg font-medium">Colore</h3>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Caricamento palette colori…
-          </p>
-        </div>
-      </section>
-    )
+    return <p className="text-center text-sm text-muted-foreground">Caricamento…</p>
   }
 
   if (colors.length === 0) {
     return (
-      <section className="space-y-4">
-        <div>
-          <h3 className="text-lg font-medium">Colore</h3>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Nessun colore disponibile per questo modello.
-          </p>
-        </div>
-      </section>
+      <p className="text-center text-sm text-muted-foreground">
+        Nessun colore disponibile.
+      </p>
     )
   }
 
   const selectedColor = colors.find((color) => color.id === selectedId)
 
   return (
-    <section className="space-y-6">
-      <div>
-        <p className="text-xs font-medium tracking-[0.18em] text-muted-foreground uppercase">
-          Esterni
-        </p>
-        <h3 className="mt-2 text-xl font-medium">Scegli il colore</h3>
-        <p className="mt-2 text-sm text-muted-foreground">
-          La vista 3D si aggiorna in tempo reale con la tonalità selezionata.
-        </p>
-        {selectedColor && (
-          <p className="mt-3 text-sm font-medium">{selectedColor.name}</p>
-        )}
-      </div>
+    <section className="space-y-6 text-center">
+      {selectedColor && (
+        <p className="text-sm font-medium">{selectedColor.name}</p>
+      )}
 
       <ul
-        className="flex flex-wrap gap-5"
+        className="flex flex-wrap justify-center gap-5"
         role="radiogroup"
         aria-label="Seleziona colore"
       >
@@ -75,7 +52,7 @@ const ConfigurationColor = ({
                 title={color.name}
                 onClick={() => onChange(color.id)}
                 className={cn(
-                  "group flex flex-col items-center gap-3 rounded-xl p-2 transition-colors",
+                  "group flex flex-col items-center gap-2 rounded-xl p-2 transition-colors",
                   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 )}
               >
@@ -90,7 +67,7 @@ const ConfigurationColor = ({
                 />
                 <span
                   className={cn(
-                    "max-w-28 text-center text-xs leading-tight",
+                    "max-w-24 text-center text-xs leading-tight",
                     isSelected
                       ? "font-medium text-foreground"
                       : "text-muted-foreground"

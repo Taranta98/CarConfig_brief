@@ -374,7 +374,6 @@ export function AdminDashboard() {
 
       <AdminSectionCard
         title="Veicoli"
-        description="Catalogo modelli disponibili nel configuratore"
         open={isOpen("vehicles")}
         onOpenChange={(open) =>
           setOpenSections((prev) => toggleSection(prev, "vehicles", open))
@@ -386,11 +385,9 @@ export function AdminDashboard() {
           isError={vehiclesQuery.isError}
           onRetry={() => vehiclesQuery.refetch()}
           fields={vehicleFields}
-          emptyMessage="Nessun veicolo presente."
+          emptyMessage="Nessun veicolo."
           getTitle={(item) => vehicleLabel(item)}
-          getSubtitle={(item) =>
-            `${item.fuel_type} · da ${formatCurrency(item.base_price)}`
-          }
+          getSubtitle={(item) => formatCurrency(item.base_price)}
           renderLeading={(item) => (
             <img
               src={vehicleImageUrl(item)}
@@ -433,8 +430,7 @@ export function AdminDashboard() {
       </AdminSectionCard>
 
       <AdminSectionCard
-        title="Colori veicolo"
-        description="Colori e immagini per angolazione usate nel configuratore"
+        title="Colori"
         open={isOpen("colors")}
         onOpenChange={(open) =>
           setOpenSections((prev) => toggleSection(prev, "colors", open))
@@ -489,7 +485,6 @@ export function AdminDashboard() {
 
       <AdminSectionCard
         title="Allestimenti"
-        description="Trim e versioni collegate ai veicoli"
         open={isOpen("trims")}
         onOpenChange={(open) =>
           setOpenSections((prev) => toggleSection(prev, "trims", open))
@@ -501,7 +496,7 @@ export function AdminDashboard() {
               id="admin-trim-vehicle-filter"
               value={trimVehicleFilter}
               onChange={setTrimVehicleFilter}
-              placeholder="Filtra per modello (es. Qashqai, Tucson)…"
+              placeholder="Filtra modello…"
             />
           </div>
         </div>
@@ -514,16 +509,11 @@ export function AdminDashboard() {
           fields={trimsFields}
           emptyMessage={
             trimVehicleFilter.trim()
-              ? "Nessun allestimento per questo modello."
-              : "Nessun allestimento presente."
+              ? "Nessun risultato."
+              : "Nessun allestimento."
           }
           getTitle={(item) => item.name}
-          getSubtitle={(item) => {
-            const vehicle = vehicles.find((v) => v.id === item.vehicle_id)
-            return vehicle
-              ? `${vehicleLabel(vehicle)} · ${formatCurrency(item.price)}`
-              : `Veicolo #${item.vehicle_id} · ${formatCurrency(item.price)}`
-          }}
+          getSubtitle={(item) => formatCurrency(item.price)}
           mapItemToForm={(item) => ({
             name: item.name,
             description: item.description,
@@ -551,7 +541,6 @@ export function AdminDashboard() {
 
       <AdminSectionCard
         title="Optional"
-        description="Pacchetti e accessori per veicolo"
         open={isOpen("optionals")}
         onOpenChange={(open) =>
           setOpenSections((prev) => toggleSection(prev, "optionals", open))
@@ -563,7 +552,7 @@ export function AdminDashboard() {
               id="admin-optional-vehicle-filter"
               value={optionalVehicleFilter}
               onChange={setOptionalVehicleFilter}
-              placeholder="Filtra per modello (es. Qashqai, Tucson)…"
+              placeholder="Filtra modello…"
             />
           </div>
         </div>
@@ -576,18 +565,11 @@ export function AdminDashboard() {
           fields={optionalsFields}
           emptyMessage={
             optionalVehicleFilter.trim()
-              ? "Nessun optional per questo modello."
-              : "Nessun optional presente."
+              ? "Nessun risultato."
+              : "Nessun optional."
           }
           getTitle={(item) => item.name}
-          getSubtitle={(item) => {
-            const vehicle = vehicles.find((v) => v.id === item.vehicle_id)
-            const vehicleName = vehicle
-              ? vehicleLabel(vehicle)
-              : `Veicolo #${item.vehicle_id}`
-
-            return `${vehicleName} · ${item.category} · ${formatCurrency(item.price)}`
-          }}
+          getSubtitle={(item) => formatCurrency(item.price)}
           mapItemToForm={(item) => ({
             name: item.name,
             description: item.description,
@@ -624,7 +606,6 @@ export function AdminDashboard() {
 
       <AdminSectionCard
         title="Utenti"
-        description="Account registrati e ruoli"
         open={isOpen("users")}
         onOpenChange={(open) =>
           setOpenSections((prev) => toggleSection(prev, "users", open))
@@ -636,11 +617,9 @@ export function AdminDashboard() {
           isError={usersQuery.isError}
           onRetry={() => usersQuery.refetch()}
           fields={userFields}
-          emptyMessage="Nessun utente presente."
+          emptyMessage="Nessun utente."
           getTitle={(item) => `${item.first_name} ${item.last_name}`}
-          getSubtitle={(item) =>
-            `${item.email} · ${ROLE_LABELS[item.role] ?? item.role}`
-          }
+          getSubtitle={(item) => ROLE_LABELS[item.role] ?? item.role}
           mapItemToForm={(item) => ({
             first_name: item.first_name,
             last_name: item.last_name,

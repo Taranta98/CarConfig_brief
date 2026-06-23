@@ -4,7 +4,7 @@ import { vehicleViewAngleLabels } from "@/features/Vehicles/vehicle.utils"
 import { cn } from "@/lib/utils"
 import { RotateCw } from "lucide-react"
 
-const CONFIGURATOR_BACKGROUND_SRC = "/back_auto.png"
+export const CONFIGURATOR_BACKGROUND_SRC = "/back_auto.png"
 
 type VehicleImageViewerProps = {
   imageUrl: string
@@ -55,54 +55,47 @@ const VehicleImageViewer = ({
       </div>
 
       {angles.length > 0 && (
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-xs font-medium tracking-[0.18em] text-muted-foreground uppercase">
-            Vista veicolo
-          </p>
+        <div className="flex flex-wrap items-center justify-center gap-2">
+          <div
+            className="inline-flex flex-wrap justify-center gap-1 rounded-full border border-border bg-card p-1"
+            role="radiogroup"
+            aria-label="Seleziona angolazione"
+          >
+            {angles.map((angle) => {
+              const isSelected = selectedAngle === angle
 
-          <div className="flex flex-wrap items-center gap-2">
-            <div
-              className="inline-flex flex-wrap gap-1 rounded-full border border-border bg-card p-1"
-              role="radiogroup"
-              aria-label="Seleziona angolazione"
-            >
-              {angles.map((angle) => {
-                const isSelected = selectedAngle === angle
-
-                return (
-                  <button
-                    key={angle}
-                    type="button"
-                    role="radio"
-                    aria-checked={isSelected}
-                    onClick={() => onAngleChange(angle)}
-                    className={cn(
-                      "rounded-full px-3 py-1.5 text-xs font-medium transition-colors",
-                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                      isSelected
-                        ? "bg-foreground text-background"
-                        : "text-muted-foreground hover:text-foreground"
-                    )}
-                  >
-                    {vehicleViewAngleLabels[angle]}
-                  </button>
-                )
-              })}
-            </div>
-
-            {angles.length > 1 && (
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="rounded-full"
-                onClick={rotateNext}
-              >
-                <RotateCw className="size-4" />
-                Ruota
-              </Button>
-            )}
+              return (
+                <button
+                  key={angle}
+                  type="button"
+                  role="radio"
+                  aria-checked={isSelected}
+                  onClick={() => onAngleChange(angle)}
+                  className={cn(
+                    "rounded-full px-3 py-1.5 text-xs font-medium transition-colors",
+                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                    isSelected
+                      ? "bg-foreground text-background"
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  {vehicleViewAngleLabels[angle]}
+                </button>
+              )
+            })}
           </div>
+
+          {angles.length > 1 && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="rounded-full"
+              onClick={rotateNext}
+            >
+              <RotateCw className="size-4" />
+            </Button>
+          )}
         </div>
       )}
     </div>

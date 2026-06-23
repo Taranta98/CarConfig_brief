@@ -134,16 +134,11 @@ const Header = ({ className }: HeaderProps) => {
           <Link
             to="/"
             onClick={handleModelsClick}
-            className="group flex min-w-0 items-center gap-3 outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            className="group flex min-w-0 items-center gap-2.5 outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 sm:gap-3"
           >
-            <Logo className="size-10 shrink-0 sm:size-11" alt="" aria-hidden />
-            <span className="hidden min-w-0 flex-col sm:flex">
-              <span className="truncate text-[15px] font-semibold leading-none tracking-tight">
-                Car Config
-              </span>
-              <span className="mt-1 truncate text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
-                Configuratore online
-              </span>
+            <Logo className="size-9 shrink-0 sm:size-10" alt="" aria-hidden />
+            <span className="truncate text-[13px] font-medium uppercase tracking-[0.1em] text-foreground">
+              CARCONFIG
             </span>
           </Link>
         </div>

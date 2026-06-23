@@ -21,7 +21,7 @@ export type DonutSegment = {
 
 type DonutChartCardProps = {
   title: string
-  description: string
+  description?: string
   config: ChartConfig
   data: DonutSegment[]
   centerValue: string | number
@@ -43,10 +43,10 @@ export function DonutChartCard({
   dataKey = "value",
 }: DonutChartCardProps) {
   return (
-    <Card className="flex w-full flex-col">
-      <CardHeader className="items-center pb-0">
-        <CardTitle>{title}</CardTitle>
-        <CardDescription>{description}</CardDescription>
+    <Card className="flex w-full flex-col border-border/60 shadow-none">
+      <CardHeader className="items-center pb-0 text-center">
+        <CardTitle className="text-base font-medium">{title}</CardTitle>
+        {description && <CardDescription>{description}</CardDescription>}
       </CardHeader>
       <CardContent className="flex-1 pb-0">
         {data.length === 0 ? (

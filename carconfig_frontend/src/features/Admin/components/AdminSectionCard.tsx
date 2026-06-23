@@ -2,7 +2,6 @@ import { ChevronDownIcon } from "lucide-react"
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
@@ -15,7 +14,7 @@ import { cn } from "@/lib/utils"
 
 type AdminSectionCardProps = {
   title: string
-  description: string
+  description?: string
   open: boolean
   onOpenChange: (open: boolean) => void
   children: React.ReactNode
@@ -30,24 +29,28 @@ export function AdminSectionCard({
 }: AdminSectionCardProps) {
   return (
     <Collapsible open={open} onOpenChange={onOpenChange}>
-      <Card className="py-0">
+      <Card className="border-border/60 py-0 shadow-none">
         <CollapsibleTrigger
           render={
             <button
               type="button"
-              className="flex w-full cursor-pointer items-start gap-3 px-6 py-5 text-left transition-colors hover:bg-muted/40"
+              className="flex w-full cursor-pointer items-center gap-3 px-6 py-5 text-left transition-colors hover:bg-muted/40"
             />
           }
         >
-          <div className="min-w-0 flex-1">
-            <CardHeader className="gap-1 p-0">
-              <CardTitle>{title}</CardTitle>
-              <CardDescription>{description}</CardDescription>
+          <div className="min-w-0 flex-1 text-center">
+            <CardHeader className="gap-0 p-0">
+              <CardTitle className="text-base font-medium">{title}</CardTitle>
+              {description && (
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {description}
+                </p>
+              )}
             </CardHeader>
           </div>
           <ChevronDownIcon
             className={cn(
-              "mt-1 size-5 shrink-0 text-muted-foreground transition-transform duration-200",
+              "size-5 shrink-0 text-muted-foreground transition-transform duration-200",
               open && "rotate-180"
             )}
           />

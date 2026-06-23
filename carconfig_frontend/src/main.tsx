@@ -31,7 +31,7 @@ const router = createBrowserRouter([
         element: <HomePage></HomePage>,
       },
       {
-        path: "/configuration",
+        path: "/configuration/:vehicleId?",
         element: <ConfigurationPage></ConfigurationPage>,
       },
       {

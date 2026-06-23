@@ -106,8 +106,8 @@ export function AdminStatsCharts({
 
   if (isError) {
     return (
-      <p className="rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
-        Impossibile caricare le statistiche del pannello admin.
+      <p className="text-center text-sm text-destructive">
+        Impossibile caricare le statistiche.
       </p>
     )
   }
@@ -116,21 +116,19 @@ export function AdminStatsCharts({
     <div className="grid gap-4 lg:grid-cols-2">
       <DonutChartCard
         title="Auto più configurate"
-        description="Modelli con più configurazioni salvate dagli utenti"
         config={vehicleChartConfig}
         data={vehicleChartData}
         centerValue={totalConfigurations}
         centerLabel="Configurazioni"
-        emptyMessage="Nessuna configurazione salvata al momento."
+        emptyMessage="Nessuna configurazione."
       />
       <DonutChartCard
-        title="Utenti iscritti"
-        description="Account registrati nell'applicativo"
+        title="Utenti"
         config={usersChartConfig}
         data={usersChartData}
         centerValue={totalUsers}
         centerLabel="Utenti"
-        emptyMessage="Nessun utente registrato."
+        emptyMessage="Nessun utente."
       />
     </div>
   )

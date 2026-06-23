@@ -1,23 +1,13 @@
 import { useState } from "react"
+import { CONFIGURATOR_BACKGROUND_SRC } from "@/components/VehicleImageViewer"
 import { Button } from "@/components/ui/button"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
-import {
-  Collapsible,
-  CollapsibleContent,
-} from "@/components/ui/collapsible"
-import { Separator } from "@/components/ui/separator"
+import { Card } from "@/components/ui/card"
 import {
   formatCurrency,
+  savedConfigurationPreviewImage,
   vehicleDisplayName,
 } from "@/features/Vehicles/vehicle.utils"
-import { cn } from "@/lib/utils"
-import { ChevronDownIcon, Download, Eye, Trash2 } from "lucide-react"
+import { Download, Trash2 } from "lucide-react"
 import type { SavedConfiguration } from "../configuration.type"
 
 type ConfigurationListCardProps = {
@@ -37,54 +27,57 @@ export function ConfigurationListCard({
   isDownloading = false,
   canDownload = true,
 }: ConfigurationListCardProps) {
-  const [open, setOpen] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
-  const optionalExtras = config.optionals.filter((o) => !o.is_required)
-  const requiredOptionals = config.optionals.filter((o) => o.is_required)
+  const imageUrl = savedConfigurationPreviewImage(config)
+  const subtitle = [config.trim?.name, config.vehicle_color?.name]
+    .filter(Boolean)
+    .join(" · ")
 
   const handleConfirmDelete = () => {
     onDelete(config.id)
   }
 
   return (
-    <Card className="overflow-hidden py-0">
-      <CardHeader className="px-6 py-5">
-        <CardTitle>{vehicleDisplayName(config.vehicle)}</CardTitle>
-        <CardDescription>
-          {config.trim?.name ?? "Allestimento"}
-          {config.vehicle_color ? ` · ${config.vehicle_color.name}` : ""} ·{" "}
-          {new Date(config.created_at).toLocaleDateString("it-IT")}
-        </CardDescription>
-      </CardHeader>
+    <Card className="overflow-hidden border-border/60 py-0 shadow-none transition-shadow hover:shadow-sm">
+      <div className="relative aspect-16/10 overflow-hidden bg-muted/20">
+        <img
+          src={CONFIGURATOR_BACKGROUND_SRC}
+          alt=""
+          aria-hidden
+          className="absolute inset-0 h-full w-full scale-110 object-cover object-center"
+        />
+        <div
+          className="pointer-events-none absolute inset-0 bg-linear-to-t from-black/10 via-transparent to-black/5"
+          aria-hidden
+        />
+        <img
+          src={imageUrl}
+          alt={vehicleDisplayName(config.vehicle)}
+          className="relative z-10 mx-auto h-full w-full object-contain px-6 py-4"
+        />
+      </div>
 
-      <CardContent className="space-y-4 px-6 pb-5">
-        <div className="space-y-1 text-sm">
-          <p>
-            <span className="text-muted-foreground">Optional: </span>
-            {config.optionals.length}
-          </p>
-          <p className="text-lg font-semibold">
-            {formatCurrency(config.total_price)}
-          </p>
-        </div>
+      <div className="px-5 py-5 text-center">
+        <h3 className="font-heading text-lg font-semibold tracking-tight">
+          {vehicleDisplayName(config.vehicle)}
+        </h3>
+
+        {subtitle && (
+          <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>
+        )}
+
+        <p className="mt-3 text-xl font-semibold tracking-tight text-foreground">
+          {formatCurrency(config.total_price)}
+        </p>
 
         {showDeleteConfirm ? (
-          <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4">
-            <p className="font-medium text-foreground">
-              Eliminare questa configurazione?
-            </p>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Stai per eliminare{" "}
-              <span className="font-medium text-foreground">
-                {vehicleDisplayName(config.vehicle)}
-              </span>
-              . L&apos;operazione non può essere annullata.
-            </p>
-            <div className="mt-4 flex flex-wrap gap-2">
+          <div className="mt-5 space-y-3 rounded-lg border border-destructive/20 bg-destructive/5 px-4 py-4">
+            <p className="text-sm font-medium">Eliminare questa configurazione?</p>
+            <div className="flex justify-center gap-2">
               <Button
                 type="button"
                 variant="outline"
-                className="flex-1"
+                size="sm"
                 disabled={isDeleting}
                 onClick={() => setShowDeleteConfirm(false)}
               >
@@ -93,164 +86,40 @@ export function ConfigurationListCard({
               <Button
                 type="button"
                 variant="destructive"
-                className="flex-1"
+                size="sm"
                 disabled={isDeleting}
                 onClick={handleConfirmDelete}
               >
                 <Trash2 className="size-4" />
-                {isDeleting ? "Eliminazione…" : "Elimina definitivamente"}
+                {isDeleting ? "Eliminazione…" : "Elimina"}
               </Button>
             </div>
           </div>
         ) : (
-          <div className="flex flex-col gap-2">
-            <div className="flex flex-wrap gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                className="flex-1"
-                onClick={() => setOpen((current) => !current)}
-              >
-                <Eye className="size-4" />
-                {open ? "Nascondi" : "Visualizza"}
-                <ChevronDownIcon
-                  className={cn(
-                    "size-4 transition-transform duration-200",
-                    open && "rotate-180"
-                  )}
-                />
-              </Button>
-              <Button
-                type="button"
-                variant="secondary"
-                className="flex-1"
-                disabled={!canDownload || isDownloading}
-                onClick={() => onDownload(config)}
-              >
-                <Download className="size-4" />
-                {isDownloading ? "Generazione PDF…" : "Scarica PDF"}
-              </Button>
-            </div>
+          <div className="mt-5 flex items-center justify-center gap-2">
             <Button
               type="button"
-              variant="destructive"
-              className="w-full"
-              onClick={() => {
-                setOpen(false)
-                setShowDeleteConfirm(true)
-              }}
+              variant="outline"
+              size="sm"
+              disabled={!canDownload || isDownloading}
+              onClick={() => onDownload(config)}
+            >
+              <Download className="size-4" />
+              {isDownloading ? "PDF…" : "PDF"}
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="text-muted-foreground hover:text-destructive"
+              onClick={() => setShowDeleteConfirm(true)}
             >
               <Trash2 className="size-4" />
               Elimina
             </Button>
           </div>
         )}
-
-        <Collapsible open={open} onOpenChange={setOpen}>
-          <CollapsibleContent className="overflow-hidden data-open:animate-in data-open:fade-in-0 data-open:slide-in-from-top-2 data-closed:animate-out data-closed:fade-out-0 data-closed:slide-out-to-top-2">
-            <div className="rounded-lg border bg-muted/30 p-4 text-sm">
-              <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
-                Specifiche
-              </p>
-
-              <ul className="mt-3 space-y-2">
-                <li className="flex justify-between gap-2">
-                  <span className="text-muted-foreground">Modello</span>
-                  <span className="text-right font-medium">
-                    {config.vehicle.brand} {config.vehicle.model}
-                  </span>
-                </li>
-                <li className="flex justify-between gap-2">
-                  <span className="text-muted-foreground">Anno</span>
-                  <span className="font-medium">{config.vehicle.year}</span>
-                </li>
-                <li className="flex justify-between gap-2">
-                  <span className="text-muted-foreground">Alimentazione</span>
-                  <span className="font-medium">{config.vehicle.fuel_type}</span>
-                </li>
-                <li className="flex justify-between gap-2">
-                  <span className="text-muted-foreground">Prezzo base</span>
-                  <span className="font-medium">
-                    {formatCurrency(config.vehicle.base_price)}
-                  </span>
-                </li>
-                {config.vehicle_color && (
-                  <li className="flex justify-between gap-2">
-                    <span className="text-muted-foreground">Colore</span>
-                    <span className="flex items-center gap-2 font-medium">
-                      <span
-                        className="size-3 shrink-0 rounded-full border"
-                        style={{ backgroundColor: config.vehicle_color.hex }}
-                      />
-                      {config.vehicle_color.name}
-                    </span>
-                  </li>
-                )}
-                {config.trim && (
-                  <li className="space-y-1">
-                    <div className="flex justify-between gap-2">
-                      <span className="text-muted-foreground">Allestimento</span>
-                      <span className="text-right font-medium">
-                        {config.trim.name}
-                        {config.trim.price > 0 && (
-                          <span className="block text-xs text-muted-foreground">
-                            +{formatCurrency(config.trim.price)}
-                          </span>
-                        )}
-                      </span>
-                    </div>
-                    {config.trim.description && (
-                      <p className="text-xs text-muted-foreground">
-                        {config.trim.description}
-                      </p>
-                    )}
-                  </li>
-                )}
-              </ul>
-
-              {optionalExtras.length > 0 && (
-                <>
-                  <Separator className="my-3" />
-                  <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
-                    Optional
-                  </p>
-                  <ul className="mt-2 space-y-1">
-                    {optionalExtras.map((optional) => (
-                      <li
-                        key={optional.id}
-                        className="flex justify-between gap-2 text-xs"
-                      >
-                        <span>{optional.name}</span>
-                        <span className="shrink-0 font-medium">
-                          {optional.price > 0
-                            ? `+${formatCurrency(optional.price)}`
-                            : "Incluso"}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                </>
-              )}
-
-              {requiredOptionals.length > 0 && (
-                <p className="mt-3 text-xs text-muted-foreground">
-                  {requiredOptionals.length} optional inclusi
-                  nell&apos;allestimento
-                </p>
-              )}
-
-              <Separator className="my-3" />
-
-              <div className="flex items-baseline justify-between">
-                <span className="font-medium">Totale</span>
-                <span className="text-lg font-semibold text-primary">
-                  {formatCurrency(config.total_price)}
-                </span>
-              </div>
-            </div>
-          </CollapsibleContent>
-        </Collapsible>
-      </CardContent>
+      </div>
     </Card>
   )
 }
