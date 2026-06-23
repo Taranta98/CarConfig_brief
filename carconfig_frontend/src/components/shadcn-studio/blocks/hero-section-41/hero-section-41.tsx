@@ -11,7 +11,6 @@ import {
   CarouselContent,
   CarouselItem,
 } from '@/components/ui/carousel'
-import { useAuthStore } from '@/features/Auth/auth.store'
 import type { Vehicle } from '@/features/Vehicles/vehicle.type'
 import {
   vehicleDisplayName,
@@ -37,8 +36,7 @@ const ConfigureButton = ({ className }: { className?: string }) => (
 )
 
 const HeroSection = ({ vehicles }: { vehicles: Vehicle[] }) => {
-  const isLoggedIn = Boolean(useAuthStore((state) => state.token))
-  const configureHref = isLoggedIn ? '/configuration' : '/auth/login'
+  const configureHref = '/configuration'
 
   const [mainApi, setMainApi] = useState<CarouselApi>()
   const [thumbApi, setThumbApi] = useState<CarouselApi>()

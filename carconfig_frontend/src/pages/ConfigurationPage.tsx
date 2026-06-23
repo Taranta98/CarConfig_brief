@@ -20,11 +20,13 @@ import {
 } from "@/features/Vehicles/vehicle.utils"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { isAxiosError } from "axios"
-import { Navigate, useNavigate, useParams } from "react-router"
+import { Navigate, useLocation, useNavigate, useParams } from "react-router"
 import { toast } from "sonner"
+import { authLoginState } from "@/lib/authRedirect"
 
 const ConfigurationPage = () => {
   const navigate = useNavigate()
+  const location = useLocation()
   const { vehicleId: vehicleIdParam } = useParams<{ vehicleId?: string }>()
   const token = useAuthStore((s) => s.token)
   const queryClient = useQueryClient()
@@ -248,6 +250,16 @@ const ConfigurationPage = () => {
           : "Invio email non riuscito"
       )
     }
+  }
+
+  if (!token) {
+    return (
+      <Navigate
+        to="/auth/login"
+        replace
+        state={authLoginState(`${location.pathname}${location.search}`)}
+      />
+    )
   }
 
   if (vehicleIdParam && selectedId === null) {

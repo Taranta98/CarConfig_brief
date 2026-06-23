@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState, type MouseEvent } from 'react'
 
-import { ArrowRight, MenuIcon, MoonIcon, SunIcon } from 'lucide-react'
+import { MenuIcon, MoonIcon, SunIcon } from 'lucide-react'
 
 import Logo from '@/components/Logo'
 import { useTheme } from '@/components/theme-provider'
@@ -165,30 +165,28 @@ const Header = ({ className }: HeaderProps) => {
             <span className="sr-only">Cambia tema</span>
           </Button>
 
-          {!isLoggedIn && (
-            <Button
-              size="sm"
-              className="hidden rounded-full px-4 sm:inline-flex"
-              render={<Link to="/configuration" />}
-              nativeButton={false}
-            >
-              Inizia configurazione
-              <ArrowRight className="size-3.5" />
-            </Button>
-          )}
-
           {isLoggedIn ? (
             <UserMenu />
           ) : (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="hidden rounded-full text-muted-foreground hover:text-foreground sm:inline-flex"
-              render={<Link to="/auth/login" />}
-              nativeButton={false}
-            >
-              Accedi
-            </Button>
+            <>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="hidden rounded-full text-muted-foreground hover:text-foreground sm:inline-flex"
+                render={<Link to="/auth/login" />}
+                nativeButton={false}
+              >
+                Accedi
+              </Button>
+              <Button
+                size="sm"
+                className="hidden rounded-full px-4 sm:inline-flex"
+                render={<Link to="/auth/register" />}
+                nativeButton={false}
+              >
+                Registrati
+              </Button>
+            </>
           )}
 
           <DropdownMenu>
@@ -203,18 +201,6 @@ const Header = ({ className }: HeaderProps) => {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-60">
-              {!isLoggedIn && (
-                <>
-                  <DropdownMenuItem
-                    render={<Link to="/configuration" />}
-                    className="font-medium"
-                  >
-                    Inizia configurazione
-                    <ArrowRight className="ms-auto size-3.5" />
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                </>
-              )}
               {navItems.map((item) => (
                 <DropdownMenuItem
                   key={item.key}
