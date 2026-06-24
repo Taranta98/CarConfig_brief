@@ -3,7 +3,7 @@ import AuthSplitLayout from "@/components/auth/AuthSplitLayout"
 
 const RegisterPage = () => {
   return (
-    <AuthSplitLayout>
+    <AuthSplitLayout contentClassName="max-w-lg">
       <RegisterForm />
     </AuthSplitLayout>
   )

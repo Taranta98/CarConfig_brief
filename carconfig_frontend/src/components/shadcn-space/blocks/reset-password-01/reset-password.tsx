@@ -1,11 +1,5 @@
+import AuthCard from "@/components/auth/AuthCard"
 import { Button } from "@/components/ui/button"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
 import {
   Field,
   FieldDescription,
@@ -21,7 +15,7 @@ import {
 import { AuthService } from "@/features/Auth/auth.service"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { AxiosError } from "axios"
-import { EyeClosed, EyeIcon } from "lucide-react"
+import { EyeClosed, EyeIcon, KeyRound, Loader2 } from "lucide-react"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { Link, useNavigate } from "react-router"
@@ -48,6 +42,9 @@ type ResetPasswordFormProps = {
   email: string
   token: string
 }
+
+const authLinkClass =
+  "font-medium text-foreground underline-offset-4 transition-colors hover:underline"
 
 const ResetPasswordForm = ({ email, token }: ResetPasswordFormProps) => {
   const navigate = useNavigate()
@@ -77,102 +74,107 @@ const ResetPasswordForm = ({ email, token }: ResetPasswordFormProps) => {
   }
 
   return (
-    <Card className="relative w-full gap-6 border border-border/60 bg-card px-6 py-8 shadow-lg sm:p-10">
-      <CardHeader className="gap-2 p-0 text-center">
-        <CardTitle className="text-2xl font-medium text-card-foreground">
-          Reimposta la password
-        </CardTitle>
-        <CardDescription className="text-sm font-normal text-muted-foreground">
-          Scegli una nuova password per il tuo account.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="p-0">
-        <form onSubmit={form.handleSubmit(onSubmit)}>
-          <FieldGroup className="gap-6">
-            <input type="hidden" {...form.register("email")} />
-            <input type="hidden" {...form.register("token")} />
+    <AuthCard
+      title="Nuova password"
+      description="Scegli una password sicura per il tuo account."
+      icon={
+        <div className="flex size-14 items-center justify-center rounded-full bg-muted text-muted-foreground">
+          <KeyRound className="size-6" />
+        </div>
+      }
+    >
+      <form onSubmit={form.handleSubmit(onSubmit)}>
+        <FieldGroup className="gap-6">
+          <input type="hidden" {...form.register("email")} />
+          <input type="hidden" {...form.register("token")} />
 
-            <div className="flex flex-col gap-4">
-              <Field className="gap-1.5">
-                <FieldLabel
-                  htmlFor="password"
-                  className="text-sm font-normal text-muted-foreground"
-                >
-                  Nuova password*
-                </FieldLabel>
-                <InputGroup className="bg-white">
-                  <InputGroupInput
-                    id="password"
-                    placeholder="********"
-                    type={showPsw ? "text" : "password"}
-                    {...form.register("password")}
-                    required
-                  />
-                  <InputGroupAddon
-                    className="cursor-pointer"
-                    align="inline-end"
-                    onClick={() => setShowPsw(!showPsw)}
-                  >
-                    {showPsw ? <EyeClosed /> : <EyeIcon />}
-                  </InputGroupAddon>
-                </InputGroup>
-                <FieldError>
-                  {form.formState.errors.password?.message}
-                </FieldError>
-              </Field>
-
-              <Field className="gap-1.5">
-                <FieldLabel
-                  htmlFor="password_confirmation"
-                  className="text-sm font-normal text-muted-foreground"
-                >
-                  Conferma password*
-                </FieldLabel>
-                <InputGroup className="bg-white">
-                  <InputGroupInput
-                    id="password_confirmation"
-                    placeholder="********"
-                    type={showPswConfirmation ? "text" : "password"}
-                    {...form.register("password_confirmation")}
-                    required
-                  />
-                  <InputGroupAddon
-                    className="cursor-pointer"
-                    align="inline-end"
-                    onClick={() =>
-                      setShowPswConfirmation(!showPswConfirmation)
-                    }
-                  >
-                    {showPswConfirmation ? <EyeClosed /> : <EyeIcon />}
-                  </InputGroupAddon>
-                </InputGroup>
-                <FieldError>
-                  {form.formState.errors.password_confirmation?.message}
-                </FieldError>
-              </Field>
-            </div>
-
-            <Field className="gap-4">
-              <Button
-                type="submit"
-                size="lg"
-                className="rounded-lg h-10 hover:bg-primary/80 cursor-pointer"
+          <div className="flex flex-col gap-4">
+            <Field className="gap-1.5">
+              <FieldLabel
+                htmlFor="password"
+                className="text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground"
               >
-                Aggiorna password
-              </Button>
-              <FieldDescription className="text-center text-sm font-normal text-muted-foreground">
-                <Link
-                  to="/auth/login"
-                  className="font-medium text-card-foreground no-underline!"
+                Nuova password
+              </FieldLabel>
+              <InputGroup className="h-10 bg-background">
+                <InputGroupInput
+                  id="password"
+                  placeholder="Minimo 8 caratteri"
+                  autoComplete="new-password"
+                  type={showPsw ? "text" : "password"}
+                  {...form.register("password")}
+                  required
+                />
+                <InputGroupAddon
+                  className="cursor-pointer text-muted-foreground hover:text-foreground"
+                  align="inline-end"
+                  onClick={() => setShowPsw(!showPsw)}
                 >
-                  Torna al login
-                </Link>
-              </FieldDescription>
+                  {showPsw ? <EyeClosed /> : <EyeIcon />}
+                </InputGroupAddon>
+              </InputGroup>
+              <FieldError>
+                {form.formState.errors.password?.message}
+              </FieldError>
             </Field>
-          </FieldGroup>
-        </form>
-      </CardContent>
-    </Card>
+
+            <Field className="gap-1.5">
+              <FieldLabel
+                htmlFor="password_confirmation"
+                className="text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground"
+              >
+                Conferma password
+              </FieldLabel>
+              <InputGroup className="h-10 bg-background">
+                <InputGroupInput
+                  id="password_confirmation"
+                  placeholder="Ripeti la password"
+                  autoComplete="new-password"
+                  type={showPswConfirmation ? "text" : "password"}
+                  {...form.register("password_confirmation")}
+                  required
+                />
+                <InputGroupAddon
+                  className="cursor-pointer text-muted-foreground hover:text-foreground"
+                  align="inline-end"
+                  onClick={() =>
+                    setShowPswConfirmation(!showPswConfirmation)
+                  }
+                >
+                  {showPswConfirmation ? <EyeClosed /> : <EyeIcon />}
+                </InputGroupAddon>
+              </InputGroup>
+              <FieldError>
+                {form.formState.errors.password_confirmation?.message}
+              </FieldError>
+            </Field>
+          </div>
+
+          <Field className="gap-4">
+            <Button
+              type="submit"
+              size="lg"
+              disabled={form.formState.isSubmitting}
+              className="h-11 w-full rounded-full font-medium"
+            >
+              {form.formState.isSubmitting ? (
+                <>
+                  <Loader2 className="size-4 animate-spin" />
+                  Aggiornamento…
+                </>
+              ) : (
+                "Aggiorna password"
+              )}
+            </Button>
+            <FieldDescription className="text-center text-sm text-muted-foreground">
+              <Link to="/auth/login" className={authLinkClass}>
+                Torna al login
+              </Link>
+            </FieldDescription>
+          </Field>
+        </FieldGroup>
+      </form>
+    </AuthCard>
   )
 }
 

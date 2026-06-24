@@ -1,26 +1,27 @@
-import { useAuthStore } from '@/features/Auth/auth.store'
-import React, { useEffect } from 'react'
-import { Outlet, useNavigate } from 'react-router';
-
+import { useAuthStore } from "@/features/Auth/auth.store"
+import { useEffect } from "react"
+import { Outlet, useNavigate } from "react-router"
+import { Toaster } from "sonner"
 
 const AuthLayout = () => {
+  const navigate = useNavigate()
+  const token = useAuthStore((state) => state.token)
 
-    const router = useNavigate();;
-    const token = useAuthStore.getState().token;
-    
-   useEffect(() => {
-    if(token) {
-        router('/');
+  useEffect(() => {
+    if (token) {
+      navigate("/", { replace: true })
     }
-   }, []);
+  }, [navigate, token])
 
-   if(token) {
-    return}
-    
+  if (token) {
+    return null
+  }
+
   return (
-    <div>
-        <Outlet></Outlet>
-    </div>
+    <>
+      <Outlet />
+      <Toaster position="top-center" />
+    </>
   )
 }
 

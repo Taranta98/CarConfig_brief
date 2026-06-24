@@ -171,6 +171,14 @@
   .badge-success {
     @apply inline-flex rounded-full border border-success/25 bg-success/10 px-2.5 py-0.5 text-xs font-medium text-success;
   }
+
+  .auth-input {
+    @apply h-10 bg-background;
+  }
+
+  .auth-submit {
+    @apply h-11 w-full rounded-full font-medium;
+  }
 }
 
 /* Toast success — verde salvia desaturato al posto del verde semaforo */
