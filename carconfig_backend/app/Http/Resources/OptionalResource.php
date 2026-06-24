@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Support\AssetUrl;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -23,7 +24,7 @@ class OptionalResource extends JsonResource
             'is_required' => $this->is_required,
             'vehicle_id' => $this->vehicle_id,
             'vehicle' => new VehicleResource($this->whenLoaded('vehicle')),
-            'image' => $this->image
+            'image' => AssetUrl::resolve($this->image) ?? $this->image,
         ];
     }
 }
