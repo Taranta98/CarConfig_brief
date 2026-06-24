@@ -1,0 +1,42 @@
+# CarConfig — Render Blueprint (backend Laravel)
+#
+# Root Directory (dashboard / blueprint): carconfig_backend
+#
+# Nota: Render non offre un runtime PHP nativo. Per un deploy funzionante usa Docker
+# (vedi DEPLOY.md e https://render.com/docs/deploy-php-laravel-docker).
+# I comandi build/start sotto sono quelli da eseguire in build/deploy anche con Docker.
+
+databases:
+  - name: carconfig-db
+    databaseName: carconfig
+    user: carconfig
+
+services:
+  - type: web
+    name: carconfig-api
+    rootDir: carconfig_backend
+    buildCommand: composer install --no-dev --optimize-autoloader && php artisan config:cache && php artisan route:cache && php artisan migrate --force && php artisan storage:link
+    startCommand: php artisan serve --host=0.0.0.0 --port=$PORT
+    healthCheckPath: /up
+    buildFilter:
+      paths:
+        - carconfig_backend/**
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: false
+      - key: APP_KEY
+        generateValue: true
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DB_URL
+        fromDatabase:
+          name: carconfig-db
+          property: connectionString
+      - key: APP_URL
+        sync: false
+      - key: FRONTEND_URL
+        sync: false
+      - key: LOG_CHANNEL
+        value: stderr
