@@ -18,8 +18,8 @@ return [
 
     'allowed_origins' => array_values(array_filter([
         env('FRONTEND_URL'),
-        app()->environment('local') ? 'http://localhost:5173' : null,
-        app()->environment('local') ? 'http://127.0.0.1:5173' : null,
+        env('APP_ENV', 'production') === 'local' ? 'http://localhost:5173' : null,
+        env('APP_ENV', 'production') === 'local' ? 'http://127.0.0.1:5173' : null,
     ])),
 
     'allowed_origins_patterns' => [],
