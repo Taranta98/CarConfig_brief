@@ -28,7 +28,12 @@ Backend su **Render** (Laravel) e frontend su **Vercel** (React/Vite), stesso re
 
 ### Runtime PHP su Render
 
-Render **non** supporta un runtime PHP nativo. Per Laravel in produzione usa **Docker** ([guida ufficiale](https://render.com/docs/deploy-php-laravel-docker)): i comandi sopra vanno eseguiti nel build/deploy script del container. Il file `render.yaml` in root documenta la configurazione target e può creare il database PostgreSQL via Blueprint.
+Render **non** supporta un runtime PHP nativo. Il repo include `carconfig_backend/Dockerfile` per il deploy Docker.
+
+Impostazioni Render:
+- **Root Directory:** `carconfig_backend`
+- **Dockerfile Path:** `./Dockerfile`
+- **Runtime:** Docker
 
 ### Variabili d’ambiente (Render)
 
