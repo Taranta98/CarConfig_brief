@@ -215,11 +215,10 @@ export function AdminCrudPanel<T extends { id: number }>({
                           ? ""
                           : String(values[field.name] ?? "")
                       }
-                      file={
-                        values[field.name] instanceof File
-                          ? values[field.name]
-                          : null
-                      }
+                      file={(() => {
+                        const fieldValue = values[field.name]
+                        return fieldValue instanceof File ? fieldValue : null
+                      })()}
                       placeholder={field.placeholder}
                       onValueChange={(value) => setField(field.name, value)}
                       onFileChange={(file) => setField(field.name, file)}

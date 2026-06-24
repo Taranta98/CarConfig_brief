@@ -23,7 +23,13 @@ const categoryLabels: Record<string, string> = {
 }
 
 function groupOptionalsByCategory(optionals: Optional[]) {
-  const grouped = optionalCategories
+  type GroupedOptional = {
+    category: OptionalCategory | "Altri"
+    label: string
+    items: Optional[]
+  }
+
+  const grouped: GroupedOptional[] = optionalCategories
     .map((category) => ({
       category,
       label: categoryLabels[category] ?? category,

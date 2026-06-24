@@ -9,7 +9,7 @@ import {
 import { AuthService } from "@/features/Auth/auth.service"
 import { useAuthStore } from "@/features/Auth/auth.store"
 import { getUserInitials } from "@/lib/userInitials"
-import { LogOutIcon, SettingsIcon, LayoutListIcon } from "lucide-react"
+import { LogOutIcon, SettingsIcon } from "lucide-react"
 import { Link, useNavigate } from "react-router"
 
 const UserMenu = () => {

@@ -1,11 +1,6 @@
-export type FormDataValue =
-  | string
-  | number
-  | boolean
-  | File
-  | null
-  | undefined
-  | Record<string, FormDataValue>
+type FormDataScalar = string | number | boolean | File | null | undefined
+
+export type FormDataValue = FormDataScalar | Record<string, FormDataScalar | Record<string, FormDataScalar>>
 
 function appendValue(
   formData: FormData,
