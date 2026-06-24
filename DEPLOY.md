@@ -18,7 +18,7 @@ Backend su **Render** (Laravel) e frontend su **Vercel** (React/Vite), stesso re
    - **Root Directory:** `carconfig_backend`
    - **Build Command:**
      ```bash
-     composer install --no-dev --optimize-autoloader && php artisan config:cache && php artisan route:cache && php artisan migrate --force && php artisan storage:link
+     php artisan config:cache && php artisan route:cache && php artisan migrate --force && php artisan storage:link
      ```
    - **Start Command:**
      ```bash
