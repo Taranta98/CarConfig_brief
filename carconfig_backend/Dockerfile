@@ -16,8 +16,8 @@ COPY . .
 
 RUN composer install --no-dev --optimize-autoloader --no-interaction --no-scripts \
     && composer dump-autoload --optimize --no-interaction \
-    && mkdir -p storage/framework/{cache,sessions,views} storage/logs bootstrap/cache \
-    && chown -R www-data:www-data storage bootstrap/cache
+    && mkdir -p storage/app/public storage/framework/{cache,sessions,views} storage/logs bootstrap/cache \
+    && chmod -R ug+rwX storage bootstrap/cache
 
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
