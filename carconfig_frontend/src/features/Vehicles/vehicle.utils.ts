@@ -12,13 +12,6 @@ import { VEHICLE_VIEW_ANGLES } from "./vehicle.type"
 
 export { formatCurrency, formatPrice } from "@/lib/formatPrice"
 
-const fallbackImages: Record<number, string> = {
-  1: "/qashqai-lato.png",
-  2: "/juke-lato.png",
-  3: "/kona-lato.png",
-  4: "/tucson-lato.png",
-}
-
 export function vehicleDisplayName(vehicle: Pick<Vehicle, "brand" | "model">): string {
   const shortModel = vehicle.model.split(" ")[0]
   return `${vehicle.brand} ${shortModel}`
@@ -26,7 +19,7 @@ export function vehicleDisplayName(vehicle: Pick<Vehicle, "brand" | "model">): s
 
 export function vehicleImageUrl(vehicle: Pick<Vehicle, "id" | "image">): string {
   const fromApi = resolveStorageUrl(vehicle.image)
-  return fromApi || fallbackImages[vehicle.id] || "/Logo-removebg-preview.png"
+  return fromApi || "/back_auto.png"
 }
 
 export const DEFAULT_VEHICLE_VIEW_ANGLE: VehicleViewAngle = "front"

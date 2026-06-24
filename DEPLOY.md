@@ -18,7 +18,7 @@ Backend su **Render** (Laravel) e frontend su **Vercel** (React/Vite), stesso re
    - **Root Directory:** `carconfig_backend`
    - **Build Command:**
      ```bash
-     php artisan package:discover --ansi && php artisan config:clear && php artisan route:clear && php artisan config:cache && php artisan route:cache && php artisan migrate --force && php artisan storage:link
+     php artisan package:discover --ansi && php artisan config:clear && php artisan route:clear && php artisan config:cache && php artisan route:cache && php artisan migrate --force && php artisan storage:link && php artisan vehicle-colors:sync-preview-images
      ```
    - **Start Command:**
      ```bash

@@ -42,39 +42,15 @@ class VehicleColorSeeder extends Seeder
         ];
     }
 
-    /**
-     * @return array<string, array{front: string, rear: string}>
-     */
-    protected function vehicleViews(string $frontendUrl): array
-    {
-        return [
-            'Qashqai MY24' => [
-                'front' => "{$frontendUrl}/qashqai-lato.png",
-                'rear' => "{$frontendUrl}/qashqai-lato.png",
-            ],
-            'Juke MY24' => [
-                'front' => "{$frontendUrl}/juke-lato.png",
-                'rear' => "{$frontendUrl}/juke-lato.png",
-            ],
-            'Kona EV' => [
-                'front' => "{$frontendUrl}/kona-lato.png",
-                'rear' => "{$frontendUrl}/kona-lato.png",
-            ],
-            'Tucson HEV' => [
-                'front' => "{$frontendUrl}/tucson-lato.png",
-                'rear' => "{$frontendUrl}/tucson-lato.png",
-            ],
-        ];
-    }
-
     public function run(): void
     {
-        $frontendUrl = rtrim((string) config('app.frontend_url'), '/');
+        $vehicles = Vehicle::query()
+            ->whereIn('model', ['Qashqai MY24', 'Juke MY24', 'Kona EV', 'Tucson HEV'])
+            ->get()
+            ->keyBy('model');
 
-        foreach ($this->vehicleViews($frontendUrl) as $model => $views) {
-            $vehicle = Vehicle::query()->where('model', $model)->first();
-
-            if ($vehicle === null) {
+        foreach ($vehicles as $vehicle) {
+            if ($vehicle->image === null || $vehicle->image === '') {
                 continue;
             }
 
@@ -87,7 +63,7 @@ class VehicleColorSeeder extends Seeder
                 foreach (VehicleViewAngle::values() as $angle) {
                     $color->images()->create([
                         'angle' => $angle,
-                        'path' => $views[$angle],
+                        'path' => $vehicle->image,
                     ]);
                 }
             }
