@@ -9,10 +9,26 @@ export async function uploadImageToBlob(file: File, prefix: string): Promise<str
   formData.append("file", file)
   formData.append("prefix", prefix)
 
-  const uploadResponse = await fetch("/api/blob/upload", {
-    method: "POST",
-    body: formData,
-  })
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), 60_000)
+
+  let uploadResponse: Response
+
+  try {
+    uploadResponse = await fetch("/api/blob/upload", {
+      method: "POST",
+      body: formData,
+      signal: controller.signal,
+    })
+  } catch (error) {
+    if (error instanceof Error && error.name === "AbortError") {
+      throw new Error("Upload Blob scaduto: la function Vercel non ha risposto.")
+    }
+
+    throw error
+  } finally {
+    clearTimeout(timeout)
+  }
 
   if (!uploadResponse.ok) {
     const errorBody = await uploadResponse.text()

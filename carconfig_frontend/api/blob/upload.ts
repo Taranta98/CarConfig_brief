@@ -1,45 +1,99 @@
+import type { VercelRequest, VercelResponse } from "@vercel/node"
 import { put } from "@vercel/blob"
+import Busboy from "busboy"
 
-export default async function handler(request: Request): Promise<Response> {
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+}
+
+type ParsedUpload = {
+  prefix: string
+  filename: string
+  contentType: string
+  buffer: Buffer
+}
+
+function parseMultipart(request: VercelRequest): Promise<ParsedUpload> {
+  return new Promise((resolve, reject) => {
+    const busboy = Busboy({ headers: request.headers })
+    let prefix = ""
+    let filename = "image"
+    let contentType = "application/octet-stream"
+    const chunks: Buffer[] = []
+
+    busboy.on("field", (name, value) => {
+      if (name === "prefix") {
+        prefix = value
+      }
+    })
+
+    busboy.on("file", (_name, file, info) => {
+      filename = info.filename || "image"
+      contentType = info.mimeType || "application/octet-stream"
+
+      file.on("data", (chunk: Buffer) => {
+        chunks.push(chunk)
+      })
+    })
+
+    busboy.on("error", reject)
+
+    busboy.on("finish", () => {
+      if (!prefix.trim()) {
+        reject(new Error("Missing prefix"))
+        return
+      }
+
+      const buffer = Buffer.concat(chunks)
+
+      if (buffer.length === 0) {
+        reject(new Error("Empty file"))
+        return
+      }
+
+      resolve({
+        prefix,
+        filename,
+        contentType,
+        buffer,
+      })
+    })
+
+    request.pipe(busboy)
+  })
+}
+
+export default async function handler(
+  request: VercelRequest,
+  response: VercelResponse
+) {
   if (request.method !== "POST") {
-    return Response.json({ error: "Method Not Allowed" }, { status: 405 })
+    return response.status(405).json({ error: "Method Not Allowed" })
   }
 
   const token = process.env.BLOB_READ_WRITE_TOKEN
 
   if (!token) {
-    return Response.json({ error: "Missing BLOB_READ_WRITE_TOKEN" }, { status: 500 })
+    return response.status(500).json({ error: "Missing BLOB_READ_WRITE_TOKEN" })
   }
 
   try {
-    const formData = await request.formData()
-    const file = formData.get("file")
-    const prefix = formData.get("prefix")
-
-    if (!(file instanceof File)) {
-      return Response.json({ error: "Missing file" }, { status: 400 })
-    }
-
-    if (typeof prefix !== "string" || prefix.trim() === "") {
-      return Response.json({ error: "Missing prefix" }, { status: 400 })
-    }
-
-    if (file.size === 0) {
-      return Response.json({ error: "Empty file" }, { status: 400 })
-    }
-
-    const safeName = file.name?.trim() ? file.name.trim() : "image"
+    const { prefix, filename, contentType, buffer } = await parseMultipart(request)
+    const safeName = filename.trim() || "image"
     const pathname = `${prefix.replace(/^\/+|\/+$/g, "")}/${safeName}`
 
-    const blob = await put(pathname, file, {
+    const blob = await put(pathname, buffer, {
       access: "private",
       token,
+      contentType,
       addRandomSuffix: true,
     })
 
-    return Response.json({ url: blob.url })
+    return response.status(200).json({ url: blob.url })
   } catch (error) {
     const message = error instanceof Error ? error.message : "Upload failed"
-    return Response.json({ error: message }, { status: 400 })
+    return response.status(400).json({ error: message })
   }
 }
