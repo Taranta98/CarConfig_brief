@@ -38,7 +38,13 @@ export default async function handler(request: VercelRequest, response: VercelRe
     return response.status(400).json({ error: "Missing pathname" })
   }
 
-  const result = await get(pathname, { access: "private" })
+  const token = process.env.BLOB_READ_WRITE_TOKEN
+
+  if (!token) {
+    return response.status(500).json({ error: "Missing BLOB_READ_WRITE_TOKEN" })
+  }
+
+  const result = await get(pathname, { access: "private", token })
 
   if (!result || result.statusCode !== 200) {
     return response.status(404).send("Not found")
