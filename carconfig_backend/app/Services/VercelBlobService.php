@@ -5,6 +5,7 @@ namespace App\Services;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class VercelBlobService
@@ -41,6 +42,14 @@ class VercelBlobService
             $response->throw();
         } catch (RequestException $e) {
             $body = $e->response?->body();
+            Log::warning('Vercel Blob upload failed', [
+                'status' => $e->response?->status(),
+                'base_url' => $baseUrl,
+                'pathname' => $pathname,
+                'content_type' => $file->getMimeType(),
+                'size' => $file->getSize(),
+                'response' => is_string($body) ? Str::limit($body, 2000) : null,
+            ]);
             throw new \RuntimeException('Vercel Blob upload failed.'.($body ? " {$body}" : ''), previous: $e);
         }
 
