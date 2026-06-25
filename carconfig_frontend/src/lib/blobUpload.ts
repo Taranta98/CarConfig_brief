@@ -5,7 +5,7 @@ export async function uploadImageToBlob(file: File, prefix: string): Promise<str
   const pathname = `${prefix.replace(/^\/+|\/+$/g, "")}/${safeName}`
 
   const blob = await upload(pathname, file, {
-    access: "public",
+    access: "private",
     handleUploadUrl: "/api/blob/upload",
   })
 

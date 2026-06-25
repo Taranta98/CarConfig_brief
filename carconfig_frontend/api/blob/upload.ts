@@ -9,7 +9,10 @@ export default async function handler(
     return response.status(405).json({ error: "Method Not Allowed" })
   }
 
-  const body = request.body
+  const body =
+    typeof request.body === "string"
+      ? (JSON.parse(request.body) as unknown)
+      : (request.body as unknown)
 
   try {
     const jsonResponse = await handleUpload({

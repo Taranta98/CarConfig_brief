@@ -53,16 +53,16 @@ export function vehicleColorImageUrl(
 ): string {
   if (color) {
     const direct = color.images[angle]
-    if (direct) return direct
+    if (direct) return resolveStorageUrl(direct)
 
     const front = color.images.front
-    if (front) return front
+    if (front) return resolveStorageUrl(front)
 
     const firstAvailable = angles
       .map((item) => color.images[item])
       .find((url) => Boolean(url))
 
-    if (firstAvailable) return firstAvailable
+    if (firstAvailable) return resolveStorageUrl(firstAvailable)
   }
 
   if (fallbackVehicle) {
