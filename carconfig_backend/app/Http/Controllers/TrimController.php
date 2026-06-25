@@ -6,12 +6,13 @@ use App\Http\Requests\TrimRequest\StoreTrimRequest;
 use App\Http\Requests\TrimRequest\UpdateTrimRequest;
 use App\Http\Resources\TrimResource;
 use App\Models\Trim;
+use App\Services\VercelBlobService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 
 class TrimController extends Controller
 {
-    public function index(Request $request) {
+    public function index(Request $request)
+    {
         $query = Trim::query()->orderBy('price');
 
         if ($request->filled('vehicle_id')) {
@@ -21,30 +22,33 @@ class TrimController extends Controller
         return TrimResource::collection($query->get());
     }
 
-    public function store(StoreTrimRequest $request) {
+    public function store(StoreTrimRequest $request)
+    {
         $trim = Trim::create($request->validated());
 
         return (new TrimResource($trim))->response()->setStatusCode(201);
     }
 
-    public function show(Trim $trim) {
+    public function show(Trim $trim)
+    {
         return new TrimResource($trim);
     }
 
-    public function update(UpdateTrimRequest $request, Trim $trim) {
+    public function update(UpdateTrimRequest $request, Trim $trim)
+    {
 
         $trim->update($request->validated());
+
         return new TrimResource($trim->fresh());
     }
 
-    public function destroy(Trim $trim) {
+    public function destroy(Trim $trim, VercelBlobService $blob)
+    {
         $imagePath = $trim->img;
 
         $trim->delete();
 
-        if ($imagePath) {
-            Storage::disk('public')->delete($imagePath);
-        }
+        $blob->deleteIfBlobUrl($imagePath);
 
         return response()->json([
             'message' => 'Trim deleted successfully',

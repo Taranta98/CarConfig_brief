@@ -8,13 +8,14 @@ use App\Http\Requests\VehicleColorRequest\UpdateVehicleColorRequest;
 use App\Http\Resources\VehicleColorResource;
 use App\Models\Vehicle;
 use App\Models\VehicleColor;
+use App\Services\VercelBlobService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 
 class VehicleColorController extends Controller
 {
-    public function index(Vehicle $vehicle) {
+    public function index(Vehicle $vehicle)
+    {
         $colors = $vehicle->colors()
             ->with('images')
             ->orderBy('sort_order')
@@ -23,11 +24,12 @@ class VehicleColorController extends Controller
         return VehicleColorResource::collection($colors);
     }
 
-    public function store(StoreVehicleColorRequest $request, Vehicle $vehicle) {
-        $uploadedPaths = [];
+    public function store(StoreVehicleColorRequest $request, Vehicle $vehicle, VercelBlobService $blob)
+    {
+        $uploadedUrls = [];
 
         try {
-            $color = DB::transaction(function () use ($request, $vehicle, &$uploadedPaths) {
+            $color = DB::transaction(function () use ($request, $vehicle, $blob, &$uploadedUrls) {
                 $color = $vehicle->colors()->create([
                     'code' => $request->string('code')->toString(),
                     'name' => $request->string('name')->toString(),
@@ -35,7 +37,7 @@ class VehicleColorController extends Controller
                     'sort_order' => $request->integer('sort_order', 0),
                 ]);
 
-                $uploadedPaths = $this->syncImages($color, $request);
+                $uploadedUrls = $this->syncImages($color, $request, $blob);
 
                 return $color->load('images');
             });
@@ -45,24 +47,26 @@ class VehicleColorController extends Controller
                 'data' => new VehicleColorResource($color),
             ], 201);
         } catch (\Throwable $th) {
-            foreach ($uploadedPaths as $path) {
-                Storage::disk('public')->delete($path);
+            foreach ($uploadedUrls as $url) {
+                $blob->deleteIfBlobUrl($url);
             }
             throw $th;
         }
     }
 
-    public function show(VehicleColor $vehicleColor) {
+    public function show(VehicleColor $vehicleColor)
+    {
         $vehicleColor->load('images');
 
         return new VehicleColorResource($vehicleColor);
     }
 
-    public function update(UpdateVehicleColorRequest $request, VehicleColor $vehicleColor) {
-        $uploadedPaths = [];
+    public function update(UpdateVehicleColorRequest $request, VehicleColor $vehicleColor, VercelBlobService $blob)
+    {
+        $uploadedUrls = [];
 
         try {
-            $color = DB::transaction(function () use ($request, $vehicleColor, &$uploadedPaths) {
+            $color = DB::transaction(function () use ($request, $vehicleColor, $blob, &$uploadedUrls) {
                 $vehicleColor->update($request->safe()->only([
                     'code',
                     'name',
@@ -71,7 +75,7 @@ class VehicleColorController extends Controller
                 ]));
 
                 if ($request->has('images') || $this->hasImageFiles($request)) {
-                    $uploadedPaths = $this->syncImages($vehicleColor, $request);
+                    $uploadedUrls = $this->syncImages($vehicleColor, $request, $blob);
                 }
 
                 return $vehicleColor->fresh(['images']);
@@ -82,14 +86,15 @@ class VehicleColorController extends Controller
                 'data' => new VehicleColorResource($color),
             ]);
         } catch (\Throwable $th) {
-            foreach ($uploadedPaths as $path) {
-                Storage::disk('public')->delete($path);
+            foreach ($uploadedUrls as $url) {
+                $blob->deleteIfBlobUrl($url);
             }
             throw $th;
         }
     }
 
-    public function destroy(VehicleColor $vehicleColor) {
+    public function destroy(VehicleColor $vehicleColor)
+    {
         $vehicleColor->delete();
 
         return response()->json([
@@ -100,22 +105,19 @@ class VehicleColorController extends Controller
     /**
      * @return list<string>
      */
-    protected function syncImages(VehicleColor $color, Request $request): array
+    protected function syncImages(VehicleColor $color, Request $request, VercelBlobService $blob): array
     {
-        $uploadedPaths = [];
+        $uploadedUrls = [];
 
         foreach (VehicleViewAngle::values() as $angle) {
             $fileKey = "images.{$angle}";
 
             if ($request->hasFile($fileKey)) {
-                $path = $request->file($fileKey)->store(
-                    "vehicle-colors/{$color->vehicle_id}",
-                    'public'
-                );
-                $uploadedPaths[] = $path;
+                $url = $blob->uploadImage($request->file($fileKey), "vehicle-colors/{$color->vehicle_id}");
+                $uploadedUrls[] = $url;
                 $color->images()->updateOrCreate(
                     ['angle' => $angle],
-                    ['path' => $path]
+                    ['path' => $url]
                 );
 
                 continue;
@@ -137,7 +139,7 @@ class VehicleColorController extends Controller
             );
         }
 
-        return $uploadedPaths;
+        return $uploadedUrls;
     }
 
     protected function hasImageFiles(Request $request): bool

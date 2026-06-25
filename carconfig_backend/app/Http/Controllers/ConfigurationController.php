@@ -59,7 +59,7 @@ class ConfigurationController extends Controller
         $config->update(['total_price' => $this->configurationTotal($config)]);
         $config = $this->getConfiguration($config->id);
 
-        return new ConfigurationResource($config);
+        return (new ConfigurationResource($config))->response()->setStatusCode(201);
     }
 
     public function show(Request $request, Configuration $configuration, ConfigurationStalePriceService $stalePriceService)

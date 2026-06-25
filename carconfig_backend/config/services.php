@@ -35,4 +35,9 @@ return [
         ],
     ],
 
+    'vercel_blob' => [
+        'base_url' => env('VERCEL_BLOB_BASE_URL', 'https://blob.vercel-storage.com'),
+        'read_write_token' => env('BLOB_READ_WRITE_TOKEN'),
+    ],
+
 ];
