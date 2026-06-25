@@ -1,5 +1,6 @@
-import { buildFormData, hasFileValues, type FormDataValue } from "@/lib/formData"
+import type { FormDataValue } from "@/lib/formData"
 import { http, type LaravelListPayload, type LaravelResourcePayload } from "@/lib/http"
+import { uploadImageToBlob } from "@/lib/blobUpload"
 import type { VehicleColor, VehicleColorPayload } from "./vehicle.type"
 
 type VehicleColorWritePayload = VehicleColorPayload & {
@@ -14,11 +15,17 @@ export class VehicleColorService {
   }
 
   static async create(vehicleId: number, data: VehicleColorWritePayload) {
-    if (hasFileValues(data as Record<string, FormDataValue>)) {
-      return http.post<LaravelResourcePayload<VehicleColor>>(
-        `/vehicles/${vehicleId}/colors`,
-        buildFormData(data as Record<string, FormDataValue>)
-      )
+    if (data.images) {
+      const images: Record<string, FormDataValue> = { ...data.images }
+      for (const [angle, value] of Object.entries(images)) {
+        if (value instanceof File) {
+          images[angle] = await uploadImageToBlob(
+            value,
+            `vehicle-colors/${vehicleId}`
+          )
+        }
+      }
+      data = { ...data, images }
     }
 
     return http.post<LaravelResourcePayload<VehicleColor>>(
@@ -28,11 +35,14 @@ export class VehicleColorService {
   }
 
   static async update(id: number, data: Partial<VehicleColorWritePayload>) {
-    if (hasFileValues(data as Record<string, FormDataValue>)) {
-      return http.post<LaravelResourcePayload<VehicleColor>>(
-        `/vehicle-colors/${id}`,
-        buildFormData(data as Record<string, FormDataValue>, "PUT")
-      )
+    if (data.images) {
+      const images: Record<string, FormDataValue> = { ...data.images }
+      for (const [angle, value] of Object.entries(images)) {
+        if (value instanceof File) {
+          images[angle] = await uploadImageToBlob(value, `vehicle-colors/${id}`)
+        }
+      }
+      data = { ...data, images }
     }
 
     return http.put<LaravelResourcePayload<VehicleColor>>(
