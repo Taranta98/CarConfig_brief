@@ -9,7 +9,6 @@ use App\Http\Resources\TrimResource;
 use App\Http\Resources\VehicleConfiguratorResource;
 use App\Http\Resources\VehicleResource;
 use App\Models\Vehicle;
-use App\Services\VercelBlobService;
 
 class VehicleController extends Controller
 {
@@ -42,28 +41,16 @@ class VehicleController extends Controller
         return new VehicleConfiguratorResource($vehicle);
     }
 
-    public function store(StoreVehicleRequest $request, VercelBlobService $blob)
+    public function store(StoreVehicleRequest $request)
     {
-        $imageUrl = null;
+        $data = $request->validated();
 
-        try {
-            if ($request->hasFile('image')) {
-                $imageUrl = $blob->uploadImage($request->file('image'), 'vehicles');
-            }
+        $vehicle = Vehicle::create($data);
 
-            $data = $request->safe()->except('image');
-            $data['image'] = $imageUrl ?? $request->string('image')->toString();
-
-            $vehicle = Vehicle::create($data);
-
-            return response()->json([
-                'message' => 'Vehicle created successfully',
-                'vehicle' => new VehicleResource($vehicle),
-            ], 201);
-        } catch (\Throwable $th) {
-            $blob->deleteIfBlobUrl($imageUrl);
-            throw $th;
-        }
+        return response()->json([
+            'message' => 'Vehicle created successfully',
+            'vehicle' => new VehicleResource($vehicle),
+        ], 201);
     }
 
     public function show(Vehicle $vehicle)
@@ -71,49 +58,19 @@ class VehicleController extends Controller
         return new VehicleResource($vehicle);
     }
 
-    public function update(UpdateVehicleRequest $request, Vehicle $vehicle, VercelBlobService $blob)
+    public function update(UpdateVehicleRequest $request, Vehicle $vehicle)
     {
-        $oldImageUrl = $vehicle->image;
-        $newImageUrl = $oldImageUrl;
+        $vehicle->update($request->validated());
 
-        try {
-            if ($request->hasFile('image')) {
-                $newImageUrl = $blob->uploadImage($request->file('image'), 'vehicles');
-            }
-
-            $data = $request->safe()->except('image');
-
-            if ($newImageUrl) {
-                $data['image'] = $newImageUrl;
-            } elseif ($request->filled('image')) {
-                $data['image'] = $request->string('image')->toString();
-            }
-
-            $vehicle->update($data);
-
-            if ($request->hasFile('image') && $oldImageUrl && $newImageUrl !== $oldImageUrl) {
-                $blob->deleteIfBlobUrl($oldImageUrl);
-            }
-
-            return response()->json([
-                'message' => 'Vehicle updated successfully',
-                'vehicle' => new VehicleResource($vehicle),
-            ]);
-        } catch (\Throwable $th) {
-            if ($request->hasFile('image') && $newImageUrl && $newImageUrl !== $oldImageUrl) {
-                $blob->deleteIfBlobUrl($newImageUrl);
-            }
-            throw $th;
-        }
+        return response()->json([
+            'message' => 'Vehicle updated successfully',
+            'vehicle' => new VehicleResource($vehicle->fresh()),
+        ]);
     }
 
-    public function destroy(Vehicle $vehicle, VercelBlobService $blob)
+    public function destroy(Vehicle $vehicle)
     {
-        $imageUrl = $vehicle->image;
-
         $vehicle->delete();
-
-        $blob->deleteIfBlobUrl($imageUrl);
 
         return response()->json([
             'message' => 'Vehicle deleted successfully',

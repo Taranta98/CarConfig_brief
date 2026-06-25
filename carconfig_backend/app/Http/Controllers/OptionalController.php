@@ -6,7 +6,6 @@ use App\Http\Requests\OptionalRequest\StoreOptionalRequest;
 use App\Http\Requests\OptionalRequest\UpdateOptionalRequest;
 use App\Http\Resources\OptionalResource;
 use App\Models\Optional;
-use App\Services\VercelBlobService;
 use Illuminate\Http\Request;
 
 class OptionalController extends Controller
@@ -42,13 +41,9 @@ class OptionalController extends Controller
         return new OptionalResource($optional->fresh());
     }
 
-    public function destroy(Optional $optional, VercelBlobService $blob)
+    public function destroy(Optional $optional)
     {
-        $imagePath = $optional->image;
-
         $optional->delete();
-
-        $blob->deleteIfBlobUrl($imagePath);
 
         return response()->json([
             'message' => 'Optional deleted successfully',

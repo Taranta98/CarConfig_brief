@@ -6,7 +6,6 @@ use App\Http\Requests\TrimRequest\StoreTrimRequest;
 use App\Http\Requests\TrimRequest\UpdateTrimRequest;
 use App\Http\Resources\TrimResource;
 use App\Models\Trim;
-use App\Services\VercelBlobService;
 use Illuminate\Http\Request;
 
 class TrimController extends Controller
@@ -42,13 +41,9 @@ class TrimController extends Controller
         return new TrimResource($trim->fresh());
     }
 
-    public function destroy(Trim $trim, VercelBlobService $blob)
+    public function destroy(Trim $trim)
     {
-        $imagePath = $trim->img;
-
         $trim->delete();
-
-        $blob->deleteIfBlobUrl($imagePath);
 
         return response()->json([
             'message' => 'Trim deleted successfully',

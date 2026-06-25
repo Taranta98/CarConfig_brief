@@ -26,11 +26,8 @@ class StoreVehicleColorRequest extends FormRequest
         foreach (VehicleViewAngle::values() as $angle) {
             $imageRules["images.{$angle}"] = [
                 'nullable',
-                Rule::when(
-                    $this->hasFile("images.{$angle}"),
-                    ['image', 'max:5120'],
-                    ['string', 'max:2048']
-                ),
+                'max:2048',
+                'string',
             ];
         }
 
@@ -99,6 +96,7 @@ class StoreVehicleColorRequest extends FormRequest
         foreach (VehicleViewAngle::values() as $angle) {
             if ($this->hasFile("images.{$angle}")) {
                 $count++;
+
                 continue;
             }
 
