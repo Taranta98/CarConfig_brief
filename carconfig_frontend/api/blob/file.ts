@@ -1,6 +1,4 @@
-import type { VercelRequest, VercelResponse } from "@vercel/node"
 import { get } from "@vercel/blob"
-import { Readable } from "node:stream"
 
 function isPrivateBlobUrl(url: string): boolean {
   try {
@@ -21,40 +19,41 @@ function extractPathnameFromUrl(url: string): string | null {
   }
 }
 
-export default async function handler(request: VercelRequest, response: VercelResponse) {
+export default async function handler(request: Request): Promise<Response> {
   if (request.method !== "GET") {
-    return response.status(405).json({ error: "Method Not Allowed" })
+    return Response.json({ error: "Method Not Allowed" }, { status: 405 })
   }
 
-  const urlParam = typeof request.query.url === "string" ? request.query.url : null
-  const pathnameParam =
-    typeof request.query.pathname === "string" ? request.query.pathname : null
+  const token = process.env.BLOB_READ_WRITE_TOKEN
+
+  if (!token) {
+    return Response.json({ error: "Missing BLOB_READ_WRITE_TOKEN" }, { status: 500 })
+  }
+
+  const requestUrl = new URL(request.url)
+  const urlParam = requestUrl.searchParams.get("url")
+  const pathnameParam = requestUrl.searchParams.get("pathname")
 
   const pathname =
     pathnameParam?.replace(/^\/+/, "") ??
     (urlParam && isPrivateBlobUrl(urlParam) ? extractPathnameFromUrl(urlParam) : null)
 
   if (!pathname) {
-    return response.status(400).json({ error: "Missing pathname" })
-  }
-
-  const token = process.env.BLOB_READ_WRITE_TOKEN
-
-  if (!token) {
-    return response.status(500).json({ error: "Missing BLOB_READ_WRITE_TOKEN" })
+    return Response.json({ error: "Missing pathname" }, { status: 400 })
   }
 
   const result = await get(pathname, { access: "private", token })
 
   if (!result || result.statusCode !== 200) {
-    return response.status(404).send("Not found")
+    return new Response("Not found", { status: 404 })
   }
 
-  response.setHeader("Content-Type", result.blob.contentType ?? "application/octet-stream")
-  response.setHeader("X-Content-Type-Options", "nosniff")
-  response.setHeader("Cache-Control", "public, max-age=31536000, immutable")
-  response.setHeader("ETag", result.blob.etag)
-
-  Readable.fromWeb(result.stream as unknown as ReadableStream).pipe(response)
+  return new Response(result.stream, {
+    headers: {
+      "Content-Type": result.blob.contentType ?? "application/octet-stream",
+      "X-Content-Type-Options": "nosniff",
+      "Cache-Control": "public, max-age=31536000, immutable",
+      ETag: result.blob.etag,
+    },
+  })
 }
-
