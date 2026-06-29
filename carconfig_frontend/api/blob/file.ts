@@ -1,6 +1,33 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node"
 import { get } from "@vercel/blob"
-import { blobAuthOptions, ensureBlobAuthAvailable } from "./blobAuth"
+
+function blobAuthOptions(): { token?: string } {
+  const token = process.env.BLOB_READ_WRITE_TOKEN?.trim()
+  const storeId = process.env.BLOB_STORE_ID
+
+  if (storeId) {
+    return {}
+  }
+
+  if (token) {
+    return { token }
+  }
+
+  throw new Error(
+    "Connect a Blob store to this Vercel project or set BLOB_READ_WRITE_TOKEN."
+  )
+}
+
+function ensureBlobAuthAvailable(): void {
+  const token = process.env.BLOB_READ_WRITE_TOKEN?.trim()
+  const storeId = process.env.BLOB_STORE_ID
+
+  if (!storeId && !token) {
+    throw new Error(
+      "Connect a Blob store to this Vercel project (Storage tab) or set BLOB_READ_WRITE_TOKEN."
+    )
+  }
+}
 
 function isPrivateBlobUrl(url: string): boolean {
   try {

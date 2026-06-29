@@ -1,6 +1,5 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node"
 import { handleUpload, type HandleUploadBody } from "@vercel/blob/client"
-import { ensureBlobAuthAvailable, getBlobReadWriteToken } from "./blobAuth"
 
 const MAX_UPLOAD_BYTES = 3 * 1024 * 1024
 
@@ -10,6 +9,29 @@ const ALLOWED_CONTENT_TYPES = [
   "image/webp",
   "image/gif",
 ]
+
+function getBlobReadWriteToken(): string {
+  const token = process.env.BLOB_READ_WRITE_TOKEN?.trim()
+
+  if (token) {
+    return token
+  }
+
+  throw new Error(
+    "Connect a Blob store to this Vercel project (Storage tab) or set BLOB_READ_WRITE_TOKEN."
+  )
+}
+
+function ensureBlobAuthAvailable(): void {
+  const token = process.env.BLOB_READ_WRITE_TOKEN?.trim()
+  const storeId = process.env.BLOB_STORE_ID
+
+  if (!storeId && !token) {
+    throw new Error(
+      "Connect a Blob store to this Vercel project (Storage tab) or set BLOB_READ_WRITE_TOKEN."
+    )
+  }
+}
 
 function isAllowedUploadPath(pathname: string): boolean {
   const normalized = pathname.replace(/^\/+/, "")
