@@ -24,6 +24,7 @@ import {
   type VehicleViewAngle,
 } from "@/features/Vehicles/vehicle.type"
 import { vehicleViewAngleLabels } from "@/features/Vehicles/vehicle.utils"
+import { resolveStorageUrl } from "@/lib/api"
 import { cn } from "@/lib/utils"
 
 type AdminVehicleColorsPanelProps = {
@@ -438,10 +439,13 @@ export function AdminVehicleColorsPanel({
       {!isLoading && !isError && filteredColors.length > 0 && (
         <ul className="divide-y divide-border/60 rounded-lg border border-border/80">
           {filteredColors.map((color) => {
-            const previewUrl =
+            const rawPreviewUrl =
               color.images.front ??
               Object.values(color.images).find(Boolean) ??
               null
+            const previewUrl = rawPreviewUrl
+              ? resolveStorageUrl(rawPreviewUrl)
+              : null
             const isPendingDelete = pendingDeleteId === color.id
 
             return (
