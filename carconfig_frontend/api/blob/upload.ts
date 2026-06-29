@@ -1,6 +1,7 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node"
 import { put } from "@vercel/blob"
 import Busboy from "busboy"
+import { blobAuthOptions, ensureBlobAuthAvailable } from "./blobAuth"
 
 export const config = {
   api: {
@@ -73,20 +74,16 @@ export default async function handler(
     return response.status(405).json({ error: "Method Not Allowed" })
   }
 
-  const token = process.env.BLOB_READ_WRITE_TOKEN
-
-  if (!token) {
-    return response.status(500).json({ error: "Missing BLOB_READ_WRITE_TOKEN" })
-  }
-
   try {
+    ensureBlobAuthAvailable()
+
     const { prefix, filename, contentType, buffer } = await parseMultipart(request)
     const safeName = filename.trim() || "image"
     const pathname = `${prefix.replace(/^\/+|\/+$/g, "")}/${safeName}`
 
     const blob = await put(pathname, buffer, {
       access: "private",
-      token,
+      ...blobAuthOptions(),
       contentType,
       addRandomSuffix: true,
     })

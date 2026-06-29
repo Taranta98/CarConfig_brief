@@ -1,6 +1,7 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node"
 import { get } from "@vercel/blob"
 import { Readable } from "node:stream"
+import { blobAuthOptions, ensureBlobAuthAvailable } from "./blobAuth"
 
 function isPrivateBlobUrl(url: string): boolean {
   try {
@@ -29,10 +30,11 @@ export default async function handler(
     return response.status(405).json({ error: "Method Not Allowed" })
   }
 
-  const token = process.env.BLOB_READ_WRITE_TOKEN
-
-  if (!token) {
-    return response.status(500).json({ error: "Missing BLOB_READ_WRITE_TOKEN" })
+  try {
+    ensureBlobAuthAvailable()
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Blob auth unavailable"
+    return response.status(500).json({ error: message })
   }
 
   const urlParam = typeof request.query.url === "string" ? request.query.url : null
@@ -47,7 +49,7 @@ export default async function handler(
     return response.status(400).json({ error: "Missing pathname" })
   }
 
-  const result = await get(pathname, { access: "private", token })
+  const result = await get(pathname, { access: "private", ...blobAuthOptions() })
 
   if (!result || result.statusCode !== 200) {
     return response.status(404).send("Not found")
