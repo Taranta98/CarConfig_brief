@@ -1,83 +1,42 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node"
 import { put } from "@vercel/blob"
-import Busboy from "busboy"
 import { blobAuthOptions, ensureBlobAuthAvailable } from "./blobAuth"
 
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-}
-
-type ParsedUpload = {
-  prefix: string
-  filename: string
-  contentType: string
-  buffer: Buffer
-}
-
-function parseMultipart(request: VercelRequest): Promise<ParsedUpload> {
-  return new Promise((resolve, reject) => {
-    const busboy = Busboy({ headers: request.headers })
-    let prefix = ""
-    let filename = "image"
-    let contentType = "application/octet-stream"
-    const chunks: Buffer[] = []
-
-    busboy.on("field", (name, value) => {
-      if (name === "prefix") {
-        prefix = value
-      }
-    })
-
-    busboy.on("file", (_name, file, info) => {
-      filename = info.filename || "image"
-      contentType = info.mimeType || "application/octet-stream"
-
-      file.on("data", (chunk: Buffer) => {
-        chunks.push(chunk)
-      })
-    })
-
-    busboy.on("error", reject)
-
-    busboy.on("finish", () => {
-      if (!prefix.trim()) {
-        reject(new Error("Missing prefix"))
-        return
-      }
-
-      const buffer = Buffer.concat(chunks)
-
-      if (buffer.length === 0) {
-        reject(new Error("Empty file"))
-        return
-      }
-
-      resolve({
-        prefix,
-        filename,
-        contentType,
-        buffer,
-      })
-    })
-
-    request.pipe(busboy)
-  })
+type UploadBody = {
+  prefix?: string
+  filename?: string
+  contentType?: string
+  data?: string
 }
 
 export default async function handler(
   request: VercelRequest,
   response: VercelResponse
 ) {
-  if (request.method !== "POST") {
-    return response.status(405).json({ error: "Method Not Allowed" })
-  }
-
   try {
+    if (request.method !== "POST") {
+      return response.status(405).json({ error: "Method Not Allowed" })
+    }
+
     ensureBlobAuthAvailable()
 
-    const { prefix, filename, contentType, buffer } = await parseMultipart(request)
+    const body = (request.body ?? {}) as UploadBody
+    const prefix = typeof body.prefix === "string" ? body.prefix : ""
+    const filename = typeof body.filename === "string" ? body.filename : "image"
+    const contentType =
+      typeof body.contentType === "string" ? body.contentType : "application/octet-stream"
+    const data = typeof body.data === "string" ? body.data : ""
+
+    if (!prefix.trim() || !data) {
+      return response.status(400).json({ error: "Missing prefix or data" })
+    }
+
+    const buffer = Buffer.from(data, "base64")
+
+    if (buffer.length === 0) {
+      return response.status(400).json({ error: "Empty file" })
+    }
+
     const safeName = filename.trim() || "image"
     const pathname = `${prefix.replace(/^\/+|\/+$/g, "")}/${safeName}`
 
@@ -90,6 +49,7 @@ export default async function handler(
 
     return response.status(200).json({ url: blob.url })
   } catch (error) {
+    console.error("Blob upload error:", error)
     const message = error instanceof Error ? error.message : "Upload failed"
     return response.status(400).json({ error: message })
   }
