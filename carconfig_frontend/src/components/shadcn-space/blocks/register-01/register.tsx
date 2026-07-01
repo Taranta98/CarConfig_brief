@@ -21,10 +21,10 @@ import { AxiosError } from "axios"
 import { EyeClosed, EyeIcon, Loader2 } from "lucide-react"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
-import { Link } from "react-router"
+import { Link, useNavigate } from "react-router"
 import { toast } from "sonner"
 import { z } from "zod"
-import VerifyEmail from "../verify-email-01/verify-email"
+// import VerifyEmail from "../verify-email-01/verify-email"
 
 export const registerSchema = z
   .object({
@@ -56,6 +56,7 @@ const fieldLabelClass =
   "text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground"
 
 const RegisterForm = () => {
+  const navigate = useNavigate()
   const form = useForm<z.infer<typeof registerSchema>>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
@@ -63,7 +64,7 @@ const RegisterForm = () => {
     },
   })
 
-  const [emailVerify, setEmailVerify] = useState("")
+  // const [emailVerify, setEmailVerify] = useState("")
   const [showPsw, setShowPsw] = useState(false)
   const [showPswConfirmation, setShowPswConfirmation] = useState(false)
 
@@ -82,7 +83,10 @@ const RegisterForm = () => {
   async function onSubmit(values: z.infer<typeof registerSchema>) {
     try {
       await AuthService.register(values)
-      setEmailVerify(values.email)
+      toast.success("Registrazione completata! Ora puoi accedere.")
+      navigate("/auth/login", { replace: true })
+      // Email verification flow — re-enable when SMTP/domain is configured.
+      // setEmailVerify(values.email)
     } catch (error) {
       if (!(error instanceof AxiosError)) {
         toast.error("Errore del server, riprova!")
@@ -130,9 +134,9 @@ const RegisterForm = () => {
     }
   }
 
-  if (emailVerify) {
-    return <VerifyEmail email={emailVerify} />
-  }
+  // if (emailVerify) {
+  //   return <VerifyEmail email={emailVerify} />
+  // }
 
   return (
     <AuthCard

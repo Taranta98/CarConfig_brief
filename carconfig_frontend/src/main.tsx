@@ -13,7 +13,7 @@ import SettingsPage from "./pages/SettingsPage"
 import AdminPage from "./pages/AdminPage"
 import MainLayout from "./layouts/MainLayout"
 import AuthLayout from "./layouts/AuthLayout"
-import EmailVerifyPage from "./pages/EmailVerifyPage"
+// import EmailVerifyPage from "./pages/EmailVerifyPage"
 import ForgotPasswordPage from "./pages/Auth/ForgotPasswordPage"
 import LoginPage from "./pages/Auth/LoginPage"
 import RegisterPage from "./pages/Auth/RegisterPage"
@@ -68,10 +68,11 @@ const router = createBrowserRouter([
         path: "/auth/reset-password",
         element: <ResetPasswordPage></ResetPasswordPage>,
       },
-      {
-        path: "/auth/verify-email/:id/:hash",
-        element: <EmailVerifyPage></EmailVerifyPage>,
-      },
+      // Email verification route — re-enable when SMTP/domain is configured.
+      // {
+      //   path: "/auth/verify-email/:id/:hash",
+      //   element: <EmailVerifyPage></EmailVerifyPage>,
+      // },
     ],
   },
 ])

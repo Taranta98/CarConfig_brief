@@ -2,7 +2,7 @@ import type { forgotPasswordSchema } from "@/components/shadcn-space/blocks/forg
 import type { loginSchema } from "@/components/shadcn-space/blocks/login-01/login"
 import type { registerSchema } from "@/components/shadcn-space/blocks/register-01/register"
 import type { resetPasswordSchema } from "@/components/shadcn-space/blocks/reset-password-01/reset-password"
-import type { verifyEmailSchema } from "@/components/shadcn-space/blocks/verify-email-01/verify-email"
+// import type { verifyEmailSchema } from "@/components/shadcn-space/blocks/verify-email-01/verify-email"
 import { http } from "@/lib/http"
 import type z from "zod"
 import type { User } from "../Users/user.type"
@@ -25,37 +25,43 @@ export class AuthService {
     return res
   }
 
-  static async verifyEmail(data: z.infer<typeof verifyEmailSchema>) {
-    const res = await http.post<{ token: string; user: User }>(
-      "/auth/email-verify",
-      data
-    )
-
-    if (res.data.token) {
-      useAuthStore.getState().login(res.data.user, res.data.token)
-    }
-
-    return res
-  }
-
-  static async verifyEmailFromLink(
-    id: string,
-    hash: string,
-    params: { expires: string; signature: string }
-  ) {
-    const res = await http.get<{
-      success: boolean
-      message: string
-      user: User
-      token: string
-    }>(`/email/verify/${id}/${hash}`, { params })
-
-    if (res.data.token) {
-      useAuthStore.getState().login(res.data.user, res.data.token)
-    }
-
-    return res
-  }
+  // Email verification methods — re-enable when SMTP/domain is configured.
+  //
+  // static async verifyEmail(data: z.infer<typeof verifyEmailSchema>) {
+  //   const res = await http.post<{ token: string; user: User }>(
+  //     "/auth/email-verify",
+  //     data
+  //   )
+  //
+  //   if (res.data.token) {
+  //     useAuthStore.getState().login(res.data.user, res.data.token)
+  //   }
+  //
+  //   return res
+  // }
+  //
+  // static async verifyEmailFromLink(
+  //   id: string,
+  //   hash: string,
+  //   params: { expires: string; signature: string }
+  // ) {
+  //   const res = await http.get<{
+  //     success: boolean
+  //     message: string
+  //     user: User
+  //     token: string
+  //   }>(`/email/verify/${id}/${hash}`, { params })
+  //
+  //   if (res.data.token) {
+  //     useAuthStore.getState().login(res.data.user, res.data.token)
+  //   }
+  //
+  //   return res
+  // }
+  //
+  // static async resendEmailVerify(email: string) {
+  //   return http.post("/auth/resend-email-verify", { email })
+  // }
 
   static async me() {
     const token = useAuthStore.getState().token
@@ -64,10 +70,6 @@ export class AuthService {
         Authorization: `Bearer ${token}`,
       },
     })
-  }
-
-  static async resendEmailVerify(email: string) {
-    return http.post("/auth/resend-email-verify", { email })
   }
 
   static async forgotPassword(email: z.infer<typeof forgotPasswordSchema>["email"]) {

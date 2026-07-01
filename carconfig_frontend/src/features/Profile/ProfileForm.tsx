@@ -86,12 +86,14 @@ export function ProfileForm({ user }: ProfileFormProps) {
                 readOnly
                 disabled
               />
+              {/* Email verification warning — re-enable when SMTP/domain is configured.
               {!user.email_verified_at && (
                 <p className="text-sm text-amber-600 dark:text-amber-400">
                   La tua email non è ancora verificata. Controlla la posta in
                   arrivo.
                 </p>
               )}
+              */}
             </Field>
             <Button
               type="submit"

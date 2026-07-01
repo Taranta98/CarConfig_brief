@@ -24,7 +24,7 @@ import { useForm } from "react-hook-form"
 import { Link, useLocation, useNavigate } from "react-router"
 import { toast } from "sonner"
 import { z } from "zod"
-import VerifyEmail from "../verify-email-01/verify-email"
+// import VerifyEmail from "../verify-email-01/verify-email"
 
 export const loginSchema = z.object({
   email: z
@@ -49,7 +49,7 @@ const LoginForm = () => {
   const location = useLocation()
   const redirectTo = getAuthRedirectPath(location.state)
 
-  const [verifyEmail, setVerifyEmail] = useState("")
+  // const [verifyEmail, setVerifyEmail] = useState("")
   const [showPsw, setShowPsw] = useState(false)
 
   async function onSubmit(values: z.infer<typeof loginSchema>) {
@@ -69,13 +69,14 @@ const LoginForm = () => {
         errors?: Record<string, string[]>
       }
 
-      if (data?.cause === "EMAIL_NOT_VERIFIED") {
-        setVerifyEmail(values.email)
-        toast.error(
-          data.message ?? "Devi verificare la tua email prima di accedere"
-        )
-        return
-      }
+      // Email verification gate — re-enable when SMTP/domain is configured.
+      // if (data?.cause === "EMAIL_NOT_VERIFIED") {
+      //   setVerifyEmail(values.email)
+      //   toast.error(
+      //     data.message ?? "Devi verificare la tua email prima di accedere"
+      //   )
+      //   return
+      // }
 
       if (data?.errors) {
         for (const [field, messages] of Object.entries(data.errors)) {
@@ -100,9 +101,9 @@ const LoginForm = () => {
     }
   }
 
-  if (verifyEmail) {
-    return <VerifyEmail email={verifyEmail} />
-  }
+  // if (verifyEmail) {
+  //   return <VerifyEmail email={verifyEmail} />
+  // }
 
   return (
     <AuthCard

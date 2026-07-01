@@ -2,7 +2,7 @@
 
 use App\Http\Controllers\AdminStatsController;
 use App\Http\Controllers\Auth\AuthController;
-use App\Http\Controllers\Auth\EmailVerificationController;
+// use App\Http\Controllers\Auth\EmailVerificationController;
 use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\Auth\ProfileController;
 use App\Http\Controllers\ConfigurationController;
@@ -22,8 +22,9 @@ Route::controller(AuthController::class)->group(function () {
     Route::post('/login', 'login');
 });
 
-Route::get('/email/verify/{id}/{hash}', [EmailVerificationController::class, 'verify'])->name('api.verification.verify');
-Route::post('/auth/resend-email-verify', [EmailVerificationController::class, 'resendByEmail']);
+// Email verification routes — re-enable when SMTP/domain is configured.
+// Route::get('/email/verify/{id}/{hash}', [EmailVerificationController::class, 'verify'])->name('api.verification.verify');
+// Route::post('/auth/resend-email-verify', [EmailVerificationController::class, 'resendByEmail']);
 
 Route::get('/vehicles', [VehicleController::class, 'index']);
 Route::get('/vehicles/{vehicle}/trims', [VehicleController::class, 'trims']);
@@ -33,7 +34,7 @@ Route::get('/vehicles/{vehicle}/configurator', [VehicleController::class, 'confi
 Route::post('/configurations/quote/pdf', [ConfigurationController::class, 'downloadQuote']);
 
 Route::middleware(['auth:sanctum'])->group(function () {
-    Route::post('/email/verification-notification', [EmailVerificationController::class, 'resend']);
+    // Route::post('/email/verification-notification', [EmailVerificationController::class, 'resend']);
 
     Route::get('/auth/me', [ProfileController::class, 'me']);
     Route::put('/profile', [ProfileController::class, 'update']);
