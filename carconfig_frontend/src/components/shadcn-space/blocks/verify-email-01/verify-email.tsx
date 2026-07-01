@@ -1,9 +1,9 @@
 import AuthCard from "@/components/auth/AuthCard"
 import { Button } from "@/components/ui/button"
 import { FieldDescription, FieldGroup } from "@/components/ui/field"
-import { AuthService } from "@/features/Auth/auth.service"
+// import { AuthService } from "@/features/Auth/auth.service"
 import { useAuthStore } from "@/features/Auth/auth.store"
-import { isAxiosError } from "axios"
+// import { isAxiosError } from "axios"
 import { Loader2, Mail } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router"
@@ -37,14 +37,12 @@ const VerifyEmail = ({ email }: VerifyEmailProps) => {
   async function handleResend() {
     setIsResending(true)
     try {
-      const res = await AuthService.resendEmailVerify(email)
-      toast.success(res.data.message)
-    } catch (error) {
-      toast.error(
-        isAxiosError(error)
-          ? (error.response?.data?.message ?? "Impossibile reinviare il link")
-          : "Impossibile reinviare il link"
-      )
+      // Re-enable when SMTP/domain is configured.
+      // const res = await AuthService.resendEmailVerify(email)
+      // toast.success(res.data.message)
+      toast.error("Verifica email temporaneamente disabilitata.")
+    } catch {
+      toast.error("Impossibile reinviare il link")
     } finally {
       setIsResending(false)
     }

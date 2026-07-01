@@ -1,6 +1,6 @@
 import AuthSplitLayout from "@/components/auth/AuthSplitLayout"
 import AuthCard from "@/components/auth/AuthCard"
-import { AuthService } from "@/features/Auth/auth.service"
+// import { AuthService } from "@/features/Auth/auth.service"
 import { Button } from "@/components/ui/button"
 import { CheckCircle2, Loader2, XCircle } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
@@ -22,34 +22,38 @@ const EmailVerifyPage = () => {
     }
     started.current = true
 
-    const expires = searchParams.get("expires")
-    const signature = searchParams.get("signature")
+    // Email verification — re-enable when SMTP/domain is configured.
+    // const expires = searchParams.get("expires")
+    // const signature = searchParams.get("signature")
+    //
+    // if (!expires || !signature) {
+    //   setStatus("error")
+    //   toast.error("Link di verifica non valido.")
+    //   return
+    // }
+    //
+    // AuthService.verifyEmailFromLink(id, hash, { expires, signature })
+    //   .then(() => {
+    //     setStatus("success")
+    //     toast.success("Email verificata con successo")
+    //
+    //     if (window.opener && !window.opener.closed) {
+    //       window.opener.focus()
+    //       window.close()
+    //       return
+    //     }
+    //
+    //     window.setTimeout(() => {
+    //       navigate("/", { replace: true })
+    //     }, 2000)
+    //   })
+    //   .catch(() => {
+    //     setStatus("error")
+    //     toast.error("Impossibile verificare l'email")
+    //   })
 
-    if (!expires || !signature) {
-      setStatus("error")
-      toast.error("Link di verifica non valido.")
-      return
-    }
-
-    AuthService.verifyEmailFromLink(id, hash, { expires, signature })
-      .then(() => {
-        setStatus("success")
-        toast.success("Email verificata con successo")
-
-        if (window.opener && !window.opener.closed) {
-          window.opener.focus()
-          window.close()
-          return
-        }
-
-        window.setTimeout(() => {
-          navigate("/", { replace: true })
-        }, 2000)
-      })
-      .catch(() => {
-        setStatus("error")
-        toast.error("Impossibile verificare l'email")
-      })
+    setStatus("error")
+    toast.error("Verifica email temporaneamente disabilitata.")
   }, [hash, id, navigate, searchParams])
 
   const content = {
