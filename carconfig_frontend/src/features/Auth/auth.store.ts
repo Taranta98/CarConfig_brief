@@ -18,7 +18,7 @@ export const useAuthStore = create<AuthStore>()(
         set({ user, token })
       },
       logout() {
-        set({ user: undefined, token: "" })
+        useAuthStore.persist.clearStorage()
       },
     }),
     {
@@ -30,7 +30,14 @@ export const useAuthStore = create<AuthStore>()(
 
 if (typeof window !== "undefined") {
   window.addEventListener("storage", (event) => {
-    if (event.key !== "authStore" || !event.newValue) return
+    if (event.key !== "authStore") {
+      return
+    }
+
+    if (!event.newValue) {
+      useAuthStore.setState({ user: undefined, token: "" })
+      return
+    }
 
     try {
       const { state } = JSON.parse(event.newValue) as {
