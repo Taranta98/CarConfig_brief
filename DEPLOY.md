@@ -88,8 +88,23 @@ Su Render il **filesystem è effimero**: file caricati in `storage/app/public` s
 | Variabile | Esempio |
 |-----------|---------|
 | `VITE_BACKEND_URL` | `https://tuo-api.onrender.com` (senza slash finale) |
+| `BLOB_READ_WRITE_TOKEN` | Impostata automaticamente collegando un Blob store (vedi sotto) |
 
 Il client API usa `VITE_BACKEND_URL + '/api'` (vedi `src/lib/env.ts`).
+
+### Storage immagini (Vercel Blob)
+
+Le immagini (veicoli, colori, ecc.) vengono caricate su **Vercel Blob** tramite le serverless function in `api/blob/`. Senza Blob store configurato, l’upload fallisce.
+
+1. Vercel Dashboard → progetto frontend → **Storage** → **Create Database** → **Blob**
+2. Scegli accesso **Private** e collega il Blob store al progetto
+3. Vercel aggiunge automaticamente `BLOB_READ_WRITE_TOKEN` (e opzionalmente `BLOB_STORE_ID`)
+4. Ridistribuisci il frontend dopo aver collegato lo storage
+
+In locale, per testare l’upload:
+
+1. Aggiungi `BLOB_READ_WRITE_TOKEN` in `carconfig_frontend/.env.local` (da Vercel Dashboard → Storage → Blob store → token, oppure `vercel env pull .env.local`)
+2. Riavvia `npm run dev` — le route `/api/blob/*` sono servite da Vite in locale (plugin `vite-plugin-local-api.ts`)
 
 ### Ignored Build Step (opzionale)
 

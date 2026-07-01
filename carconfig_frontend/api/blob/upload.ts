@@ -1,53 +1,74 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node"
-import { put } from "@vercel/blob"
-import { blobAuthOptions, ensureBlobAuthAvailable } from "./blobAuth"
+import { handleUpload, type HandleUploadBody } from "@vercel/blob/client"
 
-type UploadBody = {
-  prefix?: string
-  filename?: string
-  contentType?: string
-  data?: string
+const MAX_UPLOAD_BYTES = 3 * 1024 * 1024
+
+const ALLOWED_CONTENT_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/gif",
+]
+
+function getBlobReadWriteToken(): string {
+  const token = process.env.BLOB_READ_WRITE_TOKEN?.trim()
+
+  if (token) {
+    return token
+  }
+
+  throw new Error(
+    "Connect a Blob store to this Vercel project (Storage tab) or set BLOB_READ_WRITE_TOKEN."
+  )
+}
+
+function ensureBlobAuthAvailable(): void {
+  const token = process.env.BLOB_READ_WRITE_TOKEN?.trim()
+  const storeId = process.env.BLOB_STORE_ID
+
+  if (!storeId && !token) {
+    throw new Error(
+      "Connect a Blob store to this Vercel project (Storage tab) or set BLOB_READ_WRITE_TOKEN."
+    )
+  }
+}
+
+function isAllowedUploadPath(pathname: string): boolean {
+  const normalized = pathname.replace(/^\/+/, "")
+  return /^(vehicles|vehicle-colors)\//.test(normalized)
 }
 
 export default async function handler(
   request: VercelRequest,
   response: VercelResponse
 ) {
-  try {
-    if (request.method !== "POST") {
-      return response.status(405).json({ error: "Method Not Allowed" })
-    }
+  if (request.method !== "POST") {
+    return response.status(405).json({ error: "Method Not Allowed" })
+  }
 
+  try {
     ensureBlobAuthAvailable()
 
-    const body = (request.body ?? {}) as UploadBody
-    const prefix = typeof body.prefix === "string" ? body.prefix : ""
-    const filename = typeof body.filename === "string" ? body.filename : "image"
-    const contentType =
-      typeof body.contentType === "string" ? body.contentType : "application/octet-stream"
-    const data = typeof body.data === "string" ? body.data : ""
+    const body = request.body as HandleUploadBody
 
-    if (!prefix.trim() || !data) {
-      return response.status(400).json({ error: "Missing prefix or data" })
-    }
+    const jsonResponse = await handleUpload({
+      body,
+      request,
+      token: getBlobReadWriteToken(),
+      onBeforeGenerateToken: async (pathname) => {
+        if (!isAllowedUploadPath(pathname)) {
+          throw new Error("Upload path not allowed")
+        }
 
-    const buffer = Buffer.from(data, "base64")
-
-    if (buffer.length === 0) {
-      return response.status(400).json({ error: "Empty file" })
-    }
-
-    const safeName = filename.trim() || "image"
-    const pathname = `${prefix.replace(/^\/+|\/+$/g, "")}/${safeName}`
-
-    const blob = await put(pathname, buffer, {
-      access: "private",
-      ...blobAuthOptions(),
-      contentType,
-      addRandomSuffix: true,
+        return {
+          allowedContentTypes: ALLOWED_CONTENT_TYPES,
+          addRandomSuffix: true,
+          maximumSizeInBytes: MAX_UPLOAD_BYTES,
+        }
+      },
     })
 
-    return response.status(200).json({ url: blob.url })
+    return response.status(200).json(jsonResponse)
   } catch (error) {
     console.error("Blob upload error:", error)
     const message = error instanceof Error ? error.message : "Upload failed"
